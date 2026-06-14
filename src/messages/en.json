@@ -1,0 +1,141 @@
+{
+  "metadata": {
+    "title": "Restaurant Management System",
+    "description": "Frontend architecture for a restaurant ordering and management app."
+  },
+  "common": {
+    "close": "Close",
+    "loading": "Loading restaurant experience...",
+    "pageNotFound": "Page not found",
+    "pageNotFoundDescription": "The page you are looking for does not exist in this restaurant workspace.",
+    "returnHome": "Return home",
+    "somethingWentWrong": "Something went wrong",
+    "errorDescription": "Please try loading this page again.",
+    "tryAgain": "Try again",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "featured": "Featured",
+    "edit": "Edit",
+    "save": "Save",
+    "menu": "Menu",
+    "cart": "Cart",
+    "dashboard": "Dashboard"
+  },
+  "navigation": {
+    "brand": "Bistro Central",
+    "logoAlt": "Bistro Central logo",
+    "dashboardBrand": "Restaurant Dashboard",
+    "menu": "Menu",
+    "cart": "Cart",
+    "trackOrder": "Track Order",
+    "overview": "Overview",
+    "products": "Products",
+    "categories": "Categories",
+    "orders": "Orders",
+    "settings": "Settings",
+    "viewStorefront": "View storefront",
+    "openMenu": "Menu"
+  },
+  "pages": {
+    "landing": {
+      "title": "Landing Page",
+      "description": "{restaurantName} public storefront starter page."
+    },
+    "menu": {
+      "title": "Menu Page",
+      "description": "Browse {productCount} mock products across {categoryCount} categories."
+    },
+    "productDetails": {
+      "title": "Product Details Page",
+      "description": "Starter detail route for a selected menu item."
+    },
+    "cart": {
+      "title": "Cart Page",
+      "description": "Starter cart route prepared for client-side cart state."
+    },
+    "checkout": {
+      "title": "Checkout Page",
+      "description": "Mock checkout prepared with a {minimumOrder} minimum order."
+    },
+    "trackOrder": {
+      "title": "Track Order Page",
+      "description": "Starter route for customers to follow an order status."
+    },
+    "dashboard": {
+      "title": "Dashboard Overview",
+      "description": "Starter management dashboard using mock restaurant metrics."
+    },
+    "products": {
+      "title": "Products Management",
+      "description": "Starter route for managing restaurant menu products."
+    },
+    "categories": {
+      "title": "Categories Management",
+      "description": "Starter route for grouping menu products."
+    },
+    "orders": {
+      "title": "Orders Management",
+      "description": "Starter route for reviewing and updating restaurant orders."
+    },
+    "settings": {
+      "title": "Restaurant Settings",
+      "description": "Starter route for restaurant profile and operating settings."
+    }
+  },
+  "forms": {
+    "customerName": "Customer name",
+    "phoneNumber": "Phone number",
+    "deliveryAddress": "Delivery address",
+    "orderNotes": "Order notes",
+    "createMockOrder": "Create mock order",
+    "deliveryPhone": "Delivery phone",
+    "productName": "Product name",
+    "productDescription": "Product description",
+    "price": "Price",
+    "saveProduct": "Save product",
+    "categoryName": "Category name",
+    "categoryDescription": "Category description",
+    "saveCategory": "Save category",
+    "saveRestaurantInfo": "Save restaurant info",
+    "saveDeliverySettings": "Save delivery settings",
+    "saveOpeningHours": "Save opening hours"
+  },
+  "components": {
+    "aboutSection": "About Section",
+    "testimonialsSection": "Testimonials Section",
+    "testimonialsDescription": "Starter placeholder for future customer feedback.",
+    "starterFooter": "{restaurantName} starter footer",
+    "details": "Details",
+    "searchMenu": "Search menu",
+    "price": "Price",
+    "preparation": "Preparation",
+    "rating": "Rating",
+    "minutes": "{count} min",
+    "quantity": "Quantity: {quantity}",
+    "subtotal": "Subtotal",
+    "delivery": "Delivery",
+    "total": "Total",
+    "emptyCartTitle": "Your cart is empty",
+    "emptyCartDescription": "Cart state is ready for menu interactions.",
+    "browseMenu": "Browse menu",
+    "checkout": "Checkout",
+    "clearCart": "Clear cart",
+    "orderSummary": "Order Summary",
+    "orderSummaryDescription": "Checkout summary placeholder prepared for cart totals.",
+    "totalOrders": "Total orders",
+    "pendingOrders": "Pending orders",
+    "revenueToday": "Revenue today",
+    "averagePreparationTime": "Avg. prep time",
+    "ordersCount": "{count} orders",
+    "orderCustomerTotal": "{customerName} · {total}",
+    "noProductImages": "No product images yet"
+  },
+  "statuses": {
+    "pending": "pending",
+    "preparing": "preparing",
+    "ready": "ready",
+    "out-for-delivery": "out for delivery",
+    "delivered": "delivered",
+    "cancelled": "cancelled"
+  }
+}

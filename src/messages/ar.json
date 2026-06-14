@@ -1,0 +1,141 @@
+{
+  "metadata": {
+    "title": "نظام إدارة المطعم",
+    "description": "هيكل واجهة أمامية لتطبيق طلبات وإدارة مطعم."
+  },
+  "common": {
+    "close": "إغلاق",
+    "loading": "جاري تحميل تجربة المطعم...",
+    "pageNotFound": "الصفحة غير موجودة",
+    "pageNotFoundDescription": "الصفحة التي تبحث عنها غير موجودة في مساحة عمل المطعم.",
+    "returnHome": "العودة للرئيسية",
+    "somethingWentWrong": "حدث خطأ",
+    "errorDescription": "يرجى محاولة تحميل هذه الصفحة مرة أخرى.",
+    "tryAgain": "حاول مرة أخرى",
+    "available": "متاح",
+    "unavailable": "غير متاح",
+    "featured": "مميز",
+    "edit": "تعديل",
+    "save": "حفظ",
+    "menu": "القائمة",
+    "cart": "السلة",
+    "dashboard": "لوحة التحكم"
+  },
+  "navigation": {
+    "brand": "بيسترو سنترال",
+    "logoAlt": "شعار بيسترو سنترال",
+    "dashboardBrand": "لوحة إدارة المطعم",
+    "menu": "القائمة",
+    "cart": "السلة",
+    "trackOrder": "تتبع الطلب",
+    "overview": "نظرة عامة",
+    "products": "المنتجات",
+    "categories": "الأقسام",
+    "orders": "الطلبات",
+    "settings": "الإعدادات",
+    "viewStorefront": "عرض واجهة المتجر",
+    "openMenu": "القائمة"
+  },
+  "pages": {
+    "landing": {
+      "title": "الصفحة الرئيسية",
+      "description": "صفحة بداية واجهة المتجر العامة لـ {restaurantName}."
+    },
+    "menu": {
+      "title": "صفحة القائمة",
+      "description": "تصفح {productCount} منتجات تجريبية ضمن {categoryCount} أقسام."
+    },
+    "productDetails": {
+      "title": "صفحة تفاصيل المنتج",
+      "description": "مسار بداية لعرض تفاصيل صنف محدد من القائمة."
+    },
+    "cart": {
+      "title": "صفحة السلة",
+      "description": "مسار بداية للسلة جاهز لحالة السلة على جانب العميل."
+    },
+    "checkout": {
+      "title": "صفحة الدفع",
+      "description": "نموذج دفع تجريبي بحد أدنى للطلب {minimumOrder}."
+    },
+    "trackOrder": {
+      "title": "صفحة تتبع الطلب",
+      "description": "مسار بداية للعملاء لمتابعة حالة الطلب."
+    },
+    "dashboard": {
+      "title": "نظرة عامة على لوحة التحكم",
+      "description": "لوحة إدارة أولية تستخدم مؤشرات مطعم تجريبية."
+    },
+    "products": {
+      "title": "إدارة المنتجات",
+      "description": "مسار بداية لإدارة منتجات قائمة المطعم."
+    },
+    "categories": {
+      "title": "إدارة الأقسام",
+      "description": "مسار بداية لتنظيم منتجات القائمة."
+    },
+    "orders": {
+      "title": "إدارة الطلبات",
+      "description": "مسار بداية لمراجعة طلبات المطعم وتحديثها."
+    },
+    "settings": {
+      "title": "إعدادات المطعم",
+      "description": "مسار بداية لملف المطعم وإعدادات التشغيل."
+    }
+  },
+  "forms": {
+    "customerName": "اسم العميل",
+    "phoneNumber": "رقم الهاتف",
+    "deliveryAddress": "عنوان التوصيل",
+    "orderNotes": "ملاحظات الطلب",
+    "createMockOrder": "إنشاء طلب تجريبي",
+    "deliveryPhone": "هاتف التوصيل",
+    "productName": "اسم المنتج",
+    "productDescription": "وصف المنتج",
+    "price": "السعر",
+    "saveProduct": "حفظ المنتج",
+    "categoryName": "اسم القسم",
+    "categoryDescription": "وصف القسم",
+    "saveCategory": "حفظ القسم",
+    "saveRestaurantInfo": "حفظ بيانات المطعم",
+    "saveDeliverySettings": "حفظ إعدادات التوصيل",
+    "saveOpeningHours": "حفظ ساعات العمل"
+  },
+  "components": {
+    "aboutSection": "قسم نبذة",
+    "testimonialsSection": "قسم آراء العملاء",
+    "testimonialsDescription": "عنصر بداية مخصص لآراء العملاء مستقبلًا.",
+    "starterFooter": "{restaurantName} تذييل مبدئي",
+    "details": "التفاصيل",
+    "searchMenu": "ابحث في القائمة",
+    "price": "السعر",
+    "preparation": "التحضير",
+    "rating": "التقييم",
+    "minutes": "{count} دقيقة",
+    "quantity": "الكمية: {quantity}",
+    "subtotal": "المجموع الفرعي",
+    "delivery": "التوصيل",
+    "total": "الإجمالي",
+    "emptyCartTitle": "سلتك فارغة",
+    "emptyCartDescription": "حالة السلة جاهزة للتفاعل مع القائمة.",
+    "browseMenu": "تصفح القائمة",
+    "checkout": "الدفع",
+    "clearCart": "تفريغ السلة",
+    "orderSummary": "ملخص الطلب",
+    "orderSummaryDescription": "عنصر ملخص الدفع جاهز لعرض إجماليات السلة.",
+    "totalOrders": "إجمالي الطلبات",
+    "pendingOrders": "الطلبات المعلقة",
+    "revenueToday": "إيرادات اليوم",
+    "averagePreparationTime": "متوسط وقت التحضير",
+    "ordersCount": "{count} طلب",
+    "orderCustomerTotal": "{customerName} · {total}",
+    "noProductImages": "لا توجد صور للمنتج بعد"
+  },
+  "statuses": {
+    "pending": "معلق",
+    "preparing": "قيد التحضير",
+    "ready": "جاهز",
+    "out-for-delivery": "في طريقه للتوصيل",
+    "delivered": "تم التوصيل",
+    "cancelled": "ملغي"
+  }
+}
