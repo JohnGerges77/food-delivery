@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import Image from "next/image";
+import { ShoppingCart } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
 
@@ -8,7 +9,7 @@ export function PublicNavbar() {
   const links = [
     { href: routes.home, label: "Home" },
     { href: routes.menu, label: "Menu" },
-    { href: `${routes.home}#about`, label: "About" },
+    { href: routes.about, label: "About" },
     { href: `${routes.home}#contact`, label: "Contact" },
   ];
 
@@ -45,10 +46,16 @@ export function PublicNavbar() {
         </div>
 
         <Link
-          className="justify-self-end rounded-full bg-[color:var(--primary)] px-5 py-2.5 text-sm font-semibold text-[color:var(--background)] shadow-[0_12px_34px_rgba(255,122,0,0.34)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[color:var(--primary-light)] hover:shadow-[0_16px_42px_rgba(255,157,51,0.42)]"
-          href={routes.menu}
+          className="group relative grid size-11 justify-self-end place-items-center rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/10 text-[color:var(--primary-light)] shadow-[0_10px_30px_rgba(255,122,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--primary)]/60 hover:bg-[color:var(--primary)] hover:text-[color:var(--background)] hover:shadow-[0_14px_38px_rgba(255,122,0,0.38)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--primary)]"
+          href={routes.cart}
+          aria-label="View cart"
         >
-          Order Now
+          <ShoppingCart
+            aria-hidden="true"
+            className="size-5 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110"
+            strokeWidth={2.2}
+          />
+          <span className="absolute right-1.5 top-1.5 size-2 rounded-full border-2 border-[color:var(--background)] bg-[color:var(--primary)] transition-colors group-hover:bg-white" />
         </Link>
       </div>
     </nav>

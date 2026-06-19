@@ -1,8 +1,7 @@
-import { PageHeader } from "@/components/common/PageHeader";
-import { ProductsTable } from "@/components/features/products/ProductsTable";
+import { DashboardProductsPage } from "@/components/features/dashboard/DashboardProductsPage";
 import type { Locale } from "@/i18n/routing";
+import { getCategories } from "@/services/category-service";
 import { getProducts } from "@/services/product-service";
-import { getTranslations } from "next-intl/server";
 
 export default async function ProductsManagementPage({
   params,
@@ -10,16 +9,8 @@ export default async function ProductsManagementPage({
   params: Promise<{ locale: Locale }>;
 }) {
   const { locale } = await params;
-  const t = await getTranslations("pages.products");
   const products = getProducts(locale);
+  const categories = getCategories(locale);
 
-  return (
-    <section className="space-y-8">
-      <PageHeader
-        title={t("title")}
-        description={t("description")}
-      />
-      <ProductsTable products={products} />
-    </section>
-  );
+  return <DashboardProductsPage categories={categories} products={products} />;
 }

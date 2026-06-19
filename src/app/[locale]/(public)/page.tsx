@@ -1,7 +1,9 @@
 import BestItems from "@/components/features/landing/Bestitems";
+import ContactSection from "@/components/features/landing/ContactSection.jsx";
 import { FeaturedProducts } from "@/components/features/landing/FeaturedProducts";
 import { HeroSection } from "@/components/features/landing/HeroSection";
 import WhyChoose from "@/components/features/landing/WhyChoose";
+import Footer from "@/components/layout/Footer.jsx";
 import { PublicNavbar } from "@/components/layout/PublicNavbar";
 import type { Locale } from "@/i18n/routing";
 import { getRestaurantInfo } from "@/services/restaurant-service";
@@ -22,6 +24,8 @@ export default async function LandingPage({
         <BestItems />
         <FeaturedProducts />
         <WhyChoose />
+        <ContactSection />
+        <Footer />
       </main>
     </>
   );

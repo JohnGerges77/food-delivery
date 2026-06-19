@@ -1,8 +1,7 @@
-import { PageHeader } from "@/components/common/PageHeader";
-import { CategoriesTable } from "@/components/features/categories/CategoriesTable";
+import { DashboardCategoriesPage } from "@/components/features/dashboard/DashboardCategoriesPage";
 import type { Locale } from "@/i18n/routing";
 import { getCategories } from "@/services/category-service";
-import { getTranslations } from "next-intl/server";
+import { getProducts } from "@/services/product-service";
 
 export default async function CategoriesManagementPage({
   params,
@@ -10,16 +9,8 @@ export default async function CategoriesManagementPage({
   params: Promise<{ locale: Locale }>;
 }) {
   const { locale } = await params;
-  const t = await getTranslations("pages.categories");
   const categories = getCategories(locale);
+  const products = getProducts(locale);
 
-  return (
-    <section className="space-y-8">
-      <PageHeader
-        title={t("title")}
-        description={t("description")}
-      />
-      <CategoriesTable categories={categories} />
-    </section>
-  );
+  return <DashboardCategoriesPage categories={categories} products={products} />;
 }
