@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
+import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
 
@@ -53,6 +54,14 @@ const bestItems = [
   },
 ];
 
+const arabicBestItems: Record<string, { name: string; category: string; description: string; badge: string }> = {
+  "Signature Burger": { name: "برجر سافورا", category: "اختيار المطعم", description: "قطعتا لحم مشويتان وشيدر مدخن وبصل مكرمل وصوص سافورا الدافئ.", badge: "الأكثر مبيعًا" },
+  "Crispy Fried Rice": { name: "أرز مقلي مقرمش", category: "طبق دافئ", description: "أرز مقلي بالأعشاب والخضروات المحمصة ونكهة غنية.", badge: "اختيار الشيف" },
+  "Grilled Chicken": { name: "دجاج مشوي", category: "مشويات اللهب", description: "صدر دجاج مشوي مع أعشاب بالزبدة ورائحة مدخنة.", badge: "طبق مميز" },
+  "Italian Pasta": { name: "باستا إيطالية", category: "صوص بطيء", description: "باستا ناعمة بالكريمة والبارميزان والفلفل والخضروات الطازجة.", badge: "محبوب" },
+  "Golden Rice Plate": { name: "طبق الأرز الذهبي", category: "أطباق سخية", description: "طبق أرز عطري سخي بحواف مقرمشة وتوابل دافئة.", badge: "طازج" },
+};
+
 const cardVariants: Variants = {
   hidden: { opacity: 0, y: 28 },
   visible: (index = 0) => ({
@@ -69,9 +78,11 @@ const cardVariants: Variants = {
 function BestItemCard({
   item,
   index,
+  isArabic,
 }: {
   item: (typeof bestItems)[number];
   index: number;
+  isArabic: boolean;
 }) {
   return (
     <motion.article
@@ -154,7 +165,7 @@ function BestItemCard({
           className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--primary-light)] transition-colors duration-300 hover:text-[color:var(--text)]"
           href={routes.menu}
         >
-          View Item
+          {isArabic ? "عرض الطبق" : "View Item"}
           <span className="transition-transform duration-300 group-hover:translate-x-1">
             -&gt;
           </span>
@@ -165,6 +176,10 @@ function BestItemCard({
 }
 
 export default function BestItems() {
+  const isArabic = useLocale() === "ar";
+  const displayedItems = bestItems.map((item) =>
+    isArabic ? {...item, ...arabicBestItems[item.name]} : item,
+  );
   return (
     <section className="relative isolate overflow-hidden bg-[color:var(--background)] px-4 py-20 text-[color:var(--text)] sm:px-6 lg:px-8">
       <div className="absolute left-1/2 top-10 -z-10 size-[34rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,122,0,0.16),transparent_66%)] blur-3xl" />
@@ -180,21 +195,22 @@ export default function BestItems() {
         >
           <div className="mb-5 flex items-center justify-center gap-4 text-xs font-semibold tracking-[0.24em] text-[color:var(--primary-light)] uppercase">
             <span className="h-px w-10 bg-[color:var(--primary)]/60" />
-            Chef&apos;s Favorites
+            {isArabic ? "اختيارات الشيف" : "Chef's Favorites"}
             <span className="h-px w-10 bg-[color:var(--primary)]/60" />
           </div>
           <h2 className="text-4xl font-semibold text-balance text-[color:var(--text)] sm:text-5xl lg:text-6xl">
-            A Collection of Comfort Foods
+            {isArabic ? "مجموعة من الأطباق المحبوبة" : "A Collection of Comfort Foods"}
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-[color:var(--text-muted)] sm:text-lg">
-            Plates of plenty, handmade for slow evenings, quick cravings, and every
-            golden moment between.
+            {isArabic
+              ? "أطباق سخية محضّرة يدويًا للأمسيات الهادئة والرغبات السريعة وكل لحظة جميلة بينهما."
+              : "Plates of plenty, handmade for slow evenings, quick cravings, and every golden moment between."}
           </p>
         </motion.div>
 
         <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-[1.08fr_0.92fr_0.92fr] lg:grid-rows-2">
-          {bestItems.map((item, index) => (
-            <BestItemCard index={index} item={item} key={`${item.name}-${index}`} />
+          {displayedItems.map((item, index) => (
+            <BestItemCard index={index} isArabic={isArabic} item={item} key={`${item.name}-${index}`} />
           ))}
         </div>
       </div>

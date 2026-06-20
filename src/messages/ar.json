@@ -35,6 +35,12 @@
     "settings": "الإعدادات",
     "viewStorefront": "عرض واجهة المتجر",
     "openMenu": "القائمة"
+    ,"home": "الرئيسية"
+    ,"about": "من نحن"
+    ,"contact": "تواصل معنا"
+    ,"viewCart": "عرض السلة"
+    ,"switchLanguage": "التبديل إلى {language}"
+    ,"languages": {"en": "الإنجليزية", "ar": "العربية"}
   },
   "pages": {
     "landing": {

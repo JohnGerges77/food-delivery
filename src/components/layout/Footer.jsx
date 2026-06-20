@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useLocale } from "next-intl";
 import {
   ArrowRight,
   Camera,
@@ -96,6 +97,12 @@ function PremiumLink({ href, children }) {
 }
 
 export default function Footer() {
+  const isArabic = useLocale() === "ar";
+  const displayedRestaurantInfo = restaurantInfo.map((item) => isArabic ? {
+    ...item,
+    label: ({Phone: "الهاتف", Email: "البريد الإلكتروني", Location: "الموقع", "Opening Hours": "ساعات العمل"})[item.label],
+    value: item.label === "Location" ? "القاهرة، مصر" : item.label === "Opening Hours" ? "الاثنين - الأحد\n10:00 ص - 11:00 م" : item.value,
+  } : item);
   return (
     <footer className="relative isolate overflow-hidden bg-[color:var(--background)] px-4 pt-20 text-[color:var(--text)] sm:px-6 lg:px-8">
       <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_50%_0%,rgba(255,157,51,0.12),transparent_34%),radial-gradient(circle_at_92%_28%,rgba(255,122,0,0.12),transparent_30%),linear-gradient(180deg,rgba(13,13,13,1),rgba(31,31,31,0.62)_45%,rgba(13,13,13,1))]" />
@@ -141,7 +148,7 @@ export default function Footer() {
           transition={{ duration: 0.7, ease: footerEase }}
         >
           <span className="h-px w-8 bg-gradient-to-r from-transparent to-[color:var(--primary)]/80" />
-          Savora Experience
+          {isArabic ? "تجربة سافورا" : "Savora Experience"}
           <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_rgba(255,157,51,0.9)]" />
         </motion.div>
 
@@ -159,11 +166,10 @@ export default function Footer() {
           <div className="relative grid items-center gap-7 lg:grid-cols-[1fr_auto]">
             <div>
               <h2 className="text-3xl font-semibold leading-tight text-balance text-[color:var(--text)] sm:text-4xl lg:text-5xl">
-                Ready to Experience Savora?
+                {isArabic ? "هل أنت مستعد لتجربة سافورا؟" : "Ready to Experience Savora?"}
               </h2>
               <p className="mt-4 max-w-2xl text-base leading-8 text-[color:var(--text-muted)] sm:text-lg">
-                Discover handcrafted dishes, premium ingredients, and unforgettable
-                dining moments.
+                {isArabic ? "اكتشف أطباقًا مصنوعة بإتقان ومكونات فاخرة ولحظات طعام لا تُنسى." : "Discover handcrafted dishes, premium ingredients, and unforgettable dining moments."}
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
@@ -172,7 +178,7 @@ export default function Footer() {
                   className="group inline-flex min-h-13 w-full items-center justify-center gap-3 rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-7 text-sm font-bold text-[color:var(--background)] shadow-[0_20px_56px_rgba(255,122,0,0.36)] transition-all duration-300 hover:shadow-[0_26px_70px_rgba(255,122,0,0.5)] sm:w-auto"
                   href={routes.menu}
                 >
-                  Order Now
+                  {isArabic ? "اطلب الآن" : "Order Now"}
                   <ArrowRight
                     aria-hidden="true"
                     className="transition-transform duration-300 group-hover:translate-x-1"
@@ -185,7 +191,7 @@ export default function Footer() {
                   className="inline-flex min-h-13 w-full items-center justify-center rounded-full border border-white/14 bg-white/[0.045] px-7 text-sm font-bold text-[color:var(--text)] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur transition-all duration-300 hover:border-[color:var(--primary)]/55 hover:bg-white/[0.08] hover:text-[color:var(--primary-light)] sm:w-auto"
                   href={routes.menu}
                 >
-                  View Menu
+                  {isArabic ? "عرض القائمة" : "View Menu"}
                 </Link>
               </motion.div>
             </div>
@@ -216,8 +222,7 @@ export default function Footer() {
               SAVORA
             </h2>
             <p className="mt-4 max-w-sm text-sm leading-7 text-[color:var(--text-muted)]">
-              Crafting unforgettable dining experiences through premium ingredients,
-              expert chefs, and exceptional service.
+              {isArabic ? "نصنع تجارب طعام لا تُنسى بمكونات فاخرة وطهاة خبراء وخدمة استثنائية." : "Crafting unforgettable dining experiences through premium ingredients, expert chefs, and exceptional service."}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               {socialLinks.map((social) => {
@@ -242,20 +247,20 @@ export default function Footer() {
           </motion.div>
 
           <motion.div variants={columnVariants}>
-            <FooterHeading>Quick Links</FooterHeading>
+            <FooterHeading>{isArabic ? "روابط سريعة" : "Quick Links"}</FooterHeading>
             <nav className="mt-6 grid gap-3">
               {quickLinks.map((link) => (
                 <PremiumLink href={link.href} key={link.label}>
-                  {link.label}
+                  {isArabic ? ({Home: "الرئيسية", Menu: "القائمة", About: "من نحن", Contact: "تواصل معنا"})[link.label] : link.label}
                 </PremiumLink>
               ))}
             </nav>
           </motion.div>
 
           <motion.div variants={columnVariants}>
-            <FooterHeading>Restaurant Information</FooterHeading>
+            <FooterHeading>{isArabic ? "معلومات المطعم" : "Restaurant Information"}</FooterHeading>
             <div className="mt-6 grid gap-4">
-              {restaurantInfo.map((item) => {
+              {displayedRestaurantInfo.map((item) => {
                 const Icon = item.icon;
                 const content = (
                   <>
@@ -291,22 +296,22 @@ export default function Footer() {
           </motion.div>
 
           <motion.div variants={columnVariants}>
-            <FooterHeading>Join Our Newsletter</FooterHeading>
+            <FooterHeading>{isArabic ? "انضم إلى نشرتنا" : "Join Our Newsletter"}</FooterHeading>
             <p className="mt-6 text-sm leading-7 text-[color:var(--text-muted)]">
-              Get updates on new dishes, offers, and exclusive dining experiences.
+              {isArabic ? "احصل على تحديثات الأطباق الجديدة والعروض والتجارب الحصرية." : "Get updates on new dishes, offers, and exclusive dining experiences."}
             </p>
             <form
               className="mt-6 rounded-[1.4rem] border border-white/10 bg-white/[0.035] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl"
               onSubmit={(event) => event.preventDefault()}
             >
               <label className="sr-only" htmlFor="footer-email">
-                Email Address
+                {isArabic ? "البريد الإلكتروني" : "Email Address"}
               </label>
               <div className="grid gap-2 sm:grid-cols-[1fr_auto] lg:grid-cols-1 xl:grid-cols-[1fr_auto]">
                 <input
                   className="h-12 rounded-[1rem] border border-white/10 bg-[color:var(--background)]/72 px-4 text-sm text-[color:var(--text)] outline-none transition-all duration-300 placeholder:text-[color:var(--text-muted)]/55 hover:border-white/18 focus:border-[color:var(--primary)]/70 focus:shadow-[0_0_0_4px_rgba(255,122,0,0.12),0_16px_42px_rgba(255,122,0,0.1)]"
                   id="footer-email"
-                  placeholder="Email Address"
+                  placeholder={isArabic ? "البريد الإلكتروني" : "Email Address"}
                   type="email"
                 />
                 <motion.button
@@ -315,7 +320,7 @@ export default function Footer() {
                   whileHover={{ y: -2, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  Subscribe
+                  {isArabic ? "اشترك" : "Subscribe"}
                   <Send
                     aria-hidden="true"
                     className="transition-transform duration-300 group-hover:translate-x-0.5"
@@ -335,14 +340,14 @@ export default function Footer() {
               className="transition-colors duration-300 hover:text-[color:var(--primary-light)]"
               href={routes.home}
             >
-              Privacy Policy
+              {isArabic ? "سياسة الخصوصية" : "Privacy Policy"}
             </Link>
             <span className="h-4 w-px bg-white/14" />
             <Link
               className="transition-colors duration-300 hover:text-[color:var(--primary-light)]"
               href={routes.home}
             >
-              Terms of Service
+              {isArabic ? "شروط الخدمة" : "Terms of Service"}
             </Link>
           </div>
         </div>

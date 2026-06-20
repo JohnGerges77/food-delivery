@@ -10,7 +10,7 @@ import {
   ActionButton,
   DashboardCard,
   DashboardModal,
-  DashboardPageHeader,
+ 
   SearchInput,
   StatusBadge,
   dashboardEase,
@@ -81,11 +81,7 @@ export function DashboardOrdersPage({ orders }: { orders: Order[] }) {
 
   return (
     <section>
-      <DashboardPageHeader
-        eyebrow="Kitchen Operations"
-        title="Orders Management"
-        description="Track live orders, inspect guest details, and update status locally with UI ready for future backend events."
-      />
+      
 
       <DashboardCard className="p-4 sm:p-5">
         <div className="grid gap-4 xl:grid-cols-[1fr_auto] xl:items-center">

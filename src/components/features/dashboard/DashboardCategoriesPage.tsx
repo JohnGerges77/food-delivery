@@ -9,7 +9,7 @@ import {
   ActionButton,
   DashboardCard,
   DashboardModal,
-  DashboardPageHeader,
+
   SearchInput,
   StatusBadge,
   dashboardEase,
@@ -103,17 +103,7 @@ export function DashboardCategoriesPage({
 
   return (
     <section>
-      <DashboardPageHeader
-        eyebrow="Menu Structure"
-        title="Category Management"
-        description="Organize menu sections, visibility, descriptions, and future API-ready category records."
-        action={
-          <ActionButton onClick={openAddModal}>
-            <Plus aria-hidden="true" size={16} />
-            Add Category
-          </ActionButton>
-        }
-      />
+   
 
       <DashboardCard className="p-4 sm:p-5">
         <SearchInput

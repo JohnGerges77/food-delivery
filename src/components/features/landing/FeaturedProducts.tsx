@@ -1,8 +1,8 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { AnimatePresence, motion } from "framer-motion";
-import type { Variants } from "framer-motion";
+import { motion } from "framer-motion";
+import { useLocale } from "next-intl";
 import { useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
@@ -122,23 +122,28 @@ const menuItems = [
   },
 ];
 
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 18 },
-  visible: (index = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: index * 0.06,
-      duration: 0.45,
-      ease: menuEase,
-    },
-  }),
-  exit: { opacity: 0, y: -12, transition: { duration: 0.2 } },
+const arabicMenuItems: Record<string, { name: string; description: string }> = {
+  "greek-salad": { name: "سلطة يونانية", description: "خضروات مقرمشة وجبن فيتا وزيتون وخيار وتتبيلة أعشاب بالليمون." },
+  "crispy-shrimp": { name: "جمبري مقرمش", description: "جمبري ذهبي مع أيولي الفلفل ولمسة حمضيات منعشة." },
+  "mozzarella-sticks": { name: "أصابع موزاريلا", description: "موزاريلا مقطعة يدويًا بطبقة مقرمشة وصلصة طماطم مطهية ببطء." },
+  "grilled-chicken": { name: "دجاج مشوي", description: "دجاج مشوي على اللهب مع زبدة الأعشاب وخضروات مشوية." },
+  "creamy-pasta": { name: "باستا كريمية", description: "كريمة بارميزان ناعمة وفلفل مجروش وأعشاب طازجة." },
+  "salmon-plate": { name: "طبق السلمون", description: "سلمون محمّر مع صوص الليمون وحبوب موسمية دافئة." },
+  "signature-burger": { name: "برجر سافورا", description: "لحم مشوي وشيدر مدخن وبصل مكرمل وصلصة سافورا." },
+  "double-cheese-burger": { name: "دبل تشيز برجر", description: "قطعتا لحم وجبن ذائب ومخلل وخبز بريوش محمص." },
+  "spicy-bbq-burger": { name: "برجر باربكيو حار", description: "جبن بيبر جاك وصوص باربكيو مدخن وهالبينو وبصل مقرمش." },
+  "chocolate-lava-cake": { name: "كيك الشوكولاتة السائلة", description: "قلب شوكولاتة دافئ وفتات كاكاو وكريمة فانيليا." },
+  "classic-cheesecake": { name: "تشيز كيك كلاسيك", description: "تشيز كيك كريمية مع صوص التوت وقاعدة بسكويت بالزبدة." },
+  "honey-pancakes": { name: "بان كيك بالعسل", description: "بان كيك طري مع زبدة العسل ومكسرات محمصة وكريمة." },
 };
 
 export function FeaturedProducts() {
+  const isArabic = useLocale() === "ar";
   const [activeCategory, setActiveCategory] = useState(menuCategories[0]);
   const filteredItems = menuItems.filter((item) => item.category === activeCategory);
+  const displayedItems = filteredItems.map((item) =>
+    isArabic ? {...item, ...arabicMenuItems[item.id]} : item,
+  );
 
   return (
     <section className="relative isolate overflow-hidden bg-[color:var(--background)] px-4 py-20 text-[color:var(--text)] sm:px-6 lg:px-8">
@@ -155,15 +160,16 @@ export function FeaturedProducts() {
         >
           <div className="mb-5 flex items-center justify-center gap-4 text-xs font-semibold tracking-[0.24em] text-[color:var(--primary-light)] uppercase">
             <span className="h-px w-10 bg-[color:var(--primary)]/60" />
-            Our Menu
+            {isArabic ? "قائمتنا" : "Our Menu"}
             <span className="h-px w-10 bg-[color:var(--primary)]/60" />
           </div>
           <h2 className="text-4xl font-semibold text-balance text-[color:var(--text)] sm:text-5xl lg:text-6xl">
-            Taste the Favorites
+            {isArabic ? "تذوّق الأطباق المفضلة" : "Taste the Favorites"}
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-[color:var(--text-muted)] sm:text-lg">
-            A curated preview of our most-loved dishes, crafted with fresh
-            ingredients and served with Savora&apos;s signature flavor.
+            {isArabic
+              ? "مختارات من أكثر أطباقنا حبًا، محضّرة بمكونات طازجة ونكهة سافورا المميزة."
+              : "A curated preview of our most-loved dishes, crafted with fresh ingredients and served with Savora's signature flavor."}
           </p>
         </motion.div>
 
@@ -200,7 +206,9 @@ export function FeaturedProducts() {
                       : "relative z-10 text-[color:var(--text-muted)] transition-colors duration-300 hover:text-[color:var(--text)]"
                   }
                 >
-                  {category}
+                  {isArabic
+                    ? ({Appetizers: "المقبلات", "Main Dishes": "الأطباق الرئيسية", Burgers: "البرجر", Desserts: "الحلويات"} as Record<string, string>)[category]
+                    : category}
                 </span>
               </button>
             );
@@ -209,21 +217,12 @@ export function FeaturedProducts() {
 
         <div className="relative mt-12 rounded-[1.75rem] border border-white/10 bg-[color:var(--card)]/40 p-3 shadow-[0_28px_90px_rgba(0,0,0,0.34)] backdrop-blur sm:p-5 lg:p-8">
           <div className="pointer-events-none absolute inset-y-8 left-1/2 hidden w-px bg-gradient-to-b from-transparent via-[color:var(--primary)]/25 to-transparent lg:block" />
-          <AnimatePresence mode="wait">
-            <motion.div
-              className="grid gap-4 lg:grid-cols-2 lg:gap-x-10"
-              key={activeCategory}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-            >
-              {filteredItems.map((item, index) => (
-                <motion.article
-                  className="group relative grid grid-cols-[4.75rem_1fr_auto] items-center gap-4 overflow-hidden rounded-2xl border border-white/0 bg-white/[0.02] p-3 transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--primary)]/35 hover:bg-white/[0.07] hover:shadow-[0_22px_54px_rgba(255,122,0,0.14)] sm:grid-cols-[5.5rem_1fr_auto] sm:p-4"
-                  custom={index}
-                  key={item.id}
-                  variants={itemVariants}
-                >
+          <div className="grid gap-4 lg:grid-cols-2 lg:gap-x-10">
+            {displayedItems.map((item, index) => (
+              <article
+                className="group relative grid grid-cols-[4.75rem_1fr_auto] items-center gap-4 overflow-hidden rounded-2xl border border-white/0 bg-white/[0.02] p-3 transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--primary)]/35 hover:bg-white/[0.07] hover:shadow-[0_22px_54px_rgba(255,122,0,0.14)] sm:grid-cols-[5.5rem_1fr_auto] sm:p-4"
+                key={`menu-slot-${index}`}
+              >
                   <div className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-transparent via-[color:var(--primary)]/0 to-transparent transition-colors duration-300 group-hover:via-[color:var(--primary)]/80" />
                   <div className="pointer-events-none absolute -right-12 top-1/2 size-28 -translate-y-1/2 rounded-full bg-[color:var(--primary)]/0 blur-2xl transition-colors duration-500 group-hover:bg-[color:var(--primary)]/18" />
 
@@ -239,7 +238,9 @@ export function FeaturedProducts() {
 
                   <div className="min-w-0">
                     <div className="text-[0.65rem] font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">
-                      {item.category}
+                      {isArabic
+                        ? ({Appetizers: "المقبلات", "Main Dishes": "الأطباق الرئيسية", Burgers: "البرجر", Desserts: "الحلويات"} as Record<string, string>)[item.category]
+                        : item.category}
                     </div>
                     <h3 className="mt-1 truncate text-base font-semibold text-[color:var(--text)] transition-colors duration-300 group-hover:text-[color:var(--primary-light)] sm:text-lg">
                       {item.name}
@@ -252,10 +253,9 @@ export function FeaturedProducts() {
                   <div className="self-start rounded-full border border-[color:var(--primary)]/10 bg-[color:var(--primary)]/10 px-3 py-1 text-sm font-bold text-[color:var(--primary-light)] transition-all duration-300 group-hover:border-[color:var(--primary)]/35 group-hover:bg-[color:var(--primary)]/15 group-hover:shadow-[0_0_22px_rgba(255,122,0,0.16)]">
                     {item.price}
                   </div>
-                </motion.article>
-              ))}
-            </motion.div>
-          </AnimatePresence>
+              </article>
+            ))}
+          </div>
         </div>
 
         <motion.div
@@ -269,7 +269,7 @@ export function FeaturedProducts() {
             className="rounded-full bg-[color:var(--primary)] px-8 py-3 text-sm font-bold text-[color:var(--background)] shadow-[0_18px_48px_rgba(255,122,0,0.28)] transition-all duration-300 hover:-translate-y-1 hover:bg-[color:var(--primary-light)]"
             href={routes.menu}
           >
-            View Full Menu
+            {isArabic ? "عرض القائمة كاملة" : "View Full Menu"}
           </Link>
         </motion.div>
       </div>

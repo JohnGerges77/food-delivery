@@ -35,6 +35,12 @@
     "settings": "Settings",
     "viewStorefront": "View storefront",
     "openMenu": "Menu"
+    ,"home": "Home"
+    ,"about": "About"
+    ,"contact": "Contact"
+    ,"viewCart": "View cart"
+    ,"switchLanguage": "Switch to {language}"
+    ,"languages": {"en": "English", "ar": "Arabic"}
   },
   "pages": {
     "landing": {

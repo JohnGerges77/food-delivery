@@ -13,6 +13,7 @@ const sectionEase = [0.16, 1, 0.3, 1] as const;
 
 export function CartOrderingPage({ deliveryFee }: { deliveryFee: number }) {
   const locale = useLocale();
+  const isArabic = locale === "ar";
   const items = useCartStore((state) => state.items);
   const increaseQuantity = useCartStore((state) => state.increaseQuantity);
   const decreaseQuantity = useCartStore((state) => state.decreaseQuantity);
@@ -35,19 +36,19 @@ export function CartOrderingPage({ deliveryFee }: { deliveryFee: number }) {
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.72, ease: sectionEase }}
           >
-            <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 px-4 py-2 text-xs font-semibold tracking-[0.24em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_rgba(255,122,0,0.14)] backdrop-blur">
+            <div className="mb-1 inline-flex items-center gap-3 rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 px-4 py-2 text-xs font-semibold tracking-[0.24em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_rgba(255,122,0,0.14)] backdrop-blur">
               <span className="h-px w-8 bg-gradient-to-r from-transparent to-[color:var(--primary)]/80" />
-              Your Cart
+              {isArabic ? "سلتك" : "Your Cart"}
               <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_rgba(255,157,51,0.9)]" />
             </div>
-            <h1 className="max-w-4xl text-[clamp(3rem,7vw,5.6rem)] font-semibold leading-[0.95] text-balance">
-              Review Your
-              <span className="block text-[color:var(--primary-light)]">Savora Order</span>
+            {/* <h1 className="max-w-4xl text-[clamp(3rem,7vw,5.6rem)] font-semibold leading-[0.95] text-balance">
+              {isArabic ? "راجع" : "Review Your"}
+              <span className="block text-[color:var(--primary-light)]">{isArabic ? "طلب سافورا" : "Savora Order"}</span>
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-[color:var(--text-muted)] sm:text-lg">
               Fine-tune your selections before we prepare every dish with the care it
               deserves.
-            </p>
+            </p> */}
           </motion.div>
         </div>
       </section>
@@ -64,7 +65,7 @@ export function CartOrderingPage({ deliveryFee }: { deliveryFee: number }) {
               <div className="mx-auto flex size-20 items-center justify-center rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/12 text-[color:var(--primary-light)] shadow-[0_0_42px_rgba(255,122,0,0.2)]">
                 <ShoppingBag aria-hidden="true" size={34} />
               </div>
-              <h2 className="mt-7 text-3xl font-semibold">Your Cart Is Empty</h2>
+              <h2 className="mt-7 text-3xl font-semibold">{isArabic ? "سلتك فارغة" : "Your Cart Is Empty"}</h2>
               <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-[color:var(--text-muted)]">
                 Looks like you haven&apos;t added anything yet.
               </p>
@@ -72,7 +73,7 @@ export function CartOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                 className="mt-8 inline-flex min-h-13 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 text-sm font-bold text-[color:var(--background)] shadow-[0_20px_56px_rgba(255,122,0,0.34)] transition-transform hover:-translate-y-0.5"
                 href={routes.menu}
               >
-                Browse Menu
+                {isArabic ? "تصفح القائمة" : "Browse Menu"}
               </Link>
             </motion.div>
           ) : (
@@ -81,10 +82,10 @@ export function CartOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                 <div className="mb-5 flex flex-col gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.035] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <div className="text-xs font-semibold tracking-[0.2em] text-[color:var(--gold)] uppercase">
-                      Your Selection
+                      {isArabic ? "اختياراتك" : "Your Selection"}
                     </div>
                     <h2 className="mt-1 text-2xl font-semibold">
-                      {itemCount} {itemCount === 1 ? "item" : "items"} ready for checkout
+                      {isArabic ? `${itemCount} عنصر جاهز للدفع` : `${itemCount} ${itemCount === 1 ? "item" : "items"} ready for checkout`}
                     </h2>
                   </div>
                   <Link
@@ -170,14 +171,14 @@ export function CartOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                 <div className="relative overflow-hidden rounded-[1.6rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035)_54%,rgba(255,122,0,0.07))] p-6 shadow-[0_34px_110px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl">
                   <div className="pointer-events-none absolute -right-20 -top-20 size-52 rounded-full bg-[color:var(--primary)]/18 blur-3xl" />
                   <div className="relative">
-                    <h2 className="text-2xl font-semibold">Order Summary</h2>
+                    <h2 className="text-2xl font-semibold">{isArabic ? "ملخص الطلب" : "Order Summary"}</h2>
                     <div className="mt-6 divide-y divide-white/10 text-sm">
                       <div className="flex justify-between py-4 text-[color:var(--text-muted)]">
-                        <span>Subtotal</span>
+                        <span>{isArabic ? "المجموع الفرعي" : "Subtotal"}</span>
                         <span>{formatCurrency(subtotal, locale)}</span>
                       </div>
                       <div className="flex justify-between py-4 text-[color:var(--text-muted)]">
-                        <span>Delivery Fee</span>
+                        <span>{isArabic ? "رسوم التوصيل" : "Delivery Fee"}</span>
                         <span>{formatCurrency(deliveryFee, locale)}</span>
                       </div>
                       <div className="flex justify-between py-4 text-[color:var(--text-muted)]">
@@ -185,7 +186,7 @@ export function CartOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                         <span>25 - 35 min</span>
                       </div>
                       <div className="flex justify-between py-5 text-lg font-semibold">
-                        <span>Total</span>
+                        <span>{isArabic ? "الإجمالي" : "Total"}</span>
                         <span className="text-[color:var(--primary-light)]">
                           {formatCurrency(total, locale)}
                         </span>
@@ -198,14 +199,14 @@ export function CartOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                       className="mt-4 inline-flex min-h-13 w-full items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-7 text-sm font-bold text-[color:var(--background)] shadow-[0_20px_56px_rgba(255,122,0,0.36)] transition-transform hover:-translate-y-0.5"
                       href={routes.checkout}
                     >
-                      Proceed To Checkout
+                      {isArabic ? "المتابعة إلى الدفع" : "Proceed To Checkout"}
                     </Link>
                     <button
                       className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-white/12 bg-white/[0.04] px-6 text-sm font-semibold text-[color:var(--text-muted)] transition-colors hover:border-[color:var(--primary)]/45 hover:text-[color:var(--primary-light)]"
                       onClick={clearCart}
                       type="button"
                     >
-                      Clear Cart
+                      {isArabic ? "تفريغ السلة" : "Clear Cart"}
                     </button>
                   </div>
                 </div>

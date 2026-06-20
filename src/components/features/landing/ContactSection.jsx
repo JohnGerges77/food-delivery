@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useLocale } from "next-intl";
 import { Clock, Mail, MapPin, Phone, Send, Sparkles } from "lucide-react";
 
 const sectionEase = [0.16, 1, 0.3, 1];
@@ -123,6 +124,17 @@ function Field({ field }) {
 }
 
 export default function ContactSection() {
+  const isArabic = useLocale() === "ar";
+  const displayedContactCards = contactCards.map((card) => isArabic ? {
+    ...card,
+    title: ({Phone: "الهاتف", Email: "البريد الإلكتروني", Location: "الموقع", "Opening Hours": "ساعات العمل"})[card.title],
+    value: card.title === "Location" ? "وسط القاهرة، مصر" : card.title === "Opening Hours" ? "الاثنين - الأحد\n10:00 ص - 11:00 م" : card.value,
+  } : card);
+  const displayedFormFields = formFields.map((field) => isArabic ? {
+    ...field,
+    label: ({Name: "الاسم", Email: "البريد الإلكتروني", Phone: "الهاتف"})[field.label],
+    placeholder: ({name: "اسمك", email: "you@example.com", phone: "+20 000 000 0000"})[field.name],
+  } : field);
   return (
     <section className="relative isolate overflow-hidden bg-[color:var(--background)] px-4 py-24 text-[color:var(--text)] sm:px-6 sm:py-30 lg:px-8 lg:py-32">
       <motion.div
@@ -177,21 +189,20 @@ export default function ContactSection() {
         >
           <div className="mb-7 inline-flex items-center gap-4 rounded-full border border-[color:var(--primary)]/35 bg-[linear-gradient(135deg,rgba(255,122,0,0.16),rgba(255,255,255,0.035))] px-4 py-2 text-xs font-semibold tracking-[0.26em] text-[color:var(--primary-light)] uppercase shadow-[0_0_38px_rgba(255,122,0,0.16),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">
             <span className="h-px w-8 bg-gradient-to-r from-transparent to-[color:var(--primary)]/80" />
-            Get In Touch
+            {isArabic ? "تواصل معنا" : "Get In Touch"}
             <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_rgba(255,157,51,0.9)]" />
           </div>
           <h2 className="text-4xl font-semibold leading-[1.02] text-balance text-[color:var(--text)] sm:text-5xl lg:text-6xl">
-            Let&apos;s Create
+            {isArabic ? "لنصنع" : "Let's Create"}
             <span className="block">
               Your Next{" "}
               <span className="text-[color:var(--primary)] drop-shadow-[0_0_30px_rgba(255,122,0,0.22)]">
-                Dining Experience
+                {isArabic ? "تجربتك القادمة" : "Dining Experience"}
               </span>
             </span>
           </h2>
           <p className="mx-auto mt-7 max-w-3xl text-base leading-8 text-[color:var(--text-muted)] sm:text-lg">
-            Whether you&apos;re planning a special dinner, have questions about our
-            menu, or want to place an order, our team is always ready to help.
+            {isArabic ? "سواء كنت تخطط لعشاء مميز أو لديك سؤال عن قائمتنا أو تريد تقديم طلب، فريقنا دائمًا جاهز لمساعدتك." : "Whether you're planning a special dinner, have questions about our menu, or want to place an order, our team is always ready to help."}
           </p>
         </motion.div>
 
@@ -202,7 +213,7 @@ export default function ContactSection() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.18 }}
           >
-            {contactCards.map((card, index) => (
+            {displayedContactCards.map((card, index) => (
               <ContactCard card={card} index={index} key={card.title} />
             ))}
           </motion.div>
@@ -232,11 +243,10 @@ export default function ContactSection() {
                     </div>
                     <div>
                       <div className="text-sm font-semibold tracking-[0.24em] text-[color:var(--gold)] uppercase">
-                        Savora Promise
+                        {isArabic ? "وعد سافورا" : "Savora Promise"}
                       </div>
                       <p className="mt-2.5 text-sm leading-7 text-[color:var(--text-muted)]">
-                        Every guest matters. We respond quickly and ensure every
-                        experience meets our highest standards.
+                        {isArabic ? "كل ضيف مهم. نستجيب بسرعة ونضمن أن تلبي كل تجربة أعلى معاييرنا." : "Every guest matters. We respond quickly and ensure every experience meets our highest standards."}
                       </p>
                     </div>
                   </div>
@@ -247,19 +257,19 @@ export default function ContactSection() {
                   onSubmit={(event) => event.preventDefault()}
                 >
                   <div className="grid gap-5 sm:grid-cols-2 sm:gap-6">
-                    {formFields.slice(0, 2).map((field) => (
+                    {displayedFormFields.slice(0, 2).map((field) => (
                       <Field field={field} key={field.name} />
                     ))}
                   </div>
-                  <Field field={formFields[2]} />
+                  <Field field={displayedFormFields[2]} />
                   <label className="group block">
                     <span className="text-xs font-semibold tracking-[0.22em] text-[color:var(--gold)] uppercase transition-colors duration-300 group-focus-within:text-[color:var(--primary-light)]">
-                      Message
+                      {isArabic ? "الرسالة" : "Message"}
                     </span>
                     <textarea
                       className={`${fieldControlClass} min-h-40 resize-none py-4 leading-7`}
                       name="message"
-                      placeholder="Tell us what would make your visit unforgettable."
+                      placeholder={isArabic ? "أخبرنا ما الذي سيجعل زيارتك لا تُنسى." : "Tell us what would make your visit unforgettable."}
                     />
                   </label>
                   <motion.button
@@ -269,7 +279,7 @@ export default function ContactSection() {
                     whileTap={{ scale: 0.98 }}
                   >
                     <span className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/35 to-transparent transition-transform duration-700 group-hover:translate-x-[320%]" />
-                    <span className="relative">Send Message</span>
+                    <span className="relative">{isArabic ? "إرسال الرسالة" : "Send Message"}</span>
                     <Send
                       aria-hidden="true"
                       className="relative transition-transform duration-300 group-hover:translate-x-1"

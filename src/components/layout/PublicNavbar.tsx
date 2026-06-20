@@ -1,16 +1,21 @@
-import { useTranslations } from "next-intl";
+"use client";
+
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
-import { ShoppingCart } from "lucide-react";
-import { Link } from "@/i18n/navigation";
+import { Languages, ShoppingCart } from "lucide-react";
+import { Link, usePathname } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
 
 export function PublicNavbar() {
   const t = useTranslations("navigation");
+  const locale = useLocale();
+  const pathname = usePathname();
+  const nextLocale = locale === "ar" ? "en" : "ar";
   const links = [
-    { href: routes.home, label: "Home" },
-    { href: routes.menu, label: "Menu" },
-    { href: routes.about, label: "About" },
-    { href: `${routes.home}#contact`, label: "Contact" },
+    { href: routes.home, label: t("home") },
+    { href: routes.menu, label: t("menu") },
+    { href: routes.about, label: t("about") },
+    { href: `${routes.home}#contact`, label: t("contact") },
   ];
 
   return (
@@ -45,18 +50,25 @@ export function PublicNavbar() {
           ))}
         </div>
 
-        <Link
-          className="group relative grid size-11 justify-self-end place-items-center rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/10 text-[color:var(--primary-light)] shadow-[0_10px_30px_rgba(255,122,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--primary)]/60 hover:bg-[color:var(--primary)] hover:text-[color:var(--background)] hover:shadow-[0_14px_38px_rgba(255,122,0,0.38)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--primary)]"
-          href={routes.cart}
-          aria-label="View cart"
-        >
-          <ShoppingCart
-            aria-hidden="true"
-            className="size-5 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110"
-            strokeWidth={2.2}
-          />
-          <span className="absolute right-1.5 top-1.5 size-2 rounded-full border-2 border-[color:var(--background)] bg-[color:var(--primary)] transition-colors group-hover:bg-white" />
-        </Link>
+        <div className="flex items-center justify-self-end gap-2">
+          <Link
+            aria-label={t("switchLanguage", {language: t(`languages.${nextLocale}`)})}
+            className="group inline-flex h-11 items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 text-xs font-bold text-[color:var(--text)] transition-all duration-300 hover:border-[color:var(--primary)]/55 hover:bg-[color:var(--primary)]/10 hover:text-[color:var(--primary-light)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--primary)]"
+            href={pathname}
+            locale={nextLocale}
+          >
+            <Languages aria-hidden="true" className="size-4" />
+            <span>{nextLocale === "ar" ? "العربية" : "EN"}</span>
+          </Link>
+          <Link
+            className="group relative grid size-11 place-items-center rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/10 text-[color:var(--primary-light)] shadow-[0_10px_30px_rgba(255,122,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--primary)]/60 hover:bg-[color:var(--primary)] hover:text-[color:var(--background)] hover:shadow-[0_14px_38px_rgba(255,122,0,0.38)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--primary)]"
+            href={routes.cart}
+            aria-label={t("viewCart")}
+          >
+            <ShoppingCart aria-hidden="true" className="size-5 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110" strokeWidth={2.2} />
+            <span className="absolute right-1.5 top-1.5 size-2 rounded-full border-2 border-[color:var(--background)] bg-[color:var(--primary)] transition-colors group-hover:bg-white" />
+          </Link>
+        </div>
       </div>
     </nav>
   );

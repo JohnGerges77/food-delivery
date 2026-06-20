@@ -72,24 +72,6 @@ export function DashboardHomePage({
 
   return (
     <section>
-      <DashboardPageHeader
-        eyebrow="Owner Command Center"
-        title="Restaurant Overview"
-        description="Track service health, order flow, menu performance, and quick operational actions from one premium admin surface."
-        action={
-          <div className="flex flex-wrap gap-3">
-            <Link href={routes.products}>
-              <ActionButton>
-                <Plus aria-hidden="true" size={16} />
-                Add Product
-              </ActionButton>
-            </Link>
-            <Link href={routes.orders}>
-              <ActionButton variant="ghost">View Orders</ActionButton>
-            </Link>
-          </div>
-        }
-      />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {statCards.map((card, index) => {

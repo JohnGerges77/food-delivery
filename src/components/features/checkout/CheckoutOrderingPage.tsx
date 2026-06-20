@@ -30,6 +30,7 @@ const fields = [
 
 export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
   const locale = useLocale();
+  const isArabic = locale === "ar";
   const items = useCartStore((state) => state.items);
   const getSubtotal = useCartStore((state) => state.getSubtotal);
   const getTotal = useCartStore((state) => state.getTotal);
@@ -62,16 +63,15 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
           >
             <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 px-4 py-2 text-xs font-semibold tracking-[0.24em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_rgba(255,122,0,0.14)] backdrop-blur">
               <span className="h-px w-8 bg-gradient-to-r from-transparent to-[color:var(--primary)]/80" />
-              Checkout
+              {isArabic ? "إتمام الطلب" : "Checkout"}
               <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_rgba(255,157,51,0.9)]" />
             </div>
             <h1 className="max-w-4xl text-[clamp(3rem,7vw,5.6rem)] font-semibold leading-[0.95] text-balance">
-              Complete Your
-              <span className="block text-[color:var(--primary-light)]">Guest Order</span>
+              {isArabic ? "أكمل" : "Complete Your"}
+              <span className="block text-[color:var(--primary-light)]">{isArabic ? "طلب الضيف" : "Guest Order"}</span>
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-[color:var(--text-muted)] sm:text-lg">
-              Share your delivery details and we&apos;ll prepare your Savora order
-              shortly.
+              {isArabic ? "شاركنا تفاصيل التوصيل وسنبدأ تحضير طلبك من سافورا فورًا." : "Share your delivery details and we'll prepare your Savora order shortly."}
             </p>
           </motion.div>
         </div>
@@ -94,9 +94,9 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                   <ClipboardList aria-hidden="true" size={22} />
                 </span>
                 <div>
-                  <h2 className="text-3xl font-semibold">Customer Information</h2>
+                  <h2 className="text-3xl font-semibold">{isArabic ? "بيانات العميل" : "Customer Information"}</h2>
                   <p className="mt-1 text-sm text-[color:var(--text-muted)]">
-                    Guest checkout only. No account needed.
+                    {isArabic ? "طلب كضيف، لا حاجة إلى حساب." : "Guest checkout only. No account needed."}
                   </p>
                 </div>
                 </div>
@@ -104,12 +104,12 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                   className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/12 bg-white/[0.04] px-5 text-sm font-semibold text-[color:var(--text-muted)] transition-colors hover:border-[color:var(--primary)]/45 hover:text-[color:var(--primary-light)]"
                   href={routes.cart}
                 >
-                  Back To Cart
+                  {isArabic ? "العودة إلى السلة" : "Back To Cart"}
                 </Link>
               </div>
 
               <div className="mt-8 grid gap-3 rounded-[1.1rem] border border-white/10 bg-[color:var(--background)]/32 p-4 sm:grid-cols-3">
-                {["Details", "Review", "Kitchen"].map((step, index) => (
+                {(isArabic ? ["التفاصيل", "المراجعة", "المطبخ"] : ["Details", "Review", "Kitchen"]).map((step, index) => (
                   <div className="flex items-center gap-3" key={step}>
                     <span
                       className={`flex size-9 items-center justify-center rounded-full border text-sm font-bold ${
@@ -130,11 +130,14 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
               <div className="mt-8 grid gap-5 sm:grid-cols-2">
                 {fields.map((field) => {
                   const Icon = field.icon;
+                  const fieldLabel = isArabic
+                    ? ({name: "الاسم", email: "البريد الإلكتروني", phone: "رقم الهاتف", address: "عنوان التوصيل"} as Record<string, string>)[field.name]
+                    : field.label;
 
                   return (
                     <label className={field.name === "address" ? "sm:col-span-2" : ""} key={field.name}>
                       <span className="text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">
-                        {field.label}
+                        {fieldLabel}
                       </span>
                       <span className="relative mt-3 block">
                         <Icon
@@ -145,7 +148,7 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                         <input
                           className="h-14 w-full rounded-[1rem] border border-white/10 bg-[color:var(--background)]/62 pl-12 pr-4 text-sm text-[color:var(--text)] outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] transition-all placeholder:text-[color:var(--text-muted)]/48 focus:border-[color:var(--primary)]/70 focus:shadow-[0_0_0_4px_rgba(255,122,0,0.13)]"
                           name={field.name}
-                          placeholder={field.label}
+                          placeholder={fieldLabel}
                           required={field.name !== "email"}
                           type={field.type}
                         />
@@ -155,12 +158,12 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                 })}
                 <label className="sm:col-span-2">
                   <span className="text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">
-                    Notes
+                    {isArabic ? "ملاحظات" : "Notes"}
                   </span>
                   <textarea
                     className="mt-3 min-h-36 w-full resize-none rounded-[1rem] border border-white/10 bg-[color:var(--background)]/62 px-4 py-4 text-sm leading-7 text-[color:var(--text)] outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] transition-all placeholder:text-[color:var(--text-muted)]/48 focus:border-[color:var(--primary)]/70 focus:shadow-[0_0_0_4px_rgba(255,122,0,0.13)]"
                     name="notes"
-                    placeholder="Allergies, delivery instructions, or anything our kitchen should know."
+                    placeholder={isArabic ? "الحساسية أو تعليمات التوصيل أو أي شيء يجب أن يعرفه المطبخ." : "Allergies, delivery instructions, or anything our kitchen should know."}
                   />
                 </label>
               </div>
@@ -170,7 +173,7 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                 disabled={items.length === 0}
                 type="submit"
               >
-                {items.length === 0 ? "Add Items To Continue" : "Place Order"}
+                {items.length === 0 ? (isArabic ? "أضف عناصر للمتابعة" : "Add Items To Continue") : (isArabic ? "تأكيد الطلب" : "Place Order")}
               </button>
             </div>
           </motion.form>
@@ -185,9 +188,9 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
               <div className="pointer-events-none absolute -right-20 -top-20 size-52 rounded-full bg-[color:var(--primary)]/18 blur-3xl" />
               <div className="relative">
                 <div className="flex items-center justify-between gap-4">
-                  <h2 className="text-2xl font-semibold">Order Summary</h2>
+                  <h2 className="text-2xl font-semibold">{isArabic ? "ملخص الطلب" : "Order Summary"}</h2>
                   <span className="rounded-full border border-[color:var(--primary)]/25 bg-[color:var(--primary)]/10 px-3 py-1 text-xs font-semibold tracking-[0.16em] text-[color:var(--primary-light)] uppercase">
-                    {itemCount} items
+                    {isArabic ? `${itemCount} عنصر` : `${itemCount} items`}
                   </span>
                 </div>
                 {items.length === 0 ? (
@@ -195,12 +198,12 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                     <div className="mb-4 flex size-12 items-center justify-center rounded-full border border-[color:var(--primary)]/25 bg-[color:var(--primary)]/10 text-[color:var(--primary-light)]">
                       <ShoppingBag aria-hidden="true" size={21} />
                     </div>
-                    Your cart is empty. Add a few favorites before placing an order.
+                    {isArabic ? "سلتك فارغة. أضف بعض أطباقك المفضلة قبل تأكيد الطلب." : "Your cart is empty. Add a few favorites before placing an order."}
                     <Link
                       className="mt-4 inline-flex min-h-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-5 text-sm font-bold text-[color:var(--background)]"
                       href={routes.menu}
                     >
-                      Browse Menu
+                      {isArabic ? "تصفح القائمة" : "Browse Menu"}
                     </Link>
                   </div>
                 ) : (
@@ -220,7 +223,7 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                           <div className="min-w-0">
                             <div className="truncate text-sm font-semibold">{item.name}</div>
                             <div className="mt-1 text-xs text-[color:var(--text-muted)]">
-                              Qty {item.quantity}
+                              {isArabic ? "الكمية" : "Qty"} {item.quantity}
                             </div>
                           </div>
                           <div className="text-sm font-semibold text-[color:var(--primary-light)]">
@@ -231,23 +234,23 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                     </div>
                     <div className="mt-5 rounded-lg border border-[color:var(--gold)]/20 bg-[color:var(--gold)]/8 p-4">
                       <div className="text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">
-                        Delivery Window
+                        {isArabic ? "موعد التوصيل" : "Delivery Window"}
                       </div>
                       <div className="mt-2 text-sm leading-7 text-[color:var(--text-muted)]">
-                        Prepared shortly after confirmation. Estimated arrival in 35 - 45 minutes.
+                        {isArabic ? "يبدأ التحضير بعد التأكيد مباشرة. الوصول المتوقع خلال 35 - 45 دقيقة." : "Prepared shortly after confirmation. Estimated arrival in 35 - 45 minutes."}
                       </div>
                     </div>
                     <div className="mt-6 divide-y divide-white/10 text-sm">
                       <div className="flex justify-between py-4 text-[color:var(--text-muted)]">
-                        <span>Subtotal</span>
+                        <span>{isArabic ? "المجموع الفرعي" : "Subtotal"}</span>
                         <span>{formatCurrency(subtotal, locale)}</span>
                       </div>
                       <div className="flex justify-between py-4 text-[color:var(--text-muted)]">
-                        <span>Delivery Fee</span>
+                        <span>{isArabic ? "رسوم التوصيل" : "Delivery Fee"}</span>
                         <span>{formatCurrency(deliveryFee, locale)}</span>
                       </div>
                       <div className="flex justify-between py-5 text-lg font-semibold">
-                        <span>Total</span>
+                        <span>{isArabic ? "الإجمالي" : "Total"}</span>
                         <span className="text-[color:var(--primary-light)]">
                           {formatCurrency(total, locale)}
                         </span>
@@ -270,7 +273,7 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
             exit={{ opacity: 0 }}
             role="dialog"
             aria-modal="true"
-            aria-label="Order successfully placed"
+            aria-label={isArabic ? "تم تأكيد الطلب بنجاح" : "Order successfully placed"}
           >
             <motion.div
               className="relative w-full max-w-lg overflow-hidden rounded-[1.7rem] border border-white/12 bg-[linear-gradient(145deg,rgba(31,31,31,0.98),rgba(13,13,13,0.98)_56%,rgba(255,122,0,0.08))] p-8 text-center shadow-[0_42px_140px_rgba(0,0,0,0.68),inset_0_1px_0_rgba(255,255,255,0.08)]"
@@ -284,10 +287,9 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                 <div className="mx-auto flex size-20 items-center justify-center rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/12 text-[color:var(--primary-light)] shadow-[0_0_42px_rgba(255,122,0,0.24)]">
                   <CheckCircle2 aria-hidden="true" size={36} />
                 </div>
-                <h2 className="mt-7 text-3xl font-semibold">Order Successfully Placed</h2>
+                <h2 className="mt-7 text-3xl font-semibold">{isArabic ? "تم تأكيد الطلب بنجاح" : "Order Successfully Placed"}</h2>
                 <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">
-                  Thank you for choosing Savora. Your order has been received and will
-                  be prepared shortly.
+                  {isArabic ? "شكرًا لاختيارك سافورا. استلمنا طلبك وسيتم تحضيره قريبًا." : "Thank you for choosing Savora. Your order has been received and will be prepared shortly."}
                 </p>
                 <div className="mt-8 grid gap-3 sm:grid-cols-2">
                   <Link
@@ -295,14 +297,14 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
                     href={routes.home}
                     onClick={() => setShowSuccess(false)}
                   >
-                    Continue Browsing
+                    {isArabic ? "متابعة التصفح" : "Continue Browsing"}
                   </Link>
                   <Link
                     className="inline-flex min-h-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-6 text-sm font-bold text-[color:var(--background)] shadow-[0_18px_48px_rgba(255,122,0,0.32)]"
                     href={routes.menu}
                     onClick={() => setShowSuccess(false)}
                   >
-                    View Menu
+                    {isArabic ? "عرض القائمة" : "View Menu"}
                   </Link>
                 </div>
               </div>

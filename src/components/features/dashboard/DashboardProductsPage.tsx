@@ -135,18 +135,7 @@ export function DashboardProductsPage({
 
   return (
     <section>
-      <DashboardPageHeader
-        eyebrow="Menu Operations"
-        title="Product Management"
-        description="Manage the Savora menu catalog with frontend-only local state, ready for future Node.js APIs."
-        action={
-          <ActionButton onClick={openAddModal}>
-            <Plus aria-hidden="true" size={16} />
-            Add Product
-          </ActionButton>
-        }
-      />
-
+   
       <DashboardCard className="p-4 sm:p-5">
         <div className="grid gap-3 lg:grid-cols-[1fr_16rem]">
           <SearchInput

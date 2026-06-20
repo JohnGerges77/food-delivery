@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Image from "next/image";
+import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
 
@@ -174,6 +175,15 @@ function TimelineCard({
 }
 
 export function AboutPageContent() {
+  const isArabic = useLocale() === "ar";
+  const arabicCopy: Record<string, string> = {
+    "Years Experience": "سنوات خبرة", "Signature Dishes": "أطباق مميزة", "Happy Guests": "ضيف سعيد",
+    "Premium Ingredients": "مكونات فاخرة", "Warm Hospitality": "ضيافة دافئة", "Crafted With Passion": "مصنوع بشغف",
+    "The First Spark": "الشرارة الأولى", "Signature Recipes": "الوصفات المميزة", "A Premium Dining Identity": "هوية طعام فاخرة", "The Digital Experience": "التجربة الرقمية",
+    "Freshness First": "الطزاجة أولًا", "Crafted Flavor": "نكهة متقنة", "Guest Experience": "تجربة الضيف", "Modern Dining": "ضيافة عصرية",
+    "Monday - Thursday": "الاثنين - الخميس", "Friday - Saturday": "الجمعة - السبت", Sunday: "الأحد",
+  };
+  const tr = (value: string) => isArabic ? arabicCopy[value] ?? value : value;
   return (
     <main className="overflow-hidden bg-[color:var(--background)] text-[color:var(--text)]">
       <section className="relative isolate flex min-h-[calc(100svh-74px)] items-center overflow-hidden px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
@@ -197,7 +207,7 @@ export function AboutPageContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, ease: sectionEase }}
           >
-            <SectionBadge>About Savora</SectionBadge>
+            <SectionBadge>{isArabic ? "عن سافورا" : "About Savora"}</SectionBadge>
           </motion.div>
           <motion.h1
             className="mx-auto max-w-5xl text-[clamp(3.1rem,9vw,6.8rem)] font-semibold leading-[0.92] text-balance"
@@ -205,9 +215,9 @@ export function AboutPageContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08, duration: 0.78, ease: sectionEase }}
           >
-            Where Flavor Meets
+            {isArabic ? "حيث يلتقي المذاق" : "Where Flavor Meets"}
             <span className="block text-[color:var(--primary-light)] drop-shadow-[0_0_32px_rgba(255,122,0,0.22)]">
-              Elegant Dining
+              {isArabic ? "بأناقة الضيافة" : "Elegant Dining"}
             </span>
           </motion.h1>
           <motion.p
@@ -216,9 +226,7 @@ export function AboutPageContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.16, duration: 0.72, ease: sectionEase }}
           >
-            Savora is a premium restaurant experience built around handcrafted dishes,
-            warm hospitality, and unforgettable flavors served in a cinematic dining
-            atmosphere.
+            {isArabic ? "سافورا تجربة مطعم فاخرة تقوم على أطباق مصنوعة بإتقان وضيافة دافئة ونكهات لا تُنسى في أجواء سينمائية." : "Savora is a premium restaurant experience built around handcrafted dishes, warm hospitality, and unforgettable flavors served in a cinematic dining atmosphere."}
           </motion.p>
 
           <motion.div
@@ -236,7 +244,7 @@ export function AboutPageContent() {
                   {stat.value}
                 </div>
                 <div className="mt-2 text-xs font-semibold tracking-[0.18em] text-[color:var(--text-muted)] uppercase">
-                  {stat.label}
+                  {tr(stat.label)}
                 </div>
               </div>
             ))}
@@ -249,14 +257,12 @@ export function AboutPageContent() {
         <div className="absolute right-[-16rem] top-16 -z-10 size-[36rem] rounded-full bg-[radial-gradient(circle,rgba(212,160,23,0.1),transparent_70%)] blur-3xl" />
         <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[0.88fr_1.12fr] lg:gap-16 xl:gap-20">
           <div>
-            <SectionBadge>Our Identity</SectionBadge>
+            <SectionBadge>{isArabic ? "هويتنا" : "Our Identity"}</SectionBadge>
             <h2 className="text-4xl font-semibold leading-[1.02] text-balance sm:text-5xl lg:text-6xl">
-              Who We Are
+              {isArabic ? "من نحن" : "Who We Are"}
             </h2>
             <p className="mt-6 max-w-2xl text-base leading-8 text-[color:var(--text-muted)] sm:text-lg sm:leading-9">
-              We are a modern restaurant brand inspired by the art of slow dining,
-              premium ingredients, and bold flavors. Every dish is designed to feel
-              personal, memorable, and beautifully crafted.
+              {isArabic ? "نحن علامة مطعم عصرية تستلهم فن تناول الطعام بهدوء والمكونات الفاخرة والنكهات الجريئة. صُمم كل طبق ليكون شخصيًا وجميلًا ولا يُنسى." : "We are a modern restaurant brand inspired by the art of slow dining, premium ingredients, and bold flavors. Every dish is designed to feel personal, memorable, and beautifully crafted."}
             </p>
             <div className="mt-9 grid gap-3 sm:max-w-xl sm:grid-cols-3">
               {valuePoints.map((point) => (
@@ -268,7 +274,7 @@ export function AboutPageContent() {
                     <CheckCircle2 aria-hidden="true" size={18} strokeWidth={1.9} />
                   </span>
                   <span className="block text-sm font-semibold leading-6 text-[color:var(--text)]">
-                    {point}
+                    {tr(point)}
                   </span>
                 </div>
               ))}
@@ -309,9 +315,9 @@ export function AboutPageContent() {
         <div className="absolute left-[-18rem] top-20 -z-10 size-[42rem] rounded-full bg-[radial-gradient(circle,rgba(255,122,0,0.12),transparent_70%)] blur-3xl" />
         <div className="mx-auto max-w-6xl">
           <div className="text-center">
-            <SectionBadge>Our Story</SectionBadge>
+            <SectionBadge>{isArabic ? "قصتنا" : "Our Story"}</SectionBadge>
             <h2 className="mx-auto max-w-4xl text-4xl font-semibold leading-[1.02] text-balance sm:text-5xl lg:text-6xl">
-              From First Spark to Digital Dining
+              {isArabic ? "من الشرارة الأولى إلى التجربة الرقمية" : "From First Spark to Digital Dining"}
             </h2>
           </div>
           <div className="relative mt-14 sm:mt-16 lg:mt-[4.5rem]">
@@ -337,7 +343,7 @@ export function AboutPageContent() {
                       index % 2 === 0 ? "sm:col-start-1" : "sm:col-start-3"
                     }`}
                   >
-                    <TimelineCard item={item} align={index % 2 === 0 ? "left" : "right"} />
+                    <TimelineCard item={{...item, title: tr(item.title)}} align={index % 2 === 0 ? "left" : "right"} />
                   </div>
                   <div
                     className={`hidden h-px bg-gradient-to-r sm:row-start-1 sm:block ${
@@ -357,9 +363,9 @@ export function AboutPageContent() {
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-6 lg:grid-cols-[0.85fr_1fr] lg:items-end">
             <div className="max-w-3xl">
-            <SectionBadge>Our Values</SectionBadge>
+            <SectionBadge>{isArabic ? "قيمنا" : "Our Values"}</SectionBadge>
             <h2 className="text-4xl font-semibold leading-[1.02] text-balance sm:text-5xl lg:text-6xl">
-              Premium standards in every detail.
+              {isArabic ? "معايير فاخرة في كل تفصيل." : "Premium standards in every detail."}
             </h2>
             </div>
             <p className="max-w-2xl text-base leading-8 text-[color:var(--text-muted)] lg:justify-self-end">
@@ -386,10 +392,10 @@ export function AboutPageContent() {
                     <Icon aria-hidden="true" size={23} strokeWidth={1.8} />
                   </div>
                   <h3 className="text-xl font-semibold transition-colors duration-300 group-hover:text-[color:var(--primary-light)]">
-                    {value.title}
+                    {tr(value.title)}
                   </h3>
                   <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">
-                    {value.description}
+                    {isArabic ? "نلتزم بالجودة والعناية في كل تفصيل لنقدّم تجربة غنية ومريحة ولا تُنسى." : value.description}
                   </p>
                 </motion.article>
               );
@@ -408,7 +414,7 @@ export function AboutPageContent() {
               <span className="flex size-13 items-center justify-center rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/12 text-[color:var(--primary-light)] shadow-[0_0_30px_rgba(255,122,0,0.2)]">
                 <Clock aria-hidden="true" size={22} strokeWidth={1.8} />
               </span>
-              <h2 className="text-3xl font-semibold sm:text-4xl">Opening Hours</h2>
+              <h2 className="text-3xl font-semibold sm:text-4xl">{isArabic ? "ساعات العمل" : "Opening Hours"}</h2>
             </div>
             <div className="mt-8 divide-y divide-white/10 rounded-lg border border-white/8 bg-[color:var(--background)]/26 px-4">
               {openingHours.map((row) => (
@@ -420,7 +426,7 @@ export function AboutPageContent() {
                   }`}
                   key={row.day}
                 >
-                  <span className="font-semibold">{row.day}</span>
+                  <span className="font-semibold">{tr(row.day)}</span>
                   <span className="text-sm text-[color:var(--text-muted)] sm:text-right">
                     {row.time}
                   </span>
@@ -428,7 +434,7 @@ export function AboutPageContent() {
               ))}
             </div>
             <p className="mt-6 rounded-lg border border-[color:var(--gold)]/25 bg-[color:var(--gold)]/8 px-4 py-3 text-sm leading-6 text-[color:var(--text-muted)]">
-              Kitchen closes 30 minutes before closing time.
+              {isArabic ? "يغلق المطبخ قبل موعد الإغلاق بثلاثين دقيقة." : "Kitchen closes 30 minutes before closing time."}
             </p>
             </div>
           </div>
@@ -437,9 +443,9 @@ export function AboutPageContent() {
             <div className="absolute -right-24 -top-24 size-60 rounded-full bg-[color:var(--primary)]/18 blur-3xl" />
             <div className="relative grid gap-8 lg:grid-cols-[0.72fr_1.28fr]">
               <div>
-                <SectionBadge>Location</SectionBadge>
+                <SectionBadge>{isArabic ? "الموقع" : "Location"}</SectionBadge>
                 <h2 className="text-3xl font-semibold leading-tight sm:text-4xl">
-                  Visit Our Restaurant
+                  {isArabic ? "زر مطعمنا" : "Visit Our Restaurant"}
                 </h2>
                 <div className="mt-7 grid gap-3 text-sm text-[color:var(--text-muted)]">
                   <div className="flex items-start gap-3 rounded-lg border border-white/8 bg-white/[0.03] p-3">
@@ -521,14 +527,14 @@ export function AboutPageContent() {
                   className="inline-flex min-h-13 items-center justify-center gap-3 rounded-full border border-white/14 bg-white/[0.045] px-7 text-sm font-bold text-[color:var(--text)] backdrop-blur transition-all duration-300 hover:border-[color:var(--primary)]/55 hover:bg-white/[0.08] hover:text-[color:var(--primary-light)]"
                   href={routes.menu}
                 >
-                  View Menu
+                  {isArabic ? "عرض القائمة" : "View Menu"}
                   <ArrowRight aria-hidden="true" size={18} strokeWidth={2} />
                 </Link>
                 <Link
                   className="inline-flex min-h-13 items-center justify-center gap-3 rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-7 text-sm font-bold text-[color:var(--background)] shadow-[0_20px_56px_rgba(255,122,0,0.36)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_26px_70px_rgba(255,122,0,0.5)]"
                   href={routes.menu}
                 >
-                  Order Now
+                  {isArabic ? "اطلب الآن" : "Order Now"}
                   <ArrowRight aria-hidden="true" size={18} strokeWidth={2} />
                 </Link>
               </div>
