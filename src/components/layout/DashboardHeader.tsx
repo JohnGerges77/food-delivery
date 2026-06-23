@@ -3,6 +3,7 @@
 import { Bell, Menu, Search } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
 
 function getPageTitle(pathname: string) {
   if (pathname.startsWith(routes.products)) {
@@ -66,6 +67,8 @@ export function DashboardHeader({ onMenuClick }: { onMenuClick?: () => void }) {
         <span className="hidden rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-2 text-xs font-semibold text-emerald-200 sm:inline-flex">
           Restaurant Open
         </span>
+
+        <ThemeToggle />
 
         <button
           aria-label="Notifications"

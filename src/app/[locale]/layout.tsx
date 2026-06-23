@@ -43,7 +43,14 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} dir={getDirection(locale)}>
+    <html lang={locale} dir={getDirection(locale)} data-theme="dark" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var theme=localStorage.getItem("savora-theme");document.documentElement.dataset.theme=theme==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}})();`,
+          }}
+        />
+      </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
       </body>

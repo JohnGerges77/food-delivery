@@ -17,6 +17,7 @@ import Image from "next/image";
 import { FormEvent, useState } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
 
 const features = [
   { label: "Manage Orders", icon: ShoppingBag },
@@ -61,7 +62,8 @@ export function AdminLoginPage() {
       initial={reduceMotion ? false : { opacity: 0 }}
       transition={{ duration: 0.7 }}
     >
-      <div className="absolute inset-0 -z-30 bg-[radial-gradient(circle_at_18%_22%,rgba(255,122,0,0.17),transparent_28%),radial-gradient(circle_at_88%_78%,rgba(212,160,23,0.1),transparent_28%),linear-gradient(135deg,#17120e_0%,#0d0d0d_44%,#101010_100%)]" />
+      <ThemeToggle className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6" />
+      <div className="absolute inset-0 -z-30 bg-[radial-gradient(circle_at_18%_22%,rgba(255,122,0,0.17),transparent_28%),radial-gradient(circle_at_88%_78%,rgba(212,160,23,0.1),transparent_28%),var(--page-gradient)]" />
       <div className="absolute inset-0 -z-20 opacity-[0.035] [background-image:linear-gradient(rgba(255,255,255,.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.8)_1px,transparent_1px)] [background-size:56px_56px]" />
       <motion.div
         animate={reduceMotion ? undefined : { opacity: [0.2, 0.5, 0.2], scale: [0.9, 1.12, 0.9] }}
@@ -179,18 +181,18 @@ export function AdminLoginPage() {
               </motion.div>
 
               <motion.div className="mt-8" variants={formItem}>
-                <label className="mb-2.5 block text-xs font-semibold tracking-[0.14em] text-white/70 uppercase" htmlFor="admin-email">Email</label>
+                <label className="mb-2.5 block text-xs font-semibold tracking-[0.14em] text-[color:var(--text-muted)] uppercase" htmlFor="admin-email">Email</label>
                 <div className="group relative">
                   <Mail aria-hidden="true" className="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)] transition-colors group-focus-within:text-[color:var(--primary-light)]" size={18} />
-                  <input className="h-14 w-full rounded-2xl border border-white/10 bg-black/25 pl-12 pr-4 text-sm text-white outline-none transition-all placeholder:text-white/25 hover:border-white/20 focus:border-[color:var(--primary)]/55 focus:bg-black/35 focus:shadow-[0_0_0_4px_rgba(255,122,0,0.08),0_10px_35px_rgba(0,0,0,0.22)]" id="admin-email" name="email" placeholder="admin@savora.com" type="email" autoComplete="email" required />
+                  <input className="h-14 w-full rounded-2xl border border-[color:var(--border)] bg-[color:var(--glass)] pl-12 pr-4 text-sm text-[color:var(--text)] outline-none transition-all placeholder:text-[color:var(--text-muted)]/50 hover:border-[color:var(--primary)]/30 focus:border-[color:var(--primary)]/55 focus:bg-[color:var(--glass-strong)] focus:shadow-[0_0_0_4px_rgba(255,122,0,0.08),0_10px_35px_rgba(0,0,0,0.12)]" id="admin-email" name="email" placeholder="admin@savora.com" type="email" autoComplete="email" required />
                 </div>
               </motion.div>
 
               <motion.div className="mt-5" variants={formItem}>
-                <label className="mb-2.5 block text-xs font-semibold tracking-[0.14em] text-white/70 uppercase" htmlFor="admin-password">Password</label>
+                <label className="mb-2.5 block text-xs font-semibold tracking-[0.14em] text-[color:var(--text-muted)] uppercase" htmlFor="admin-password">Password</label>
                 <div className="group relative">
                   <LockKeyhole aria-hidden="true" className="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)] transition-colors group-focus-within:text-[color:var(--primary-light)]" size={18} />
-                  <input className="h-14 w-full rounded-2xl border border-white/10 bg-black/25 pl-12 pr-12 text-sm text-white outline-none transition-all placeholder:text-white/25 hover:border-white/20 focus:border-[color:var(--primary)]/55 focus:bg-black/35 focus:shadow-[0_0_0_4px_rgba(255,122,0,0.08),0_10px_35px_rgba(0,0,0,0.22)]" id="admin-password" name="password" placeholder="Enter your password" type={showPassword ? "text" : "password"} autoComplete="current-password" required />
+                  <input className="h-14 w-full rounded-2xl border border-[color:var(--border)] bg-[color:var(--glass)] pl-12 pr-12 text-sm text-[color:var(--text)] outline-none transition-all placeholder:text-[color:var(--text-muted)]/50 hover:border-[color:var(--primary)]/30 focus:border-[color:var(--primary)]/55 focus:bg-[color:var(--glass-strong)] focus:shadow-[0_0_0_4px_rgba(255,122,0,0.08),0_10px_35px_rgba(0,0,0,0.12)]" id="admin-password" name="password" placeholder="Enter your password" type={showPassword ? "text" : "password"} autoComplete="current-password" required />
                   <button aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-xl text-[color:var(--text-muted)] transition-colors hover:bg-white/[0.06] hover:text-white" onClick={() => setShowPassword((visible) => !visible)} type="button">
                     {showPassword ? <EyeOff aria-hidden="true" size={17} /> : <Eye aria-hidden="true" size={17} />}
                   </button>
@@ -216,12 +218,12 @@ export function AdminLoginPage() {
                 <span className="h-px flex-1 bg-gradient-to-l from-transparent to-white/15" />
               </motion.div>
 
-              <motion.button className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border border-white/12 bg-white/[0.04] text-sm font-semibold text-white transition-colors hover:border-[color:var(--primary)]/35 hover:bg-[color:var(--primary)]/[0.07]" onClick={() => router.push(routes.dashboard)} type="button" variants={formItem} whileHover={reduceMotion ? undefined : { y: -2 }} whileTap={reduceMotion ? undefined : { scale: 0.99 }}>
+              <motion.button className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border border-white/12 bg-white/[0.04] text-sm font-semibold text-[color:var(--text)] transition-colors hover:border-[color:var(--primary)]/35 hover:bg-[color:var(--primary)]/[0.07]" onClick={() => router.push(routes.dashboard)} type="button" variants={formItem} whileHover={reduceMotion ? undefined : { y: -2 }} whileTap={reduceMotion ? undefined : { scale: 0.99 }}>
                 <ShieldCheck aria-hidden="true" className="text-[color:var(--primary-light)]" size={18} />
                 Login as Demo Admin
               </motion.button>
 
-              <motion.p className="mt-7 text-center text-xs leading-5 text-white/30" variants={formItem}>
+              <motion.p className="mt-7 text-center text-xs leading-5 text-[color:var(--text-muted)]/60" variants={formItem}>
                 Protected by Savora secure administration services.
               </motion.p>
             </motion.form>

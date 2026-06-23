@@ -16,7 +16,7 @@ export function DashboardLayoutShell({ children }: { children: React.ReactNode }
 
   return (
     <div className="min-h-screen bg-[color:var(--background)] text-[color:var(--text)]">
-      <div className="fixed inset-0 -z-20 bg-[radial-gradient(circle_at_82%_8%,rgba(255,122,0,0.14),transparent_30%),radial-gradient(circle_at_15%_92%,rgba(212,160,23,0.1),transparent_34%),linear-gradient(135deg,rgba(13,13,13,1),rgba(31,31,31,0.72)_48%,rgba(13,13,13,1))]" />
+      <div className="fixed inset-0 -z-20 bg-[radial-gradient(circle_at_82%_8%,rgba(255,122,0,0.14),transparent_30%),radial-gradient(circle_at_15%_92%,rgba(212,160,23,0.1),transparent_34%),var(--page-gradient)]" />
       <DashboardSidebar />
       <AnimatePresence>
         <DashboardSidebar isOpen={menuOpen} onClose={() => setMenuOpen(false)} />

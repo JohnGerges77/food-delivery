@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Languages, ShoppingCart } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
 
 export function PublicNavbar() {
   const t = useTranslations("navigation");
@@ -19,7 +20,7 @@ export function PublicNavbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-white/10 bg-[color:var(--background)]/75 px-4 py-3 shadow-[0_18px_60px_rgba(0,0,0,0.25)] backdrop-blur-xl sm:px-6">
+    <nav className="sticky top-0 z-50 border-b border-[color:var(--border)] bg-[color:var(--background)]/75 px-4 py-3 shadow-[0_18px_60px_rgba(0,0,0,0.18)] backdrop-blur-xl sm:px-6">
       <div className="mx-auto grid max-w-7xl grid-cols-2 items-center gap-3 lg:grid-cols-[1fr_auto_1fr]">
         <Link
           className="group inline-flex w-fit items-center"
@@ -38,10 +39,10 @@ export function PublicNavbar() {
           </span>
         </Link>
 
-        <div className="order-3 col-span-2 flex items-center justify-center gap-1 rounded-full border border-white/10 bg-white/[0.03] p-1 text-sm text-[color:var(--text-muted)] lg:order-none lg:col-span-1">
+        <div className="order-3 col-span-2 flex items-center justify-center gap-1 rounded-full border border-[color:var(--border)] bg-[color:var(--glass)] p-1 text-sm text-[color:var(--text-muted)] lg:order-none lg:col-span-1">
           {links.map((link) => (
             <Link
-              className="rounded-full px-4 py-2 transition-all duration-300 hover:bg-white/10 hover:text-[color:var(--text)]"
+              className="rounded-full px-4 py-2 transition-all duration-300 hover:bg-[color:var(--glass-strong)] hover:text-[color:var(--text)]"
               href={link.href}
               key={link.href}
             >
@@ -51,6 +52,7 @@ export function PublicNavbar() {
         </div>
 
         <div className="flex items-center justify-self-end gap-2">
+          <ThemeToggle />
           <Link
             aria-label={t("switchLanguage", {language: t(`languages.${nextLocale}`)})}
             className="group inline-flex h-11 items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 text-xs font-bold text-[color:var(--text)] transition-all duration-300 hover:border-[color:var(--primary)]/55 hover:bg-[color:var(--primary)]/10 hover:text-[color:var(--primary-light)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--primary)]"

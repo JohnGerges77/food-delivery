@@ -2,7 +2,9 @@
 
 :root {
   --background: #0d0d0d;
+  --foreground: #ffffff;
   --card: #1f1f1f;
+  --card-muted: #262626;
 
   --primary: #ff7a00;
   --primary-light: #ff9d33;
@@ -11,6 +13,36 @@
 
   --text: #ffffff;
   --text-muted: #a3a3a3;
+
+  --border: rgba(255, 255, 255, 0.1);
+  --glass: rgba(255, 255, 255, 0.04);
+  --glass-strong: rgba(255, 255, 255, 0.08);
+  --page-gradient: linear-gradient(135deg, #0d0d0d, rgba(31, 31, 31, 0.72) 48%, #0d0d0d);
+  --panel-gradient: linear-gradient(145deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.025) 58%, rgba(255, 122, 0, 0.055));
+  --surface-shadow: 0 28px 90px rgba(0, 0, 0, 0.38);
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --background: #fff8ef;
+  --foreground: #1a120b;
+  --card: #ffffff;
+  --card-muted: #fff1df;
+
+  --primary: #ff7a00;
+  --primary-light: #ff9d33;
+  --gold: #b8860b;
+
+  --text: #1a120b;
+  --text-muted: #6b5b4a;
+
+  --border: rgba(26, 18, 11, 0.12);
+  --glass: rgba(255, 255, 255, 0.65);
+  --glass-strong: rgba(255, 255, 255, 0.85);
+  --page-gradient: linear-gradient(135deg, #fff8ef, rgba(255, 241, 223, 0.92) 48%, #fff8ef);
+  --panel-gradient: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 248, 239, 0.88) 58%, rgba(255, 122, 0, 0.08));
+  --surface-shadow: 0 24px 70px rgba(101, 65, 24, 0.12);
+  color-scheme: light;
 }
 
 @theme inline {
@@ -23,8 +55,59 @@
 body {
   background: var(--background);
   color: var(--foreground);
+  transition: background-color 300ms ease, color 300ms ease;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Existing cinematic surfaces use translucent white utilities. These semantic
+   light-mode overrides preserve their dark appearance while warming them in light mode. */
+[data-theme="light"] [class*="border-white/"] {
+  border-color: var(--border);
+}
+
+[data-theme="light"] [class*="divide-white/"] > :not(:last-child) {
+  border-color: var(--border);
+}
+
+[data-theme="light"] [class*="bg-white/"] {
+  background-color: var(--glass);
+}
+
+[data-theme="light"] [class*="hover:bg-white/"]:hover {
+  background-color: var(--glass-strong);
+}
+
+[data-theme="light"] [class*="rgba(31,31,31"],
+[data-theme="light"] [class*="#17120e"] {
+  background-image: var(--page-gradient);
+}
+
+[data-theme="light"] [class*="linear-gradient(145deg,rgba(255,255,255"] {
+  background-image: var(--panel-gradient);
+  box-shadow: var(--surface-shadow);
+}
+
+[data-theme="light"] [class*="linear-gradient(145deg,rgba(31,31,31"] {
+  background-image: var(--panel-gradient);
+  box-shadow: var(--surface-shadow);
+}
+
+[data-theme="light"] [class*="linear-gradient(180deg,rgba(31,31,31"] {
+  background-image: linear-gradient(180deg, var(--card), var(--card-muted));
+}
+
+[data-theme="light"] [class*="text-white/"] {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] [class*="text-emerald-"] {
+  color: #047857;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--primary) 35%, transparent);
+  color: var(--text);
 }
