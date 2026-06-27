@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>دليل مشروع Food Delivery</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 14mm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f6f1ea;
+      color: #19140f;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .page {
+      page-break-after: always;
+    }
+
+    .cover {
+      min-height: 260mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border: 1px solid #e0d3c1;
+      border-radius: 18px;
+      padding: 34px;
+      background:
+        radial-gradient(circle at 18% 14%, rgba(255, 122, 0, 0.16), transparent 28%),
+        linear-gradient(135deg, #fffaf3, #f1e7da);
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      color: #120d08;
+      line-height: 1.35;
+    }
+
+    h1 {
+      font-size: 36px;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font-size: 23px;
+      margin: 24px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #ff7a00;
+    }
+
+    h3 {
+      font-size: 16px;
+      margin: 18px 0 8px;
+      color: #7a3a00;
+    }
+
+    p {
+      margin: 0 0 10px;
+    }
+
+    .lead {
+      font-size: 16px;
+      max-width: 700px;
+      color: #4a3d31;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .box {
+      border: 1px solid #e0d3c1;
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.68);
+    }
+
+    .box strong {
+      display: block;
+      color: #7a3a00;
+      margin-bottom: 4px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 16px;
+      direction: ltr;
+      text-align: left;
+      font-size: 10.4px;
+      page-break-inside: auto;
+    }
+
+    thead {
+      display: table-header-group;
+    }
+
+    tr {
+      page-break-inside: avoid;
+      page-break-after: auto;
+    }
+
+    th {
+      background: #1b130d;
+      color: #fff5e9;
+      padding: 7px;
+      border: 1px solid #1b130d;
+      font-weight: 700;
+    }
+
+    td {
+      padding: 7px;
+      border: 1px solid #dfd1bf;
+      vertical-align: top;
+      background: #fffdf8;
+    }
+
+    td:nth-child(2), td:nth-child(3) {
+      direction: rtl;
+      text-align: right;
+    }
+
+    ul {
+      margin: 8px 0 14px;
+      padding: 0 20px 0 0;
+    }
+
+    li {
+      margin-bottom: 5px;
+    }
+
+    code {
+      direction: ltr;
+      unicode-bidi: embed;
+      background: #fff4e6;
+      border: 1px solid #f0cfaa;
+      border-radius: 5px;
+      padding: 1px 4px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 10px;
+    }
+
+    .note {
+      border-right: 4px solid #ff7a00;
+      background: #fff4e6;
+      padding: 10px 12px;
+      margin: 12px 0;
+      border-radius: 9px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .footer {
+      color: #6b5b4a;
+      font-size: 10px;
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    .ltr {
+      direction: ltr;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <section class="page cover">
+    <h1>دليل مشروع Food Delivery</h1>
+    <p class="lead">
+      شرح عملي لهيكل مشروع <span class="ltr">Next.js</span> الخاص بطلبات وإدارة مطعم:
+      ما وظيفة كل مجلد وملف، كيف تتحرك البيانات، وما المطلوب عند تركيب الباك إند وتحويله لمنتج قابل للبيع.
+    </p>
+    <div class="meta">
+      <div class="box"><strong>اسم المشروع</strong>food-delevery</div>
+      <div class="box"><strong>الإصدار</strong>0.1.0</div>
+      <div class="box"><strong>تاريخ الدليل</strong>27 يونيو 2026</div>
+    </div>
+    <div class="note">
+      المشروع يستخدم Next.js 16.2.7. بناء على دليل Next المحلي داخل
+      <code>node_modules/next/dist/docs</code>، ملف <code>src/proxy.ts</code> هو بديل Middleware في Next 16،
+      و route groups مثل <code>(public)</code> و <code>(dashboard)</code> لا تظهر في الرابط.
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>ملخص المشروع</h2>
+    <p>
+      المشروع عبارة عن واجهة أمامية كاملة لمطعم باسم Bistro Central / Savora: صفحة رئيسية، منيو، سلة، Checkout،
+      تتبع طلب، ولوحة تحكم لإدارة المنتجات والأقسام والطلبات والإعدادات. البيانات حاليا mock داخل <code>src/data</code>،
+      ويتم الوصول لها من <code>src/services</code>.
+    </p>
+    <div class="two-col">
+      <div class="box">
+        <strong>نقاط القوة الحالية</strong>
+        <ul>
+          <li>تصميم جاهز ومتماسك للعميل والإدارة.</li>
+          <li>دعم عربي/إنجليزي مع RTL.</li>
+          <li>State للسلة والطلبات باستخدام Zustand.</li>
+          <li>تقسيم جيد حسب features وخدمات وأنواع بيانات.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <strong>الحدود الحالية</strong>
+        <ul>
+          <li>لا يوجد باك إند حقيقي أو قاعدة بيانات.</li>
+          <li>تسجيل دخول الإدارة واجهة فقط.</li>
+          <li>إضافات وتعديلات الداشبورد محلية وتضيع عند refresh.</li>
+          <li>Checkout لا ينشئ طلب حقيقي حتى الآن.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>الحزم الأساسية</h2>
+    
+    <table>
+      <thead>
+        <tr><th>الحزمة</th><th>الإصدار</th><th>الدور</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>framer-motion</td><td>^12.40.0</td><td>الحركات والانتقالات.</td></tr><tr><td>lucide-react</td><td>^1.18.0</td><td>الأيقونات.</td></tr><tr><td>next</td><td>16.2.7</td><td>Framework الأساسي، App Router، server/client components، build.</td></tr><tr><td>next-intl</td><td>^4.13.0</td><td>الترجمة، route locale prefix، و navigation-aware links.</td></tr><tr><td>react</td><td>19.2.4</td><td>مكتبة بناء الواجهة.</td></tr><tr><td>react-dom</td><td>19.2.4</td><td>تشغيل React داخل المتصفح.</td></tr><tr><td>zustand</td><td>^5.0.14</td><td>إدارة state للسلة والطلبات داخل الواجهة.</td></tr>
+      </tbody>
+    </table>
+  
+
+    <h2>خريطة الراوتات</h2>
+    
+    <table>
+      <thead>
+        <tr><th>الرابط</th><th>النوع</th><th>الوظيفة</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>/[locale]</td><td>واجهة عامة</td><td>Home page تعرض أقسام landing وتجربة المطعم.</td></tr><tr><td>/[locale]/about</td><td>واجهة عامة</td><td>صفحة تعريفية بالمطعم.</td></tr><tr><td>/[locale]/menu</td><td>واجهة عامة</td><td>قائمة المنتجات مع بحث، تصنيفات، وإضافة للسلة.</td></tr><tr><td>/[locale]/menu/[productId]</td><td>واجهة عامة</td><td>تفاصيل منتج ديناميكية.</td></tr><tr><td>/[locale]/cart</td><td>واجهة عامة</td><td>سلة العميل وتعديل الكميات.</td></tr><tr><td>/[locale]/checkout</td><td>واجهة عامة</td><td>إتمام الطلب كضيف.</td></tr><tr><td>/[locale]/track-order</td><td>واجهة عامة</td><td>تتبع أحدث طلب mock.</td></tr><tr><td>/[locale]/dashboard/login</td><td>إدارة</td><td>واجهة تسجيل دخول شكلية.</td></tr><tr><td>/[locale]/dashboard</td><td>إدارة</td><td>نظرة عامة وإحصائيات.</td></tr><tr><td>/[locale]/dashboard/products</td><td>إدارة</td><td>إدارة المنتجات محليا.</td></tr><tr><td>/[locale]/dashboard/categories</td><td>إدارة</td><td>إدارة الأقسام محليا.</td></tr><tr><td>/[locale]/dashboard/orders</td><td>إدارة</td><td>إدارة الطلبات وتحديث status محليا.</td></tr><tr><td>/[locale]/dashboard/settings</td><td>إدارة</td><td>إعدادات المطعم والتوصيل والمظهر.</td></tr>
+      </tbody>
+    </table>
+  
+  </section>
+
+  <section class="page">
+    <h2>كيف تمشي البيانات؟</h2>
+    <ol>
+      <li>الصفحات داخل <code>src/app/[locale]</code> تستقبل اللغة من URL.</li>
+      <li>الصفحة تستدعي service من <code>src/services</code> مثل <code>getProducts(locale)</code>.</li>
+      <li>الـ service يقرأ من mock data داخل <code>src/data</code> ويطبق تعريب من <code>localized.ts</code>.</li>
+      <li>الصفحة تمرر البيانات إلى مكونات feature داخل <code>src/components/features</code>.</li>
+      <li>السلة وحالة الطلب الحالية محفوظة في stores داخل المتصفح باستخدام Zustand.</li>
+    </ol>
+    <div class="note">
+      عند تركيب الباك إند الأفضل ألا تغير كل الصفحات. ابدأ بتعديل <code>src/services</code> لتقرأ من API،
+      ثم أضف auth/session، وبعدها اربط إنشاء الطلب وتحديث الحالات بقاعدة البيانات.
+    </div>
+
+    <h2>المجلدات</h2>
+    
+    <table>
+      <thead>
+        <tr><th>المجلد</th><th>وظيفته</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>public</td><td>أصول ثابتة يقدمها Next مباشرة من جذر الموقع.</td></tr><tr><td>root</td><td>ملفات إعداد وتشغيل المشروع.</td></tr><tr><td>src</td><td>مجلد فرعي داخل المشروع.</td></tr><tr><td>src/app</td><td>ملفات App Router العامة.</td></tr><tr><td>src/app/[locale]</td><td>راوتات Next داخل اللغة، مع route groups للواجهة العامة والداشبورد.</td></tr><tr><td>src/app/[locale]/(dashboard)/dashboard</td><td>راوتات Next داخل اللغة، مع route groups للواجهة العامة والداشبورد.</td></tr><tr><td>src/app/[locale]/(dashboard)/dashboard/categories</td><td>راوتات Next داخل اللغة، مع route groups للواجهة العامة والداشبورد.</td></tr><tr><td>src/app/[locale]/(dashboard)/dashboard/login</td><td>راوتات Next داخل اللغة، مع route groups للواجهة العامة والداشبورد.</td></tr><tr><td>src/app/[locale]/(dashboard)/dashboard/orders</td><td>راوتات Next داخل اللغة، مع route groups للواجهة العامة والداشبورد.</td></tr><tr><td>src/app/[locale]/(dashboard)/dashboard/products</td><td>راوتات Next داخل اللغة، مع route groups للواجهة العامة والداشبورد.</td></tr><tr><td>src/app/[locale]/(dashboard)/dashboard/settings</td><td>راوتات Next داخل اللغة، مع route groups للواجهة العامة والداشبورد.</td></tr><tr><td>src/app/[locale]/(public)</td><td>راوتات Next داخل اللغة، مع route groups للواجهة العامة والداشبورد.</td></tr><tr><td>src/app/[locale]/(public)/about</td><td>راوتات Next داخل اللغة، مع route groups للواجهة العامة والداشبورد.</td></tr><tr><td>src/app/[locale]/(public)/cart</td><td>راوتات Next داخل اللغة، مع route groups للواجهة العامة والداشبورد.</td></tr><tr><td>src/app/[locale]/(public)/checkout</td><td>راوتات Next داخل اللغة، مع route groups للواجهة العامة والداشبورد.</td></tr><tr><td>src/app/[locale]/(public)/menu</td><td>راوتات Next داخل اللغة، مع route groups للواجهة العامة والداشبورد.</td></tr><tr><td>src/app/[locale]/(public)/menu/[productId]</td><td>راوتات Next داخل اللغة، مع route groups للواجهة العامة والداشبورد.</td></tr><tr><td>src/app/[locale]/(public)/track-order</td><td>راوتات Next داخل اللغة، مع route groups للواجهة العامة والداشبورد.</td></tr><tr><td>src/components/common</td><td>مكتبة مكونات UI عامة.</td></tr><tr><td>src/components/features/about</td><td>مكونات منظمة حسب feature أو صفحة.</td></tr><tr><td>src/components/features/cart</td><td>مكونات منظمة حسب feature أو صفحة.</td></tr><tr><td>src/components/features/categories</td><td>مكونات منظمة حسب feature أو صفحة.</td></tr><tr><td>src/components/features/checkout</td><td>مكونات منظمة حسب feature أو صفحة.</td></tr><tr><td>src/components/features/dashboard</td><td>مكونات منظمة حسب feature أو صفحة.</td></tr><tr><td>src/components/features/landing</td><td>مكونات منظمة حسب feature أو صفحة.</td></tr><tr><td>src/components/features/menu</td><td>مكونات منظمة حسب feature أو صفحة.</td></tr><tr><td>src/components/features/orders</td><td>مكونات منظمة حسب feature أو صفحة.</td></tr><tr><td>src/components/features/products</td><td>مكونات منظمة حسب feature أو صفحة.</td></tr><tr><td>src/components/features/settings</td><td>مكونات منظمة حسب feature أو صفحة.</td></tr><tr><td>src/components/layout</td><td>مكونات الهيكل والتنقل.</td></tr><tr><td>src/data</td><td>مصدر بيانات mock مؤقت.</td></tr><tr><td>src/hooks</td><td>React hooks مساعدة.</td></tr><tr><td>src/i18n</td><td>إعدادات الترجمة والمسارات متعددة اللغة.</td></tr><tr><td>src/lib</td><td>Utilities وثوابت ومسارات.</td></tr><tr><td>src/messages</td><td>ملفات الترجمة.</td></tr><tr><td>src/services</td><td>طبقة الوصول للبيانات، مرشحة للاستبدال بالباك إند.</td></tr><tr><td>src/store</td><td>State management بالـ Zustand.</td></tr><tr><td>src/types</td><td>أنواع TypeScript لعقود البيانات.</td></tr>
+      </tbody>
+    </table>
+  
+  </section>
+
+  <section>
+    <h2>كل الملفات ووظيفة كل ملف</h2>
+    
+    <table>
+      <thead>
+        <tr><th>الملف</th><th>الشرح</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>.gitignore</td><td>يحدد الملفات والمجلدات التي لا تدخل Git مثل build artifacts و node_modules.</td></tr><tr><td>AGENTS.md</td><td>تعليمات خاصة للوكيل داخل هذا المشروع، وأهمها قراءة دليل Next المحلي قبل تعديل كود Next.</td></tr><tr><td>CLAUDE.md</td><td>ملف ملاحظات صغير جدا، غالبا مخصص لتعليمات Claude أو تذكير داخلي.</td></tr><tr><td>eslint.config.mjs</td><td>إعدادات ESLint مع قواعد Next core-web-vitals و TypeScript.</td></tr><tr><td>next-env.d.ts</td><td>تعريفات TypeScript التي يولدها Next تلقائيا لبيئة المشروع.</td></tr><tr><td>next.config.ts</td><td>إعداد Next.js: يحدد root الخاص بـ Turbopack ويشغل plugin الخاص بـ next-intl.</td></tr><tr><td>package-lock.json</td><td>قفل إصدارات npm لضمان تثبيت نفس نسخ الحزم على كل جهاز.</td></tr><tr><td>package.json</td><td>بيانات المشروع، scripts مثل dev/build/lint، والحزم الأساسية: Next 16، React 19، next-intl، Zustand، Framer Motion.</td></tr><tr><td>postcss.config.mjs</td><td>يربط Tailwind CSS v4 عبر PostCSS.</td></tr><tr><td>public/best1.png</td><td>صورة ثابتة داخل public وتستخدم مباشرة في الواجهات والمنتجات والصفحة الرئيسية.</td></tr><tr><td>public/best2.png</td><td>صورة ثابتة داخل public وتستخدم مباشرة في الواجهات والمنتجات والصفحة الرئيسية.</td></tr><tr><td>public/best3.png</td><td>صورة ثابتة داخل public وتستخدم مباشرة في الواجهات والمنتجات والصفحة الرئيسية.</td></tr><tr><td>public/best4.png</td><td>صورة ثابتة داخل public وتستخدم مباشرة في الواجهات والمنتجات والصفحة الرئيسية.</td></tr><tr><td>public/headIcon.png</td><td>صورة ثابتة داخل public وتستخدم مباشرة في الواجهات والمنتجات والصفحة الرئيسية.</td></tr><tr><td>public/home2.png</td><td>صورة ثابتة داخل public وتستخدم مباشرة في الواجهات والمنتجات والصفحة الرئيسية.</td></tr><tr><td>public/logo.png</td><td>صورة ثابتة داخل public وتستخدم مباشرة في الواجهات والمنتجات والصفحة الرئيسية.</td></tr><tr><td>public/main.png</td><td>صورة ثابتة داخل public وتستخدم مباشرة في الواجهات والمنتجات والصفحة الرئيسية.</td></tr><tr><td>public/whyChooseUs.png</td><td>صورة ثابتة داخل public وتستخدم مباشرة في الواجهات والمنتجات والصفحة الرئيسية.</td></tr><tr><td>README.md</td><td>README الافتراضي من create-next-app مع طريقة تشغيل المشروع وروابط الوثائق.</td></tr><tr><td>src/app/[locale]/(dashboard)/dashboard/categories/page.tsx</td><td>صفحة إدارة الأقسام: تعرض الأقسام وعدد المنتجات داخل كل قسم مع إضافة/تعديل محلي.</td></tr><tr><td>src/app/[locale]/(dashboard)/dashboard/layout.tsx</td><td>Layout لوحة التحكم، يلف صفحات الداشبورد داخل DashboardLayoutShell.</td></tr><tr><td>src/app/[locale]/(dashboard)/dashboard/login/page.tsx</td><td>صفحة تسجيل دخول إدارية شكلية حاليا؛ لا يوجد تحقق حقيقي أو session.</td></tr><tr><td>src/app/[locale]/(dashboard)/dashboard/orders/page.tsx</td><td>صفحة إدارة الطلبات: فلترة وبحث وعرض تفاصيل وتغيير status محليا.</td></tr><tr><td>src/app/[locale]/(dashboard)/dashboard/page.tsx</td><td>صفحة نظرة عامة للداشبورد: إحصائيات، مبيعات، أفضل منتجات، وآخر الطلبات.</td></tr><tr><td>src/app/[locale]/(dashboard)/dashboard/products/page.tsx</td><td>صفحة إدارة المنتجات: تجلب المنتجات والأقسام وتعرض CRUD محلي داخل الواجهة.</td></tr><tr><td>src/app/[locale]/(dashboard)/dashboard/settings/page.tsx</td><td>صفحة إعدادات المطعم: بيانات المطعم، ساعات العمل، التوصيل، السوشيال، والثيم؛ الحفظ محلي بصري فقط.</td></tr><tr><td>src/app/[locale]/(public)/about/page.tsx</td><td>صفحة About العامة، تعرض محتوى تعريفي وتسويقي عن المطعم.</td></tr><tr><td>src/app/[locale]/(public)/cart/page.tsx</td><td>صفحة السلة، تمرر رسوم التوصيل وتعرض عناصر السلة والتحكم في الكميات.</td></tr><tr><td>src/app/[locale]/(public)/checkout/page.tsx</td><td>صفحة إتمام الطلب، تعرض نموذج بيانات العميل وملخص السلة وتأكيد محلي للطلب.</td></tr><tr><td>src/app/[locale]/(public)/menu/[productId]/page.tsx</td><td>صفحة تفاصيل منتج ديناميكية حسب productId، وتعرض 404 إذا لم يوجد المنتج.</td></tr><tr><td>src/app/[locale]/(public)/menu/page.tsx</td><td>صفحة القائمة العامة، تجلب المنتجات حسب اللغة وتعرض تجربة البحث والتصنيف والإضافة للسلة.</td></tr><tr><td>src/app/[locale]/(public)/page.tsx</td><td>صفحة الهوم public: تجمع Navbar و Hero و BestItems و FeaturedProducts و WhyChoose و Contact و Footer.</td></tr><tr><td>src/app/[locale]/(public)/track-order/page.tsx</td><td>صفحة تتبع الطلب، تعرض أحدث طلب mock على Timeline للعميل.</td></tr><tr><td>src/app/[locale]/error.tsx</td><td>Error boundary client-side يعرض ErrorState مع زر إعادة المحاولة.</td></tr><tr><td>src/app/[locale]/layout.tsx</td><td>Root layout للغة: يتحقق من locale، يحدد dir، يحقن رسائل next-intl، ويجهز الثيم من localStorage.</td></tr><tr><td>src/app/[locale]/loading.tsx</td><td>واجهة loading موحدة أثناء تحميل route segment.</td></tr><tr><td>src/app/[locale]/not-found.tsx</td><td>صفحة 404 مخصصة مع رابط رجوع للرئيسية.</td></tr><tr><td>src/app/favicon.ico</td><td>أيقونة المتصفح الخاصة بالتطبيق.</td></tr><tr><td>src/app/globals.css</td><td>ملف CSS العالمي: Tailwind v4، ألوان الثيم dark/light، متغيرات التصميم، وتحسينات عامة للواجهة.</td></tr><tr><td>src/components/common/Badge.tsx</td><td>مكون UI عام قابل لإعادة الاستخدام في أكثر من صفحة مثل Button/Input/Modal/Badge/States.</td></tr><tr><td>src/components/common/Button.tsx</td><td>مكون UI عام قابل لإعادة الاستخدام في أكثر من صفحة مثل Button/Input/Modal/Badge/States.</td></tr><tr><td>src/components/common/Container.tsx</td><td>مكون UI عام قابل لإعادة الاستخدام في أكثر من صفحة مثل Button/Input/Modal/Badge/States.</td></tr><tr><td>src/components/common/EmptyState.tsx</td><td>مكون UI عام قابل لإعادة الاستخدام في أكثر من صفحة مثل Button/Input/Modal/Badge/States.</td></tr><tr><td>src/components/common/ErrorState.tsx</td><td>مكون UI عام قابل لإعادة الاستخدام في أكثر من صفحة مثل Button/Input/Modal/Badge/States.</td></tr><tr><td>src/components/common/Input.tsx</td><td>مكون UI عام قابل لإعادة الاستخدام في أكثر من صفحة مثل Button/Input/Modal/Badge/States.</td></tr><tr><td>src/components/common/LoadingState.tsx</td><td>مكون UI عام قابل لإعادة الاستخدام في أكثر من صفحة مثل Button/Input/Modal/Badge/States.</td></tr><tr><td>src/components/common/Modal.tsx</td><td>مكون UI عام قابل لإعادة الاستخدام في أكثر من صفحة مثل Button/Input/Modal/Badge/States.</td></tr><tr><td>src/components/common/PageHeader.tsx</td><td>مكون UI عام قابل لإعادة الاستخدام في أكثر من صفحة مثل Button/Input/Modal/Badge/States.</td></tr><tr><td>src/components/common/SectionHeading.tsx</td><td>مكون UI عام قابل لإعادة الاستخدام في أكثر من صفحة مثل Button/Input/Modal/Badge/States.</td></tr><tr><td>src/components/common/Select.tsx</td><td>مكون UI عام قابل لإعادة الاستخدام في أكثر من صفحة مثل Button/Input/Modal/Badge/States.</td></tr><tr><td>src/components/common/Textarea.tsx</td><td>مكون UI عام قابل لإعادة الاستخدام في أكثر من صفحة مثل Button/Input/Modal/Badge/States.</td></tr><tr><td>src/components/common/ThemeToggle.jsx</td><td>مكون UI عام قابل لإعادة الاستخدام في أكثر من صفحة مثل Button/Input/Modal/Badge/States.</td></tr><tr><td>src/components/features/about/AboutPageContent.tsx</td><td>محتوى صفحة About بتصميم متحرك ومعلومات عن المطعم والقيم وساعات العمل.</td></tr><tr><td>src/components/features/cart/CartActions.tsx</td><td>مكون خاص بالسلة: العناصر، الملخص، حالة السلة الفارغة، وأزرار الاستكمال أو التفريغ.</td></tr><tr><td>src/components/features/cart/CartEmptyState.tsx</td><td>مكون خاص بالسلة: العناصر، الملخص، حالة السلة الفارغة، وأزرار الاستكمال أو التفريغ.</td></tr><tr><td>src/components/features/cart/CartItem.tsx</td><td>مكون خاص بالسلة: العناصر، الملخص، حالة السلة الفارغة، وأزرار الاستكمال أو التفريغ.</td></tr><tr><td>src/components/features/cart/CartOrderingPage.tsx</td><td>مكون خاص بالسلة: العناصر، الملخص، حالة السلة الفارغة، وأزرار الاستكمال أو التفريغ.</td></tr><tr><td>src/components/features/cart/CartSummary.tsx</td><td>مكون خاص بالسلة: العناصر، الملخص، حالة السلة الفارغة، وأزرار الاستكمال أو التفريغ.</td></tr><tr><td>src/components/features/categories/CategoriesTable.tsx</td><td>مكون إدارة أقسام تقليدي: جدول، صف، وفورم.</td></tr><tr><td>src/components/features/categories/CategoryForm.tsx</td><td>مكون إدارة أقسام تقليدي: جدول، صف، وفورم.</td></tr><tr><td>src/components/features/categories/CategoryRow.tsx</td><td>مكون إدارة أقسام تقليدي: جدول، صف، وفورم.</td></tr><tr><td>src/components/features/checkout/CheckoutForm.tsx</td><td>مكون خاص بإتمام الطلب: نموذج العميل، تفاصيل التوصيل، وملخص الطلب.</td></tr><tr><td>src/components/features/checkout/CheckoutOrderingPage.tsx</td><td>مكون خاص بإتمام الطلب: نموذج العميل، تفاصيل التوصيل، وملخص الطلب.</td></tr><tr><td>src/components/features/checkout/DeliveryDetails.tsx</td><td>مكون خاص بإتمام الطلب: نموذج العميل، تفاصيل التوصيل، وملخص الطلب.</td></tr><tr><td>src/components/features/checkout/OrderSummary.tsx</td><td>مكون خاص بإتمام الطلب: نموذج العميل، تفاصيل التوصيل، وملخص الطلب.</td></tr><tr><td>src/components/features/dashboard/AdminLoginPage.tsx</td><td>مكون خاص بلوحة التحكم: صفحات الإدارة، الكروت، الجداول، المودالات، والإحصائيات.</td></tr><tr><td>src/components/features/dashboard/DashboardCategoriesPage.tsx</td><td>مكون خاص بلوحة التحكم: صفحات الإدارة، الكروت، الجداول، المودالات، والإحصائيات.</td></tr><tr><td>src/components/features/dashboard/DashboardHomePage.tsx</td><td>مكون خاص بلوحة التحكم: صفحات الإدارة، الكروت، الجداول، المودالات، والإحصائيات.</td></tr><tr><td>src/components/features/dashboard/DashboardLayoutShell.tsx</td><td>مكون خاص بلوحة التحكم: صفحات الإدارة، الكروت، الجداول، المودالات، والإحصائيات.</td></tr><tr><td>src/components/features/dashboard/DashboardOrdersPage.tsx</td><td>مكون خاص بلوحة التحكم: صفحات الإدارة، الكروت، الجداول، المودالات، والإحصائيات.</td></tr><tr><td>src/components/features/dashboard/DashboardOverview.tsx</td><td>مكون خاص بلوحة التحكم: صفحات الإدارة، الكروت، الجداول، المودالات، والإحصائيات.</td></tr><tr><td>src/components/features/dashboard/DashboardProductsPage.tsx</td><td>مكون خاص بلوحة التحكم: صفحات الإدارة، الكروت، الجداول، المودالات، والإحصائيات.</td></tr><tr><td>src/components/features/dashboard/DashboardSettingsPage.tsx</td><td>مكون خاص بلوحة التحكم: صفحات الإدارة، الكروت، الجداول، المودالات، والإحصائيات.</td></tr><tr><td>src/components/features/dashboard/DashboardUI.tsx</td><td>مكون خاص بلوحة التحكم: صفحات الإدارة، الكروت، الجداول، المودالات، والإحصائيات.</td></tr><tr><td>src/components/features/dashboard/RecentOrders.tsx</td><td>مكون خاص بلوحة التحكم: صفحات الإدارة، الكروت، الجداول، المودالات، والإحصائيات.</td></tr><tr><td>src/components/features/dashboard/SimpleAnalytics.tsx</td><td>مكون خاص بلوحة التحكم: صفحات الإدارة، الكروت، الجداول، المودالات، والإحصائيات.</td></tr><tr><td>src/components/features/dashboard/StatCard.tsx</td><td>مكون خاص بلوحة التحكم: صفحات الإدارة، الكروت، الجداول، المودالات، والإحصائيات.</td></tr><tr><td>src/components/features/landing/Bestitems.tsx</td><td>قسم من الصفحة الرئيسية public: hero، منتجات مميزة، أفضل عناصر، لماذا تختارنا، آراء، أو تواصل.</td></tr><tr><td>src/components/features/landing/CategoriesPreview.tsx</td><td>قسم من الصفحة الرئيسية public: hero، منتجات مميزة، أفضل عناصر، لماذا تختارنا، آراء، أو تواصل.</td></tr><tr><td>src/components/features/landing/ContactSection.jsx</td><td>قسم من الصفحة الرئيسية public: hero، منتجات مميزة، أفضل عناصر، لماذا تختارنا، آراء، أو تواصل.</td></tr><tr><td>src/components/features/landing/FeaturedProducts.tsx</td><td>قسم من الصفحة الرئيسية public: hero، منتجات مميزة، أفضل عناصر، لماذا تختارنا، آراء، أو تواصل.</td></tr><tr><td>src/components/features/landing/HeroSection.tsx</td><td>قسم من الصفحة الرئيسية public: hero، منتجات مميزة، أفضل عناصر، لماذا تختارنا، آراء، أو تواصل.</td></tr><tr><td>src/components/features/landing/TestimonialsSection.tsx</td><td>قسم من الصفحة الرئيسية public: hero، منتجات مميزة، أفضل عناصر، لماذا تختارنا، آراء، أو تواصل.</td></tr><tr><td>src/components/features/landing/WhyChoose.jsx</td><td>قسم من الصفحة الرئيسية public: hero، منتجات مميزة، أفضل عناصر، لماذا تختارنا، آراء، أو تواصل.</td></tr><tr><td>src/components/features/menu/CategoryFilter.tsx</td><td>مكون خاص بتجربة المنيو: عرض المنتجات، البحث، التصنيف، كارت المنتج، التفاصيل، والمعاينة السريعة.</td></tr><tr><td>src/components/features/menu/MenuGrid.tsx</td><td>مكون خاص بتجربة المنيو: عرض المنتجات، البحث، التصنيف، كارت المنتج، التفاصيل، والمعاينة السريعة.</td></tr><tr><td>src/components/features/menu/MenuOrderingPage.tsx</td><td>مكون خاص بتجربة المنيو: عرض المنتجات، البحث، التصنيف، كارت المنتج، التفاصيل، والمعاينة السريعة.</td></tr><tr><td>src/components/features/menu/MenuSearch.tsx</td><td>مكون خاص بتجربة المنيو: عرض المنتجات، البحث، التصنيف، كارت المنتج، التفاصيل، والمعاينة السريعة.</td></tr><tr><td>src/components/features/menu/ProductCard.tsx</td><td>مكون خاص بتجربة المنيو: عرض المنتجات، البحث، التصنيف، كارت المنتج، التفاصيل، والمعاينة السريعة.</td></tr><tr><td>src/components/features/menu/ProductDetails.tsx</td><td>مكون خاص بتجربة المنيو: عرض المنتجات، البحث، التصنيف، كارت المنتج، التفاصيل، والمعاينة السريعة.</td></tr><tr><td>src/components/features/menu/ProductGallery.tsx</td><td>مكون خاص بتجربة المنيو: عرض المنتجات، البحث، التصنيف، كارت المنتج، التفاصيل، والمعاينة السريعة.</td></tr><tr><td>src/components/features/orders/OrderCard.tsx</td><td>مكون خاص بتتبع أو عرض الطلبات وحالاتها للعميل أو الإدارة.</td></tr><tr><td>src/components/features/orders/OrderStatusBadge.tsx</td><td>مكون خاص بتتبع أو عرض الطلبات وحالاتها للعميل أو الإدارة.</td></tr><tr><td>src/components/features/orders/OrderStatusTimeline.tsx</td><td>مكون خاص بتتبع أو عرض الطلبات وحالاتها للعميل أو الإدارة.</td></tr><tr><td>src/components/features/orders/OrderTrackingCard.tsx</td><td>مكون خاص بتتبع أو عرض الطلبات وحالاتها للعميل أو الإدارة.</td></tr><tr><td>src/components/features/products/ProductActions.tsx</td><td>مكون إدارة منتجات تقليدي: جدول، صف، فورم، وأكشنز.</td></tr><tr><td>src/components/features/products/ProductForm.tsx</td><td>مكون إدارة منتجات تقليدي: جدول، صف، فورم، وأكشنز.</td></tr><tr><td>src/components/features/products/ProductRow.tsx</td><td>مكون إدارة منتجات تقليدي: جدول، صف، فورم، وأكشنز.</td></tr><tr><td>src/components/features/products/ProductsTable.tsx</td><td>مكون إدارة منتجات تقليدي: جدول، صف، فورم، وأكشنز.</td></tr><tr><td>src/components/features/settings/DeliverySettingsForm.tsx</td><td>نموذج إعدادات فرعي لبيانات المطعم أو ساعات العمل أو إعدادات التوصيل.</td></tr><tr><td>src/components/features/settings/OpeningHoursForm.tsx</td><td>نموذج إعدادات فرعي لبيانات المطعم أو ساعات العمل أو إعدادات التوصيل.</td></tr><tr><td>src/components/features/settings/RestaurantInfoForm.tsx</td><td>نموذج إعدادات فرعي لبيانات المطعم أو ساعات العمل أو إعدادات التوصيل.</td></tr><tr><td>src/components/layout/DashboardHeader.tsx</td><td>مكون layout/navigation: Navbar أو Footer أو Sidebar/Header للداشبورد أو قائمة موبايل.</td></tr><tr><td>src/components/layout/DashboardSidebar.tsx</td><td>مكون layout/navigation: Navbar أو Footer أو Sidebar/Header للداشبورد أو قائمة موبايل.</td></tr><tr><td>src/components/layout/Footer.jsx</td><td>مكون layout/navigation: Navbar أو Footer أو Sidebar/Header للداشبورد أو قائمة موبايل.</td></tr><tr><td>src/components/layout/MobileMenu.tsx</td><td>مكون layout/navigation: Navbar أو Footer أو Sidebar/Header للداشبورد أو قائمة موبايل.</td></tr><tr><td>src/components/layout/PublicFooter.tsx</td><td>مكون layout/navigation: Navbar أو Footer أو Sidebar/Header للداشبورد أو قائمة موبايل.</td></tr><tr><td>src/components/layout/PublicNavbar.tsx</td><td>مكون layout/navigation: Navbar أو Footer أو Sidebar/Header للداشبورد أو قائمة موبايل.</td></tr><tr><td>src/data/categories.ts</td><td>بيانات mock محلية يستخدمها المشروع حاليا بدل قاعدة بيانات أو API حقيقي.</td></tr><tr><td>src/data/dashboard.ts</td><td>بيانات mock محلية يستخدمها المشروع حاليا بدل قاعدة بيانات أو API حقيقي.</td></tr><tr><td>src/data/localized.ts</td><td>طبقة تعريب للداتا المحلية: ترجم أسماء ووصف المنتجات والأقسام والمطعم وبعض عناصر الطلبات عند locale=ar.</td></tr><tr><td>src/data/orders.ts</td><td>بيانات mock محلية يستخدمها المشروع حاليا بدل قاعدة بيانات أو API حقيقي.</td></tr><tr><td>src/data/products.ts</td><td>بيانات mock محلية يستخدمها المشروع حاليا بدل قاعدة بيانات أو API حقيقي.</td></tr><tr><td>src/data/restaurant.ts</td><td>بيانات mock محلية يستخدمها المشروع حاليا بدل قاعدة بيانات أو API حقيقي.</td></tr><tr><td>src/hooks/useCart.ts</td><td>hook خفيف يغلف useCartStore حتى تستخدم السلة من المكونات بسهولة.</td></tr><tr><td>src/hooks/useDebounce.ts</td><td>hook يؤخر قيمة search أو input لتقليل التحديثات المتكررة.</td></tr><tr><td>src/hooks/useOrderTracking.ts</td><td>hook يعرض currentOrder و setCurrentOrder من order store.</td></tr><tr><td>src/hooks/useTheme.js</td><td>hook يدير ثيم light/dark باستخدام data-theme و localStorage و useSyncExternalStore.</td></tr><tr><td>src/hooks/useToggle.ts</td><td>hook لحالة boolean مع دوال open/close/toggle.</td></tr><tr><td>src/i18n/navigation.ts</td><td>ينشئ Link و redirect و hooks ملاحية متوافقة مع نظام اللغات.</td></tr><tr><td>src/i18n/request.ts</td><td>تحميل رسائل الترجمة المناسبة لكل request باستخدام next-intl/server.</td></tr><tr><td>src/i18n/routing.ts</td><td>تعريف اللغات المدعومة en/ar، اللغة الافتراضية، prefix دائم للغة، واتجاه الصفحة rtl/ltr.</td></tr><tr><td>src/lib/constants.ts</td><td>ثوابت عامة: العملة USD وقائمة حالات الطلب.</td></tr><tr><td>src/lib/formatters.ts</td><td>دوال تنسيق العملة والتاريخ حسب اللغة، مثل ar-EG و en-US.</td></tr><tr><td>src/lib/routes.ts</td><td>خريطة موحدة للمسارات المهمة حتى لا تتكرر strings الروابط داخل المكونات.</td></tr><tr><td>src/lib/utils.ts</td><td>دالة cn بسيطة لدمج أسماء CSS classes مع تجاهل القيم الفارغة.</td></tr><tr><td>src/messages/ar.json</td><td>قاموس الترجمة العربية المقابل، ويعمل مع dir=rtl في layout.</td></tr><tr><td>src/messages/en.json</td><td>قاموس الترجمة الإنجليزية للميتا، التنقل، الصفحات، النماذج، الحالات، والنصوص العامة.</td></tr><tr><td>src/proxy.ts</td><td>Proxy الخاص بـ Next 16، يستخدم next-intl middleware لإجبار مسارات اللغة وتجاهل api/_next والملفات الثابتة.</td></tr><tr><td>src/services/category-service.ts</td><td>Service layer تقرأ من src/data وتوفر دوال جاهزة للصفحات؛ هذا هو المكان الأنسب لاستبداله بطلبات API عند تركيب الباك إند.</td></tr><tr><td>src/services/dashboard-service.ts</td><td>Service layer تقرأ من src/data وتوفر دوال جاهزة للصفحات؛ هذا هو المكان الأنسب لاستبداله بطلبات API عند تركيب الباك إند.</td></tr><tr><td>src/services/order-service.ts</td><td>Service layer تقرأ من src/data وتوفر دوال جاهزة للصفحات؛ هذا هو المكان الأنسب لاستبداله بطلبات API عند تركيب الباك إند.</td></tr><tr><td>src/services/product-service.ts</td><td>Service layer تقرأ من src/data وتوفر دوال جاهزة للصفحات؛ هذا هو المكان الأنسب لاستبداله بطلبات API عند تركيب الباك إند.</td></tr><tr><td>src/services/restaurant-service.ts</td><td>Service layer تقرأ من src/data وتوفر دوال جاهزة للصفحات؛ هذا هو المكان الأنسب لاستبداله بطلبات API عند تركيب الباك إند.</td></tr><tr><td>src/store/cart-store.ts</td><td>Zustand store للسلة: إضافة منتج، حذف، زيادة/نقص كمية، تفريغ، وحساب subtotal/total.</td></tr><tr><td>src/store/order-store.ts</td><td>Zustand store للطلب الحالي وقائمة طلبات في الواجهة، مع تحديث حالة الطلب محليا.</td></tr><tr><td>src/types/category.ts</td><td>نوع TypeScript يصف شكل بيانات category مثل الحقول المطلوبة بين الخدمات والمكونات.</td></tr><tr><td>src/types/dashboard.ts</td><td>نوع TypeScript يصف شكل بيانات dashboard مثل الحقول المطلوبة بين الخدمات والمكونات.</td></tr><tr><td>src/types/index.ts</td><td>يعيد تصدير كل أنواع البيانات من ملفات types الأخرى لتسهيل الاستيراد من @/types.</td></tr><tr><td>src/types/order.ts</td><td>نوع TypeScript يصف شكل بيانات order مثل الحقول المطلوبة بين الخدمات والمكونات.</td></tr><tr><td>src/types/product.ts</td><td>نوع TypeScript يصف شكل بيانات product مثل الحقول المطلوبة بين الخدمات والمكونات.</td></tr><tr><td>src/types/restaurant.ts</td><td>نوع TypeScript يصف شكل بيانات restaurant مثل الحقول المطلوبة بين الخدمات والمكونات.</td></tr><tr><td>tsconfig.json</td><td>إعدادات TypeScript، منها strict mode ومسار alias باسم @/* إلى src/*.</td></tr><tr><td>tsconfig.tsbuildinfo</td><td>ملف cache من TypeScript لتسريع الفحص والبناء؛ ليس منطق تطبيق.</td></tr>
+      </tbody>
+    </table>
+  
+
+    <h2>خطة تركيب الباك إند</h2>
+    <ul>
+      <li>اعمل API للمنتجات والأقسام والطلبات والإعدادات: products, categories, orders, restaurant.</li>
+      <li>استبدل mock functions داخل <code>src/services</code> بطلبات <code>fetch</code> أو client مناسب.</li>
+      <li>أضف auth حقيقي للداشبورد: login، session، role admin/staff، وحماية routes.</li>
+      <li>اجعل Checkout ينشئ order حقيقي ويرجع orderNumber للعميل.</li>
+      <li>اربط DashboardOrdersPage بتحديث status في قاعدة البيانات وليس state محلي.</li>
+      <li>أضف رفع صور للمنتجات بدلا من كتابة image URL فقط.</li>
+      <li>احفظ إعدادات المطعم والتوصيل وساعات العمل في قاعدة البيانات.</li>
+      <li>استخدم env vars لعناوين API ومفاتيح الدفع والتخزين.</li>
+    </ul>
+
+    <h2>رأيي في المشروع</h2>
+    <p>
+      المشروع واجهته قوية كبداية تجارية: الشكل جذاب، التقسيم مفهوم، وتجربة العميل والإدارة موجودة بنسبة كبيرة.
+      بعد تركيب باك إند حقيقي، Auth، قاعدة بيانات، ودفع/إشعارات، يقدر يتحول لمنتج قابل للبيع لمطاعم صغيرة ومتوسطة.
+      أكبر قيمة فيه حاليا أنه ليس مجرد landing page؛ فيه دورة طلب شبه كاملة ولوحة تحكم جاهزة بصريا.
+    </p>
+
+    <h2>إضافات تجعله أسهل في البيع</h2>
+    <ul>
+      <li>نظام multi-tenant: كل مطعم له منيو، شعار، ألوان، دومين أو subdomain.</li>
+      <li>دفع إلكتروني: Stripe/Paymob/PayPal حسب السوق، مع cash on delivery.</li>
+      <li>إشعارات WhatsApp/SMS للعميل والمطعم عند إنشاء الطلب وتغيير الحالة.</li>
+      <li>لوحة مطبخ Kitchen Display تعرض الطلبات الجديدة وتسمح بتغيير الحالة بسرعة.</li>
+      <li>كوبونات وخصومات ورسوم توصيل حسب المنطقة.</li>
+      <li>إدارة فروع ومناطق توصيل وساعات عمل لكل فرع.</li>
+      <li>تقارير مبيعات حقيقية: يومي/شهري، أفضل المنتجات، متوسط قيمة الطلب، ومصدر الطلبات.</li>
+      <li>PWA أو تطبيق بسيط للموبايل، خصوصا للإدارة والمطبخ.</li>
+      <li>SEO و Open Graph لكل منتج حتى يظهر المنيو بشكل ممتاز عند المشاركة.</li>
+      <li>اختبارات أساسية و seed data و deployment جاهز، لأن ده يرفع ثقة العميل وقت البيع.</li>
+    </ul>
+
+    <div class="footer">
+      تم توليد هذا الدليل من ملفات المشروع الحالية داخل C:\Users\EL-B\my Projects\food-delevery.
+    </div>
+  </section>
+</body>
+</html>

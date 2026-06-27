@@ -23,7 +23,7 @@ export function Modal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" data-lenis-prevent>
       <motion.div
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-lg rounded-md bg-white p-6 shadow-xl"

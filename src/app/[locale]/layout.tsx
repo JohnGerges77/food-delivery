@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import "lenis/dist/lenis.css";
 import { getDirection, isLocale, locales } from "@/i18n/routing";
+import { SmoothScrollProvider } from "@/components/common/SmoothScrollProvider";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -52,7 +54,9 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>
+          <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

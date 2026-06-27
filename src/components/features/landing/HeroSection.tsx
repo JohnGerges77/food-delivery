@@ -34,7 +34,7 @@ export function HeroSection({ restaurant }: { restaurant: Restaurant }) {
 
   return (
     <section className="relative isolate flex min-h-[calc(100svh-73px)] overflow-hidden bg-[color:var(--background)] px-4 py-8 text-[color:var(--text)] sm:px-6 sm:py-10 lg:px-8">
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_80%_44%,rgba(255,122,0,0.18),transparent_34%),linear-gradient(135deg,rgba(31,31,31,0.96),rgba(13,13,13,0.98)_48%,rgba(13,13,13,1))]" />
+      <div className="absolute inset-0 -z-20 bg-[image:var(--hero-background)]" />
       <motion.div
         animate={{ opacity: [0.18, 0.42, 0.2], scale: [0.92, 1.12, 0.96] }}
         className="absolute right-[-12%] top-[8%] -z-10 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,rgba(255,122,0,0.22),transparent_68%)] blur-3xl"
@@ -139,7 +139,7 @@ export function HeroSection({ restaurant }: { restaurant: Restaurant }) {
             </motion.div>
             <motion.div whileHover={{ y: -3, scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Link
-                className="inline-flex min-h-13 w-full items-center justify-center rounded-full border border-white/15 bg-white/[0.04] px-8 text-sm font-bold tracking-wide text-[color:var(--text)] backdrop-blur transition-colors duration-300 hover:border-[color:var(--primary-light)]/50 hover:bg-white/[0.08] sm:w-auto"
+                className="inline-flex min-h-13 w-full items-center justify-center rounded-full border border-[color:var(--border)] bg-[color:var(--glass)] px-8 text-sm font-bold tracking-wide text-[color:var(--text)] backdrop-blur transition-colors duration-300 hover:border-[color:var(--primary-light)]/50 hover:bg-[color:var(--glass-strong)] sm:w-auto"
                 href={routes.menu}
               >
               {isArabic ? "من نحن" : "About Us"}
@@ -148,14 +148,14 @@ export function HeroSection({ restaurant }: { restaurant: Restaurant }) {
           </motion.div>
 
           <motion.div
-            className="mt-6 grid grid-cols-3 overflow-hidden rounded-md border border-white/10 bg-white/[0.035] backdrop-blur sm:mt-8"
+            className="mt-6 grid grid-cols-3 overflow-hidden rounded-md border border-[color:var(--border)] bg-[color:var(--glass)] backdrop-blur sm:mt-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55, duration: 0.65 }}
           >
             {stats.map((stat) => (
               <div
-                className="border-r border-white/10 px-2 py-3 text-center last:border-r-0 sm:px-5 sm:py-4 lg:text-left"
+                className="border-r border-[color:var(--border)] px-2 py-3 text-center last:border-r-0 sm:px-5 sm:py-4 lg:text-left"
                 key={stat.label}
               >
                 <div className="text-xl font-semibold text-[color:var(--text)] sm:text-3xl">
@@ -188,7 +188,7 @@ export function HeroSection({ restaurant }: { restaurant: Restaurant }) {
           {flavorChips.map((chip) => (
             <motion.div
               animate={{ opacity: [0.72, 1, 0.72], y: [0, -12, 0] }}
-              className={`absolute z-20 hidden rounded-full border border-white/10 bg-[color:var(--card)]/70 px-4 py-2 text-xs font-semibold tracking-[0.16em] text-[color:var(--text)] uppercase shadow-[0_16px_44px_rgba(0,0,0,0.38)] backdrop-blur-md sm:flex ${chip.className}`}
+              className={`absolute z-20 hidden rounded-full border border-[color:var(--border)] bg-[color:var(--glass-strong)] px-4 py-2 text-xs font-semibold tracking-[0.16em] text-[color:var(--text)] uppercase shadow-[0_16px_44px_rgba(0,0,0,0.18)] backdrop-blur-md sm:flex ${chip.className}`}
               key={chip.label}
               transition={{
                 delay: chip.delay,

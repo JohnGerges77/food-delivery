@@ -1,0 +1,50 @@
+BrowserMainParts-state=PostBrowserStart
+BrowserProcessImpl-shutdownstate=running
+IsOfficialBuild=1
+KeepAliveCount=1
+KeepAliveRestartCount=0
+KeepAliveShuttingDown=0
+KeepAlives=BROWSER (1)
+LOG_FATAL=gpu_data_manager_impl_private.cc:428: GPU process isn't usable. Goodbye.
+
+LocaleDataPakExists-found_attrs=32
+LocaleDataPakExists-found_path=C:\Program Files (x86)\Microsoft\Edge\Application\149.0.4022.80\Locales\en-US.pak
+ap=-full
+breadcrumbs=0:00:06 Tab1 RenderProcessGone
+0:00:06 Browser1 Insert active Tab1 at 0
+0:00:06 Tab1 StartNav1 #ntp #auto_toplevel
+0:00:06 Microsoft.BrowserList.AddBrowser
+0:00:05 Microsoft.NewBrowser_Normal
+0:00:00 Microsoft.DeleteProfileHelper.CleanUpDeletedProfiles
+0:00:00 Microsoft.DeleteProfileHelper.CleanUpEphemeralProfiles
+0:00:00 Startup
+
+browser_window_count=1
+chrome-trace-id=11326753618465150597
+chromium-version=149.0.7827.156
+exception_code=0x80000003
+exception_module_path=C:\Program Files (x86)\Microsoft\Edge\Application\149.0.4022.80\msedge.dll
+exception_module_version=149.0.4022.80
+exe=C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+guid=5c86af14-237f-4167-9ef9-57ac76ac7668
+last_gpu_crash_exit_code=STATUS_ACCESS_DENIED
+metrics_client_id_hash=1933148556303882174
+metrics_session_id=0
+module_offset=172364367
+num-experiments=15
+num-extensions=0
+num-switches=4
+osarch=x86_64
+pid=8000
+plat=Win64
+process_id=8000
+prod=Edge
+ptype=browser
+reentry_guard_tls_slot=unused
+rwhva_teardown=1
+ss_ver=1.2.2604.3
+switch-1=--user-data-dir=C:\Users\EL-B\my Projects\food-delevery\output\pdf\edge-profile
+switch-2=--version
+third_party_modules=UMPDC.dll;WindowManagementAPI.dll;TextShaping.dll
+variations=b6f29041-ca7d8d80,b357b792-3d47f4f4,f4f00e05-ca7d8d80,9481ce98-3d47f4f4,2a426c03-3d47f4f4,4b935545-3d47f4f4,ce263fae-3d47f4f4,9a38bae3-3d47f4f4,41ad04e1-16e9df14,2d1e43a3-3d47f4f4,370ace14-3f4a17df,386dc267-3d47f4f4,d69d967d-4866ef6e,a4406b35-1657e2d6,408da146-1657e2d6,
+ver=149.0.4022.80

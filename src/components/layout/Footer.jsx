@@ -105,7 +105,7 @@ export default function Footer() {
   } : item);
   return (
     <footer className="relative isolate overflow-hidden bg-[color:var(--background)] px-4 pt-20 text-[color:var(--text)] sm:px-6 lg:px-8">
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_50%_0%,rgba(255,157,51,0.12),transparent_34%),radial-gradient(circle_at_92%_28%,rgba(255,122,0,0.12),transparent_30%),linear-gradient(180deg,rgba(13,13,13,1),rgba(31,31,31,0.62)_45%,rgba(13,13,13,1))]" />
+      <div className="absolute inset-0 -z-20 bg-[image:var(--footer-background)]" />
       <motion.div
         className="absolute right-[-18rem] top-8 -z-10 size-[42rem] rounded-full bg-[radial-gradient(circle,rgba(255,122,0,0.22),rgba(255,122,0,0.08)_40%,transparent_72%)] blur-3xl"
         animate={{ opacity: [0.38, 0.72, 0.38], scale: [0.96, 1.07, 0.96] }}

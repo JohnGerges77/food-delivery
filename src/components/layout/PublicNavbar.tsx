@@ -3,14 +3,30 @@
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { Languages, ShoppingCart } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { cn } from "@/lib/utils";
+
+function isActivePath(pathname: string, href: string, hash: string) {
+  if (href.includes("#")) {
+    const [path, targetHash] = href.split("#");
+    return pathname === path && hash === `#${targetHash}`;
+  }
+
+  if (href === routes.home) {
+    return pathname === routes.home && hash !== "#contact";
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function PublicNavbar() {
   const t = useTranslations("navigation");
   const locale = useLocale();
   const pathname = usePathname();
+  const [hash, setHash] = useState("");
   const nextLocale = locale === "ar" ? "en" : "ar";
   const links = [
     { href: routes.home, label: t("home") },
@@ -18,6 +34,18 @@ export function PublicNavbar() {
     { href: routes.about, label: t("about") },
     { href: `${routes.home}#contact`, label: t("contact") },
   ];
+  const cartIsActive = pathname === routes.cart || pathname === routes.checkout;
+
+  useEffect(() => {
+    function syncHash() {
+      setHash(window.location.hash);
+    }
+
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, [pathname]);
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[color:var(--border)] bg-[color:var(--background)]/75 px-4 py-3 shadow-[0_18px_60px_rgba(0,0,0,0.18)] backdrop-blur-xl sm:px-6">
@@ -40,22 +68,31 @@ export function PublicNavbar() {
         </Link>
 
         <div className="order-3 col-span-2 flex items-center justify-center gap-1 rounded-full border border-[color:var(--border)] bg-[color:var(--glass)] p-1 text-sm text-[color:var(--text-muted)] lg:order-none lg:col-span-1">
-          {links.map((link) => (
-            <Link
-              className="rounded-full px-4 py-2 transition-all duration-300 hover:bg-[color:var(--glass-strong)] hover:text-[color:var(--text)]"
-              href={link.href}
-              key={link.href}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {links.map((link) => {
+            const isActive = isActivePath(pathname, link.href, hash);
+
+            return (
+              <Link
+                aria-current={isActive ? "page" : undefined}
+                className={cn(
+                  "rounded-full px-4 py-2 transition-all duration-300 hover:bg-[color:var(--glass-strong)] hover:text-[color:var(--text)]",
+                  isActive &&
+                    "bg-[color:var(--glass-strong)] text-[color:var(--primary-light)] shadow-[0_10px_28px_rgba(255,122,0,0.18)] ring-1 ring-[color:var(--primary)]/35",
+                )}
+                href={link.href}
+                key={link.href}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </div>
 
         <div className="flex items-center justify-self-end gap-2">
           <ThemeToggle />
           <Link
             aria-label={t("switchLanguage", {language: t(`languages.${nextLocale}`)})}
-            className="group inline-flex h-11 items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 text-xs font-bold text-[color:var(--text)] transition-all duration-300 hover:border-[color:var(--primary)]/55 hover:bg-[color:var(--primary)]/10 hover:text-[color:var(--primary-light)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--primary)]"
+            className="group inline-flex h-11 items-center gap-2 rounded-full border border-[color:var(--border)] bg-[color:var(--glass)] px-3 text-xs font-bold text-[color:var(--text)] transition-all duration-300 hover:border-[color:var(--primary)]/55 hover:bg-[color:var(--primary)]/10 hover:text-[color:var(--primary-light)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--primary)]"
             href={pathname}
             locale={nextLocale}
           >
@@ -63,7 +100,11 @@ export function PublicNavbar() {
             <span>{nextLocale === "ar" ? "العربية" : "EN"}</span>
           </Link>
           <Link
-            className="group relative grid size-11 place-items-center rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/10 text-[color:var(--primary-light)] shadow-[0_10px_30px_rgba(255,122,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--primary)]/60 hover:bg-[color:var(--primary)] hover:text-[color:var(--background)] hover:shadow-[0_14px_38px_rgba(255,122,0,0.38)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--primary)]"
+            aria-current={cartIsActive ? "page" : undefined}
+            className={cn(
+              "group relative grid size-11 place-items-center rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/10 text-[color:var(--primary-light)] shadow-[0_10px_30px_rgba(255,122,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--primary)]/60 hover:bg-[color:var(--primary)] hover:text-[color:var(--background)] hover:shadow-[0_14px_38px_rgba(255,122,0,0.38)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--primary)]",
+              cartIsActive && "border-[color:var(--primary)]/70 bg-[color:var(--primary)] text-[color:var(--background)] shadow-[0_14px_38px_rgba(255,122,0,0.38)]",
+            )}
             href={routes.cart}
             aria-label={t("viewCart")}
           >

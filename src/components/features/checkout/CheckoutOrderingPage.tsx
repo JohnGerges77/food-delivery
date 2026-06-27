@@ -268,6 +268,7 @@ export function CheckoutOrderingPage({ deliveryFee }: { deliveryFee: number }) {
         {showSuccess ? (
           <motion.div
             className="fixed inset-0 z-50 grid place-items-center bg-black/72 px-4 py-6 backdrop-blur-md"
+            data-lenis-prevent
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
