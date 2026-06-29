@@ -1,7 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { Edit3, Eye, Plus, Trash2 } from "lucide-react";
+import { Edit3, Eye, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { formatCurrency } from "@/lib/formatters";
@@ -10,10 +9,8 @@ import {
   ActionButton,
   DashboardCard,
   DashboardModal,
-  DashboardPageHeader,
   SearchInput,
   StatusBadge,
-  dashboardEase,
   inputClass,
   textareaClass,
 } from "./DashboardUI";
@@ -25,7 +22,7 @@ const emptyProduct = {
   categoryId: "cat-burgers",
   price: 0,
   description: "",
-  image: "/main.png",
+  image: "/main.webp",
   isAvailable: true,
 };
 
@@ -68,12 +65,6 @@ export function DashboardProductsPage({
       return matchesCategory && matchesQuery;
     });
   }, [category, categoryMap, items, query]);
-
-  function openAddModal() {
-    setForm(emptyProduct);
-    setEditingProduct(null);
-    setModalMode("add");
-  }
 
   function openEditModal(product: EditableProduct) {
     setEditingProduct(product);
@@ -237,13 +228,10 @@ export function DashboardProductsPage({
         </div>
 
         <div className="grid gap-4 xl:hidden">
-          {filteredProducts.map((product, index) => (
-            <motion.article
+          {filteredProducts.map((product) => (
+            <article
               className="rounded-[1.35rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.078),rgba(255,255,255,0.028)_60%,rgba(255,122,0,0.04))] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.34)]"
               key={product.id}
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.04, duration: 0.45, ease: dashboardEase }}
             >
               <div className="grid gap-4 sm:grid-cols-[6rem_1fr]">
                 <div className="relative aspect-square overflow-hidden rounded-xl">
@@ -293,17 +281,16 @@ export function DashboardProductsPage({
                   </div>
                 </div>
               </div>
-            </motion.article>
+            </article>
           ))}
         </div>
       </div>
 
-      <AnimatePresence>
-        <DashboardModal
-          open={modalMode !== null}
-          title={modalMode === "edit" ? "Edit Product" : "Add Product"}
-          onClose={closeModal}
-        >
+      <DashboardModal
+        open={modalMode !== null}
+        title={modalMode === "edit" ? "Edit Product" : "Add Product"}
+        onClose={closeModal}
+      >
           <form className="grid gap-4" onSubmit={submitProduct}>
             <label>
               <span className="mb-2 block text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">
@@ -395,8 +382,7 @@ export function DashboardProductsPage({
               <ActionButton type="submit">Save Product</ActionButton>
             </div>
           </form>
-        </DashboardModal>
-      </AnimatePresence>
+      </DashboardModal>
     </section>
   );
 }

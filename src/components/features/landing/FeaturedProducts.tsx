@@ -1,13 +1,10 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { motion } from "framer-motion";
 import { useLocale } from "next-intl";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
-
-const menuEase = [0.16, 1, 0.3, 1] as const;
 
 const menuCategories = ["Appetizers", "Main Dishes", "Burgers", "Desserts"];
 
@@ -140,7 +137,10 @@ const arabicMenuItems: Record<string, { name: string; description: string }> = {
 export function FeaturedProducts() {
   const isArabic = useLocale() === "ar";
   const [activeCategory, setActiveCategory] = useState(menuCategories[0]);
-  const filteredItems = menuItems.filter((item) => item.category === activeCategory);
+  const filteredItems = useMemo(
+    () => menuItems.filter((item) => item.category === activeCategory),
+    [activeCategory],
+  );
   const displayedItems = filteredItems.map((item) =>
     isArabic ? {...item, ...arabicMenuItems[item.id]} : item,
   );
@@ -151,13 +151,7 @@ export function FeaturedProducts() {
       <div className="absolute bottom-0 right-0 -z-10 size-[34rem] translate-x-1/3 rounded-full bg-[radial-gradient(circle,rgba(255,122,0,0.16),transparent_68%)] blur-3xl" />
 
       <div className="mx-auto max-w-7xl">
-        <motion.div
-          className="mx-auto max-w-3xl text-center"
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.65, ease: "easeOut" }}
-        >
+        <div className="mx-auto max-w-3xl text-center">
           <div className="mb-5 flex items-center justify-center gap-4 text-xs font-semibold tracking-[0.24em] text-[color:var(--primary-light)] uppercase">
             <span className="h-px w-10 bg-[color:var(--primary)]/60" />
             {isArabic ? "قائمتنا" : "Our Menu"}
@@ -171,15 +165,9 @@ export function FeaturedProducts() {
               ? "مختارات من أكثر أطباقنا حبًا، محضّرة بمكونات طازجة ونكهة سافورا المميزة."
               : "A curated preview of our most-loved dishes, crafted with fresh ingredients and served with Savora's signature flavor."}
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="mx-auto mt-10 flex max-w-4xl flex-wrap justify-center gap-2 rounded-[2rem] border border-white/10 bg-white/[0.025] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur"
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ delay: 0.12, duration: 0.55, ease: "easeOut" }}
-        >
+        <div className="mx-auto mt-10 flex max-w-4xl flex-wrap justify-center gap-2 rounded-[2rem] border border-white/10 bg-white/[0.025] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur">
           {menuCategories.map((category) => {
             const isActive = activeCategory === category;
 
@@ -191,10 +179,8 @@ export function FeaturedProducts() {
                 type="button"
               >
                 {isActive ? (
-                  <motion.span
+                  <span
                     className="absolute inset-0 rounded-full border border-[color:var(--primary)] bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] shadow-[0_14px_42px_rgba(255,122,0,0.34)]"
-                    layoutId="active-menu-category"
-                    transition={{ duration: 0.42, ease: menuEase }}
                   />
                 ) : (
                   <span className="absolute inset-0 rounded-full border border-white/10 bg-white/[0.03] transition-all duration-300 hover:border-[color:var(--primary)]/35 hover:bg-white/[0.07]" />
@@ -213,7 +199,7 @@ export function FeaturedProducts() {
               </button>
             );
           })}
-        </motion.div>
+        </div>
 
         <div className="relative mt-12 rounded-[1.75rem] border border-white/10 bg-[color:var(--card)]/40 p-3 shadow-[0_28px_90px_rgba(0,0,0,0.34)] backdrop-blur sm:p-5 lg:p-8">
           <div className="pointer-events-none absolute inset-y-8 left-1/2 hidden w-px bg-gradient-to-b from-transparent via-[color:var(--primary)]/25 to-transparent lg:block" />
@@ -258,20 +244,14 @@ export function FeaturedProducts() {
           </div>
         </div>
 
-        <motion.div
-          className="mt-10 flex justify-center"
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.55, ease: "easeOut" }}
-        >
+        <div className="mt-10 flex justify-center">
           <Link
             className="rounded-full bg-[color:var(--primary)] px-8 py-3 text-sm font-bold text-[color:var(--background)] shadow-[0_18px_48px_rgba(255,122,0,0.28)] transition-all duration-300 hover:-translate-y-1 hover:bg-[color:var(--primary-light)]"
             href={routes.menu}
           >
             {isArabic ? "عرض القائمة كاملة" : "View Full Menu"}
           </Link>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

@@ -1,8 +1,4 @@
-"use client";
-
 import Image from "next/image";
-import { motion } from "framer-motion";
-import type { Variants } from "framer-motion";
 import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
@@ -15,7 +11,7 @@ const bestItems = [
       "Double seared beef, smoked cheddar, caramelized onion, and our warm Savora glaze.",
     price: "$18",
     badge: "Best Seller",
-    image: "/best1.png",
+    image: "/best1.webp",
     imagePosition: "center 38%",
     featured: true,
   },
@@ -25,7 +21,7 @@ const bestItems = [
     description: "Wok-fired rice with herbs, toasted vegetables, and a rich savory finish.",
     price: "$14",
     badge: "Chef Pick",
-    image: "/best2.png",
+    image: "/best2.webp",
   },
   {
     name: "Grilled Chicken",
@@ -33,7 +29,7 @@ const bestItems = [
     description: "Charred chicken breast with buttery herbs and smoky table-side aroma.",
     price: "$21",
     badge: "Signature",
-    image: "/best3.png",
+    image: "/best3.webp",
   },
   {
     name: "Italian Pasta",
@@ -41,7 +37,7 @@ const bestItems = [
     description: "Silky pasta tossed with cream, parmesan, cracked pepper, and fresh greens.",
     price: "$16",
     badge: "Popular",
-    image: "/best4.png",
+    image: "/best4.webp",
   },
 
   {
@@ -50,7 +46,7 @@ const bestItems = [
     description: "A generous aromatic rice plate finished with crispy edges and warm spices.",
     price: "$15",
     badge: "Fresh",
-    image: "/best2.png",
+    image: "/best2.webp",
   },
 ];
 
@@ -62,42 +58,20 @@ const arabicBestItems: Record<string, { name: string; category: string; descript
   "Golden Rice Plate": { name: "طبق الأرز الذهبي", category: "أطباق سخية", description: "طبق أرز عطري سخي بحواف مقرمشة وتوابل دافئة.", badge: "طازج" },
 };
 
-const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 28 },
-  visible: (index = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: index * 0.08,
-      duration: 0.6,
-      ease: [0.16, 1, 0.3, 1],
-    },
-  }),
-};
-
 function BestItemCard({
   item,
-  index,
   isArabic,
 }: {
   item: (typeof bestItems)[number];
-  index: number;
   isArabic: boolean;
 }) {
   return (
-    <motion.article
+    <article
       className={
         item.featured
-          ? "group relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[color:var(--card)]/70 shadow-[0_30px_80px_rgba(0,0,0,0.32)] backdrop-blur lg:row-span-2"
-          : "group relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.035] shadow-[0_18px_54px_rgba(0,0,0,0.28)] backdrop-blur"
+          ? "group relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[color:var(--card)]/70 shadow-[0_30px_80px_rgba(0,0,0,0.32)] backdrop-blur transition-transform duration-300 hover:-translate-y-1 lg:row-span-2"
+          : "group relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.035] shadow-[0_18px_54px_rgba(0,0,0,0.28)] backdrop-blur transition-transform duration-300 hover:-translate-y-1"
       }
-      custom={index}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.25 }}
-      variants={cardVariants}
-      whileHover={{ y: -8 }}
-      transition={{ duration: 0.25, ease: "easeOut" }}
     >
       <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
         <div className="absolute -right-20 top-10 size-52 rounded-full bg-[color:var(--primary)]/20 blur-3xl" />
@@ -114,8 +88,6 @@ function BestItemCard({
           alt={item.name}
           className="object-cover transition-transform duration-700 group-hover:scale-110"
           fill
-          loading={item.featured ? undefined : "eager"}
-          priority={item.featured}
           sizes={
             item.featured
               ? "(min-width: 1024px) 44vw, 100vw"
@@ -171,7 +143,7 @@ function BestItemCard({
           </span>
         </Link>
       </div>
-    </motion.article>
+    </article>
   );
 }
 
@@ -186,13 +158,7 @@ export default function BestItems() {
       <div className="absolute bottom-0 right-[-12rem] -z-10 size-[28rem] rounded-full bg-[color:var(--primary)]/10 blur-3xl" />
 
       <div className="mx-auto max-w-7xl">
-        <motion.div
-          className="mx-auto max-w-3xl text-center"
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          viewport={{ once: true, amount: 0.35 }}
-        >
+        <div className="mx-auto max-w-3xl text-center">
           <div className="mb-5 flex items-center justify-center gap-4 text-xs font-semibold tracking-[0.24em] text-[color:var(--primary-light)] uppercase">
             <span className="h-px w-10 bg-[color:var(--primary)]/60" />
             {isArabic ? "اختيارات الشيف" : "Chef's Favorites"}
@@ -206,11 +172,11 @@ export default function BestItems() {
               ? "أطباق سخية محضّرة يدويًا للأمسيات الهادئة والرغبات السريعة وكل لحظة جميلة بينهما."
               : "Plates of plenty, handmade for slow evenings, quick cravings, and every golden moment between."}
           </p>
-        </motion.div>
+        </div>
 
         <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-[1.08fr_0.92fr_0.92fr] lg:grid-rows-2">
           {displayedItems.map((item, index) => (
-            <BestItemCard index={index} isArabic={isArabic} item={item} key={`${item.name}-${index}`} />
+            <BestItemCard isArabic={isArabic} item={item} key={`${item.name}-${index}`} />
           ))}
         </div>
       </div>

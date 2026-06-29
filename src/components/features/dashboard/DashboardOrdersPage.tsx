@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { Eye, MapPin, Phone, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
@@ -13,7 +12,6 @@ import {
  
   SearchInput,
   StatusBadge,
-  dashboardEase,
   inputClass,
 } from "./DashboardUI";
 
@@ -110,13 +108,10 @@ export function DashboardOrdersPage({ orders }: { orders: Order[] }) {
       </DashboardCard>
 
       <div className="mt-6 grid gap-4">
-        {filteredOrders.map((order, index) => (
-          <motion.article
+        {filteredOrders.map((order) => (
+          <article
             className="rounded-[1.35rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.078),rgba(255,255,255,0.028)_60%,rgba(255,122,0,0.04))] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl"
             key={order.id}
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.035, duration: 0.45, ease: dashboardEase }}
           >
             <div className="grid gap-4 xl:grid-cols-[0.75fr_1fr_0.5fr_0.65fr_0.8fr_auto] xl:items-center">
               <div>
@@ -177,16 +172,15 @@ export function DashboardOrdersPage({ orders }: { orders: Order[] }) {
                 View
               </ActionButton>
             </div>
-          </motion.article>
+          </article>
         ))}
       </div>
 
-      <AnimatePresence>
-        <DashboardModal
-          open={Boolean(selectedOrder)}
-          title={selectedOrder ? `Order ${selectedOrder.orderNumber}` : "Order Details"}
-          onClose={() => setSelectedOrder(null)}
-        >
+      <DashboardModal
+        open={Boolean(selectedOrder)}
+        title={selectedOrder ? `Order ${selectedOrder.orderNumber}` : "Order Details"}
+        onClose={() => setSelectedOrder(null)}
+      >
           {selectedOrder ? (
             <div className="grid gap-5">
               <div className="grid gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4 sm:grid-cols-2">
@@ -299,8 +293,7 @@ export function DashboardOrdersPage({ orders }: { orders: Order[] }) {
               </div>
             </div>
           ) : null}
-        </DashboardModal>
-      </AnimatePresence>
+      </DashboardModal>
     </section>
   );
 }

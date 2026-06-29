@@ -1,11 +1,15 @@
 "use client";
 
 import type { LenisOptions } from "lenis";
-import { ReactLenis } from "lenis/react";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 
 const easing: NonNullable<LenisOptions["easing"]> = (time) => 1 - Math.pow(1 - time, 4);
 const scrollableOverflow = /(auto|scroll|overlay)/;
+type LenisRoot = ComponentType<{
+  root: boolean;
+  options: LenisOptions;
+  children: ReactNode;
+}>;
 
 function shouldUseNativeScroll(node: HTMLElement) {
   if (
@@ -30,17 +34,41 @@ function shouldUseNativeScroll(node: HTMLElement) {
 }
 
 export function SmoothScrollProvider({ children }: { children: ReactNode }) {
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [enabled, setEnabled] = useState(false);
+  const [LenisRoot, setLenisRoot] = useState<LenisRoot | null>(null);
 
   useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const syncMotionPreference = () => setReducedMotion(media.matches);
+    const motionMedia = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const coarsePointerMedia = window.matchMedia("(pointer: coarse)");
+    const syncPreference = () => setEnabled(!motionMedia.matches && !coarsePointerMedia.matches);
 
-    syncMotionPreference();
-    media.addEventListener("change", syncMotionPreference);
+    syncPreference();
+    motionMedia.addEventListener("change", syncPreference);
+    coarsePointerMedia.addEventListener("change", syncPreference);
 
-    return () => media.removeEventListener("change", syncMotionPreference);
+    return () => {
+      motionMedia.removeEventListener("change", syncPreference);
+      coarsePointerMedia.removeEventListener("change", syncPreference);
+    };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    if (!enabled) {
+      return;
+    }
+
+    import("lenis/react").then((module) => {
+      if (active) {
+        setLenisRoot(() => module.ReactLenis as LenisRoot);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [enabled]);
 
   const options = useMemo<LenisOptions>(
     () => ({
@@ -50,10 +78,10 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
         offset: -96,
       },
       autoRaf: true,
-      duration: 1.15,
+      duration: 0.95,
       easing,
       gestureOrientation: "vertical",
-      overscroll: true,
+      overscroll: false,
       prevent: shouldUseNativeScroll,
       smoothWheel: true,
       stopInertiaOnNavigate: true,
@@ -65,13 +93,13 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  if (reducedMotion) {
+  if (!enabled || !LenisRoot) {
     return children;
   }
 
   return (
-    <ReactLenis root options={options}>
+    <LenisRoot root options={options}>
       {children}
-    </ReactLenis>
+    </LenisRoot>
   );
 }

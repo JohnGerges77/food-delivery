@@ -1,11 +1,5 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { useLocale } from "next-intl";
 import { Clock, Mail, MapPin, Phone, Send, Sparkles } from "lucide-react";
-
-const sectionEase = [0.16, 1, 0.3, 1];
-const softEase = [0.22, 1, 0.36, 1];
 
 const contactCards = [
   {
@@ -49,24 +43,10 @@ const particleClasses = [
   "left-[13%] bottom-[34%] size-1",
 ];
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 28, scale: 0.98 },
-  visible: (index) => ({
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      delay: 0.16 + index * 0.12,
-      duration: 0.78,
-      ease: sectionEase,
-    },
-  }),
-};
-
 const fieldControlClass =
   "mt-3 w-full rounded-[1.1rem] border border-white/10 bg-[linear-gradient(180deg,rgba(13,13,13,0.82),rgba(13,13,13,0.66))] px-4 text-sm text-[color:var(--text)] outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.055),0_14px_34px_rgba(0,0,0,0.18)] transition-all duration-300 placeholder:text-[color:var(--text-muted)]/48 hover:border-white/18 hover:bg-[color:var(--background)]/82 focus:border-[color:var(--primary)]/75 focus:bg-[color:var(--background)]/92 focus:shadow-[0_0_0_4px_rgba(255,122,0,0.13),0_18px_52px_rgba(255,122,0,0.11),inset_0_1px_0_rgba(255,255,255,0.08)]";
 
-function ContactCard({ card, index }) {
+function ContactCard({ card }) {
   const Icon = card.icon;
   const content = (
     <>
@@ -90,20 +70,14 @@ function ContactCard({ card, index }) {
   const contentClassName = "relative z-20 flex items-start gap-5";
 
   return (
-    <motion.article
-      className="group relative flex min-h-36 items-start gap-5 overflow-hidden rounded-[1.65rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.075),rgba(255,255,255,0.028)_58%,rgba(255,122,0,0.035))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl transition-all duration-500 hover:border-[color:var(--primary)]/55 hover:bg-white/[0.075] hover:shadow-[0_32px_92px_rgba(255,122,0,0.18),inset_0_1px_0_rgba(255,255,255,0.09)] sm:p-6 lg:p-7"
-      custom={index}
-      variants={cardVariants}
-      whileHover={{ y: -8, scale: 1.014 }}
-      transition={{ duration: 0.42, ease: softEase }}
-    >
+    <article className="group relative flex min-h-36 items-start gap-5 overflow-hidden rounded-[1.65rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.075),rgba(255,255,255,0.028)_58%,rgba(255,122,0,0.035))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:border-[color:var(--primary)]/55 hover:bg-white/[0.075] hover:shadow-[0_32px_92px_rgba(255,122,0,0.18),inset_0_1px_0_rgba(255,255,255,0.09)] sm:p-6 lg:p-7">
       {card.href ? (
         <a className={contentClassName} href={card.href} aria-label={`${card.title}: ${card.value}`}>
           {content}
         </a>
       ) : null}
       {!card.href ? <div className={contentClassName}>{content}</div> : null}
-    </motion.article>
+    </article>
   );
 }
 
@@ -137,20 +111,14 @@ export default function ContactSection() {
   } : field);
   return (
     <section className="relative isolate overflow-hidden bg-[color:var(--background)] px-4 py-24 text-[color:var(--text)] sm:px-6 sm:py-30 lg:px-8 lg:py-32">
-      <motion.div
+      <div
         className="absolute right-[-20rem] top-10 -z-10 size-[50rem] rounded-full bg-[radial-gradient(circle,rgba(255,122,0,0.26),rgba(255,122,0,0.1)_36%,transparent_70%)] blur-3xl"
-        animate={{ opacity: [0.42, 0.78, 0.42], scale: [0.94, 1.09, 0.94] }}
-        transition={{ duration: 8.5, ease: "easeInOut", repeat: Infinity }}
       />
-      <motion.div
+      <div
         className="absolute bottom-[-21rem] left-[-18rem] -z-10 size-[46rem] rounded-full bg-[radial-gradient(circle,rgba(212,160,23,0.16),rgba(255,122,0,0.08)_42%,transparent_72%)] blur-3xl"
-        animate={{ opacity: [0.34, 0.66, 0.34], scale: [1.05, 0.94, 1.05] }}
-        transition={{ duration: 9.5, ease: "easeInOut", repeat: Infinity }}
       />
-      <motion.div
+      <div
         className="absolute left-1/2 top-[14%] -z-10 h-[34rem] w-[72rem] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(255,157,51,0.08),transparent_68%)] blur-2xl"
-        animate={{ opacity: [0.3, 0.56, 0.3], y: [0, -18, 0] }}
-        transition={{ duration: 10, ease: "easeInOut", repeat: Infinity }}
       />
       <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_50%_10%,rgba(255,157,51,0.11),transparent_33%),radial-gradient(circle_at_14%_72%,rgba(255,122,0,0.08),transparent_28%),linear-gradient(180deg,rgba(13,13,13,1),rgba(31,31,31,0.55)_48%,rgba(13,13,13,1))]" />
       <div className="absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[color:var(--primary)]/35 to-transparent" />
@@ -160,33 +128,15 @@ export default function ContactSection() {
       <div className="pointer-events-none absolute inset-x-6 top-24 -z-10 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent sm:inset-x-16" />
       <div className="pointer-events-none absolute inset-x-10 bottom-24 -z-10 h-px bg-gradient-to-r from-transparent via-[color:var(--gold)]/18 to-transparent sm:inset-x-24" />
 
-      {particleClasses.map((className, index) => (
-        <motion.span
-          className={`absolute rounded-full bg-[color:var(--primary-light)]/70 shadow-[0_0_20px_rgba(255,157,51,0.7)] ${className}`}
+      {particleClasses.map((className) => (
+        <span
+          className={`absolute rounded-full bg-[color:var(--primary-light)]/45 shadow-[0_0_20px_rgba(255,157,51,0.55)] ${className}`}
           key={className}
-          animate={{
-            opacity: [0.12, 0.58, 0.12],
-            x: [0, index % 2 === 0 ? 18 : -18, 0],
-            y: [0, -34, 0],
-            scale: [0.75, 1.55, 0.75],
-          }}
-          transition={{
-            delay: index * 0.38,
-            duration: 5.2 + index * 0.28,
-            ease: "easeInOut",
-            repeat: Infinity,
-          }}
         />
       ))}
 
       <div className="mx-auto max-w-7xl">
-        <motion.div
-          className="mx-auto max-w-4xl text-center"
-          initial={{ opacity: 0, y: 34, filter: "blur(8px)" }}
-          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.92, ease: sectionEase }}
-        >
+        <div className="mx-auto max-w-4xl text-center">
           <div className="mb-7 inline-flex items-center gap-4 rounded-full border border-[color:var(--primary)]/35 bg-[linear-gradient(135deg,rgba(255,122,0,0.16),rgba(255,255,255,0.035))] px-4 py-2 text-xs font-semibold tracking-[0.26em] text-[color:var(--primary-light)] uppercase shadow-[0_0_38px_rgba(255,122,0,0.16),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">
             <span className="h-px w-8 bg-gradient-to-r from-transparent to-[color:var(--primary)]/80" />
             {isArabic ? "تواصل معنا" : "Get In Touch"}
@@ -204,31 +154,22 @@ export default function ContactSection() {
           <p className="mx-auto mt-7 max-w-3xl text-base leading-8 text-[color:var(--text-muted)] sm:text-lg">
             {isArabic ? "سواء كنت تخطط لعشاء مميز أو لديك سؤال عن قائمتنا أو تريد تقديم طلب، فريقنا دائمًا جاهز لمساعدتك." : "Whether you're planning a special dinner, have questions about our menu, or want to place an order, our team is always ready to help."}
           </p>
-        </motion.div>
+        </div>
 
         <div className="mt-16 grid items-start gap-8 sm:mt-18 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12">
-          <motion.div
+          <div
             className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-1"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.18 }}
           >
-            {displayedContactCards.map((card, index) => (
-              <ContactCard card={card} index={index} key={card.title} />
+            {displayedContactCards.map((card) => (
+              <ContactCard card={card} key={card.title} />
             ))}
-          </motion.div>
+          </div>
 
-          <motion.div
+          <div
             className="relative"
-            initial={{ opacity: 0, x: 48, filter: "blur(8px)" }}
-            whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ delay: 0.12, duration: 0.95, ease: sectionEase }}
           >
-            <motion.div
+            <div
               className="absolute -inset-10 -z-10 rounded-[3.5rem] bg-[radial-gradient(circle,rgba(255,157,51,0.28),rgba(255,122,0,0.1)_38%,transparent_72%)] blur-2xl"
-              animate={{ opacity: [0.48, 0.86, 0.48], scale: [0.96, 1.035, 0.96] }}
-              transition={{ duration: 7.8, ease: "easeInOut", repeat: Infinity }}
             />
 
             <div className="relative overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035)_50%,rgba(255,122,0,0.055))] p-5 shadow-[0_38px_110px_rgba(0,0,0,0.48),inset_0_1px_0_rgba(255,255,255,0.075)] backdrop-blur-2xl sm:p-7 lg:p-9">
@@ -252,10 +193,7 @@ export default function ContactSection() {
                   </div>
                 </div>
 
-                <form
-                  className="grid gap-5 sm:gap-6"
-                  onSubmit={(event) => event.preventDefault()}
-                >
+                <form className="grid gap-5 sm:gap-6">
                   <div className="grid gap-5 sm:grid-cols-2 sm:gap-6">
                     {displayedFormFields.slice(0, 2).map((field) => (
                       <Field field={field} key={field.name} />
@@ -272,11 +210,9 @@ export default function ContactSection() {
                       placeholder={isArabic ? "أخبرنا ما الذي سيجعل زيارتك لا تُنسى." : "Tell us what would make your visit unforgettable."}
                     />
                   </label>
-                  <motion.button
-                    className="group relative mt-3 inline-flex min-h-15 items-center justify-center gap-3 overflow-hidden rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 text-sm font-bold tracking-wide text-[color:var(--background)] shadow-[0_22px_62px_rgba(255,122,0,0.38),inset_0_1px_0_rgba(255,255,255,0.28)] transition-all duration-300 hover:shadow-[0_30px_84px_rgba(255,122,0,0.52),inset_0_1px_0_rgba(255,255,255,0.34)]"
-                    type="submit"
-                    whileHover={{ y: -5, scale: 1.026 }}
-                    whileTap={{ scale: 0.98 }}
+                  <button
+                    className="group relative mt-3 inline-flex min-h-15 items-center justify-center gap-3 overflow-hidden rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 text-sm font-bold tracking-wide text-[color:var(--background)] shadow-[0_22px_62px_rgba(255,122,0,0.38),inset_0_1px_0_rgba(255,255,255,0.28)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_30px_84px_rgba(255,122,0,0.52),inset_0_1px_0_rgba(255,255,255,0.34)]"
+                    type="button"
                   >
                     <span className="absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/35 to-transparent transition-transform duration-700 group-hover:translate-x-[320%]" />
                     <span className="relative">{isArabic ? "إرسال الرسالة" : "Send Message"}</span>
@@ -286,11 +222,11 @@ export default function ContactSection() {
                       size={18}
                       strokeWidth={2}
                     />
-                  </motion.button>
+                  </button>
                 </form>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

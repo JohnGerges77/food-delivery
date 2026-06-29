@@ -57,11 +57,11 @@ export function PublicNavbar() {
         >
           <span className="relative block h-12 w-36 overflow-hidden sm:h-14 sm:w-40 lg:h-12 lg:w-36">
             <Image
-              src="/headIcon.png"
+              src="/headIcon.webp"
               alt={t("brand")}
               width={1536}
               height={1024}
-              priority
+              sizes="(min-width: 1024px) 144px, 160px"
               className="absolute -left-12 -top-[3.25rem] h-[8.75rem] w-[13.125rem] max-w-none object-contain transition-transform duration-300 group-hover:scale-105 sm:-left-14 sm:-top-[3.75rem] sm:h-40 sm:w-60 lg:-left-12 lg:-top-[3.25rem] lg:h-[8.75rem] lg:w-[13.125rem]"
             />
           </span>

@@ -1,7 +1,4 @@
-"use client";
-
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { useLocale } from "next-intl";
 import {
   ArrowRight,
@@ -17,8 +14,6 @@ import {
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
-
-const footerEase = [0.16, 1, 0.3, 1];
 
 const quickLinks = [
   { label: "Home", href: routes.home },
@@ -55,27 +50,6 @@ const particles = [
   "right-[46%] bottom-[32%] size-1",
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.11,
-      delayChildren: 0.12,
-    },
-  },
-};
-
-const columnVariants = {
-  hidden: { opacity: 0, y: 28, filter: "blur(8px)" },
-  visible: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.78, ease: footerEase },
-  },
-};
-
 function FooterHeading({ children }) {
   return (
     <h3 className="text-sm font-semibold tracking-[0.24em] text-[color:var(--gold)] uppercase">
@@ -106,60 +80,31 @@ export default function Footer() {
   return (
     <footer className="relative isolate overflow-hidden bg-[color:var(--background)] px-4 pt-20 text-[color:var(--text)] sm:px-6 lg:px-8">
       <div className="absolute inset-0 -z-20 bg-[image:var(--footer-background)]" />
-      <motion.div
+      <div
         className="absolute right-[-18rem] top-8 -z-10 size-[42rem] rounded-full bg-[radial-gradient(circle,rgba(255,122,0,0.22),rgba(255,122,0,0.08)_40%,transparent_72%)] blur-3xl"
-        animate={{ opacity: [0.38, 0.72, 0.38], scale: [0.96, 1.07, 0.96] }}
-        transition={{ duration: 8.5, ease: "easeInOut", repeat: Infinity }}
       />
-      <motion.div
+      <div
         className="absolute bottom-[-18rem] left-[-14rem] -z-10 size-[38rem] rounded-full bg-[radial-gradient(circle,rgba(212,160,23,0.14),rgba(255,122,0,0.08)_42%,transparent_72%)] blur-3xl"
-        animate={{ opacity: [0.3, 0.62, 0.3], scale: [1.05, 0.95, 1.05] }}
-        transition={{ duration: 9.5, ease: "easeInOut", repeat: Infinity }}
       />
       <div className="absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[color:var(--primary)]/75 to-transparent" />
       <div className="pointer-events-none absolute inset-x-8 top-24 -z-10 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent sm:inset-x-20" />
       <div className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 hidden w-px bg-gradient-to-b from-transparent via-[color:var(--primary)]/16 to-transparent lg:block" />
 
-      {particles.map((className, index) => (
-        <motion.span
-          animate={{
-            opacity: [0.1, 0.48, 0.1],
-            scale: [0.75, 1.45, 0.75],
-            x: [0, index % 2 === 0 ? 16 : -16, 0],
-            y: [0, -28, 0],
-          }}
-          className={`absolute rounded-full bg-[color:var(--primary-light)]/70 shadow-[0_0_18px_rgba(255,157,51,0.72)] ${className}`}
+      {particles.map((className) => (
+        <span
+          className={`absolute rounded-full bg-[color:var(--primary-light)]/45 shadow-[0_0_18px_rgba(255,157,51,0.58)] ${className}`}
           key={className}
-          transition={{
-            delay: index * 0.42,
-            duration: 5.4 + index * 0.25,
-            ease: "easeInOut",
-            repeat: Infinity,
-          }}
         />
       ))}
 
       <div className="mx-auto max-w-7xl">
-        <motion.div
-          className="mx-auto mb-8 flex w-fit items-center gap-4 rounded-full border border-[color:var(--primary)]/25 bg-[color:var(--primary)]/10 px-4 py-2 text-xs font-semibold tracking-[0.28em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_rgba(255,122,0,0.13)] backdrop-blur-xl"
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.5 }}
-          transition={{ duration: 0.7, ease: footerEase }}
-        >
+        <div className="mx-auto mb-8 flex w-fit items-center gap-4 rounded-full border border-[color:var(--primary)]/25 bg-[color:var(--primary)]/10 px-4 py-2 text-xs font-semibold tracking-[0.28em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_rgba(255,122,0,0.13)] backdrop-blur-xl">
           <span className="h-px w-8 bg-gradient-to-r from-transparent to-[color:var(--primary)]/80" />
           {isArabic ? "تجربة سافورا" : "Savora Experience"}
           <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_rgba(255,157,51,0.9)]" />
-        </motion.div>
+        </div>
 
-        <motion.div
-          animate={{ y: [0, -8, 0] }}
-          className="relative mb-16 overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035)_54%,rgba(255,122,0,0.07))] p-6 shadow-[0_34px_110px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl sm:p-8 lg:p-10"
-          initial={{ opacity: 0, y: 36, filter: "blur(8px)" }}
-          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.9, ease: footerEase }}
-        >
+        <div className="relative mb-16 overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035)_54%,rgba(255,122,0,0.07))] p-6 shadow-[0_34px_110px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl sm:p-8 lg:p-10">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_0%,rgba(255,255,255,0.12),transparent_25%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_38%,rgba(255,122,0,0.12))]" />
           <div className="pointer-events-none absolute -right-24 -top-24 size-64 rounded-full bg-[color:var(--primary)]/22 blur-3xl" />
           <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
@@ -173,9 +118,9 @@ export default function Footer() {
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
-              <motion.div whileHover={{ y: -4, scale: 1.025 }} whileTap={{ scale: 0.98 }}>
+              <div>
                 <Link
-                  className="group inline-flex min-h-13 w-full items-center justify-center gap-3 rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-7 text-sm font-bold text-[color:var(--background)] shadow-[0_20px_56px_rgba(255,122,0,0.36)] transition-all duration-300 hover:shadow-[0_26px_70px_rgba(255,122,0,0.5)] sm:w-auto"
+                  className="group inline-flex min-h-13 w-full items-center justify-center gap-3 rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-7 text-sm font-bold text-[color:var(--background)] shadow-[0_20px_56px_rgba(255,122,0,0.36)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(255,122,0,0.5)] sm:w-auto"
                   href={routes.menu}
                 >
                   {isArabic ? "اطلب الآن" : "Order Now"}
@@ -185,35 +130,31 @@ export default function Footer() {
                     size={18}
                   />
                 </Link>
-              </motion.div>
-              <motion.div whileHover={{ y: -3, scale: 1.018 }} whileTap={{ scale: 0.98 }}>
+              </div>
+              <div>
                 <Link
-                  className="inline-flex min-h-13 w-full items-center justify-center rounded-full border border-white/14 bg-white/[0.045] px-7 text-sm font-bold text-[color:var(--text)] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur transition-all duration-300 hover:border-[color:var(--primary)]/55 hover:bg-white/[0.08] hover:text-[color:var(--primary-light)] sm:w-auto"
+                  className="inline-flex min-h-13 w-full items-center justify-center rounded-full border border-white/14 bg-white/[0.045] px-7 text-sm font-bold text-[color:var(--text)] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--primary)]/55 hover:bg-white/[0.08] hover:text-[color:var(--primary-light)] sm:w-auto"
                   href={routes.menu}
                 >
                   {isArabic ? "عرض القائمة" : "View Menu"}
                 </Link>
-              </motion.div>
+              </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
+        <div
           className="grid gap-10 border-y border-white/10 py-12 sm:grid-cols-2 lg:grid-cols-[1.24fr_0.76fr_1fr_1.06fr] lg:gap-9 lg:py-14"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.18 }}
-          variants={containerVariants}
         >
-          <motion.div variants={columnVariants}>
+          <div>
             <Link className="group inline-flex items-center" href={routes.home} aria-label="Savora home">
               <span className="relative block h-14 w-40 overflow-hidden">
                 <Image
                   alt="Savora"
                   className="absolute -left-12 -top-[3.25rem] h-[8.75rem] w-[13.125rem] max-w-none object-contain transition-transform duration-300 group-hover:scale-105"
                   height={1024}
-                  priority
-                  src="/headIcon.png"
+                  sizes="160px"
+                  src="/headIcon.webp"
                   width={1536}
                 />
               </span>
@@ -229,24 +170,22 @@ export default function Footer() {
                 const Icon = social.icon;
 
                 return (
-                  <motion.a
+                  <a
                     aria-label={social.label}
                     className="group flex size-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[color:var(--text-muted)] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur transition-all duration-300 hover:border-[color:var(--primary)]/55 hover:bg-[color:var(--primary)]/12 hover:text-[color:var(--primary-light)] hover:shadow-[0_0_34px_rgba(255,122,0,0.24)]"
                     href={social.href}
                     key={social.label}
                     rel="noreferrer"
                     target="_blank"
-                    whileHover={{ y: -4, scale: 1.08 }}
-                    whileTap={{ scale: 0.96 }}
                   >
                     <Icon aria-hidden="true" size={18} strokeWidth={1.8} />
-                  </motion.a>
+                  </a>
                 );
               })}
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div variants={columnVariants}>
+          <div>
             <FooterHeading>{isArabic ? "روابط سريعة" : "Quick Links"}</FooterHeading>
             <nav className="mt-6 grid gap-3">
               {quickLinks.map((link) => (
@@ -255,9 +194,9 @@ export default function Footer() {
                 </PremiumLink>
               ))}
             </nav>
-          </motion.div>
+          </div>
 
-          <motion.div variants={columnVariants}>
+          <div>
             <FooterHeading>{isArabic ? "معلومات المطعم" : "Restaurant Information"}</FooterHeading>
             <div className="mt-6 grid gap-4">
               {displayedRestaurantInfo.map((item) => {
@@ -293,17 +232,14 @@ export default function Footer() {
                 );
               })}
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div variants={columnVariants}>
+          <div>
             <FooterHeading>{isArabic ? "انضم إلى نشرتنا" : "Join Our Newsletter"}</FooterHeading>
             <p className="mt-6 text-sm leading-7 text-[color:var(--text-muted)]">
               {isArabic ? "احصل على تحديثات الأطباق الجديدة والعروض والتجارب الحصرية." : "Get updates on new dishes, offers, and exclusive dining experiences."}
             </p>
-            <form
-              className="mt-6 rounded-[1.4rem] border border-white/10 bg-white/[0.035] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl"
-              onSubmit={(event) => event.preventDefault()}
-            >
+            <form className="mt-6 rounded-[1.4rem] border border-white/10 bg-white/[0.035] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
               <label className="sr-only" htmlFor="footer-email">
                 {isArabic ? "البريد الإلكتروني" : "Email Address"}
               </label>
@@ -314,11 +250,9 @@ export default function Footer() {
                   placeholder={isArabic ? "البريد الإلكتروني" : "Email Address"}
                   type="email"
                 />
-                <motion.button
-                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-[1rem] bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-5 text-sm font-bold text-[color:var(--background)] shadow-[0_16px_44px_rgba(255,122,0,0.28)] transition-all duration-300 hover:shadow-[0_22px_58px_rgba(255,122,0,0.42)]"
-                  type="submit"
-                  whileHover={{ y: -2, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                <button
+                  className="group inline-flex h-12 items-center justify-center gap-2 rounded-[1rem] bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-5 text-sm font-bold text-[color:var(--background)] shadow-[0_16px_44px_rgba(255,122,0,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_58px_rgba(255,122,0,0.42)]"
+                  type="button"
                 >
                   {isArabic ? "اشترك" : "Subscribe"}
                   <Send
@@ -327,11 +261,11 @@ export default function Footer() {
                     size={16}
                     strokeWidth={2}
                   />
-                </motion.button>
+                </button>
               </div>
             </form>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         <div className="flex flex-col gap-5 py-7 text-sm text-[color:var(--text-muted)] sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 Savora. All rights reserved.</p>

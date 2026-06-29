@@ -1,7 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { Edit3, FolderOpen, Plus, Trash2 } from "lucide-react";
+import { Edit3, FolderOpen, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import type { Category, Product } from "@/types";
@@ -12,7 +11,6 @@ import {
 
   SearchInput,
   StatusBadge,
-  dashboardEase,
   inputClass,
   textareaClass,
 } from "./DashboardUI";
@@ -22,7 +20,7 @@ type EditableCategory = Category & { status: "Active" | "Hidden" };
 const emptyCategory: Pick<EditableCategory, "name" | "description" | "image" | "status"> = {
   name: "",
   description: "",
-  image: "/main.png",
+  image: "/main.webp",
   status: "Active",
 };
 
@@ -53,12 +51,6 @@ export function DashboardCategoriesPage({
 
   function productCount(categoryId: string) {
     return products.filter((product) => product.categoryId === categoryId).length;
-  }
-
-  function openAddModal() {
-    setForm(emptyCategory);
-    setEditingCategory(null);
-    setModalMode("add");
   }
 
   function openEditModal(category: EditableCategory) {
@@ -114,13 +106,10 @@ export function DashboardCategoriesPage({
       </DashboardCard>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {filteredCategories.map((category, index) => (
-          <motion.article
+        {filteredCategories.map((category) => (
+          <article
             className="group relative overflow-hidden rounded-[1.35rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.078),rgba(255,255,255,0.028)_60%,rgba(255,122,0,0.04))] shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl"
             key={category.id}
-            initial={{ opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05, duration: 0.5, ease: dashboardEase }}
           >
             <div className="relative aspect-[1.9] overflow-hidden">
               <Image
@@ -174,16 +163,15 @@ export function DashboardCategoriesPage({
                 </ActionButton>
               </div>
             </div>
-          </motion.article>
+          </article>
         ))}
       </div>
 
-      <AnimatePresence>
-        <DashboardModal
-          open={modalMode !== null}
-          title={modalMode === "edit" ? "Edit Category" : "Add Category"}
-          onClose={closeModal}
-        >
+      <DashboardModal
+        open={modalMode !== null}
+        title={modalMode === "edit" ? "Edit Category" : "Add Category"}
+        onClose={closeModal}
+      >
           <form className="grid gap-4" onSubmit={submitCategory}>
             <label>
               <span className="mb-2 block text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">
@@ -244,8 +232,7 @@ export function DashboardCategoriesPage({
               <ActionButton type="submit">Save Category</ActionButton>
             </div>
           </form>
-        </DashboardModal>
-      </AnimatePresence>
+      </DashboardModal>
     </section>
   );
 }

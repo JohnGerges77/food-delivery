@@ -1,7 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { DollarSign, Package, Plus, ShoppingBag, Timer, Utensils } from "lucide-react";
+import { DollarSign, Package, ShoppingBag, Timer, Utensils } from "lucide-react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { formatCurrency } from "@/lib/formatters";
@@ -10,9 +9,7 @@ import type { DashboardStats, Order, Product, TopProduct } from "@/types";
 import {
   ActionButton,
   DashboardCard,
-  DashboardPageHeader,
   StatusBadge,
-  dashboardEase,
 } from "./DashboardUI";
 
 const sales = [
@@ -74,16 +71,13 @@ export function DashboardHomePage({
     <section>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {statCards.map((card, index) => {
+        {statCards.map((card) => {
           const Icon = card.icon;
 
           return (
-            <motion.div
+            <div
               className="rounded-[1.35rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.08),rgba(255,255,255,0.026)_60%,rgba(255,122,0,0.04))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl"
               key={card.title}
-              initial={{ opacity: 0, y: 22 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.06, duration: 0.55, ease: dashboardEase }}
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -97,7 +91,7 @@ export function DashboardHomePage({
                 </span>
               </div>
               <p className="mt-4 text-sm text-[color:var(--text-muted)]">{card.detail}</p>
-            </motion.div>
+            </div>
           );
         })}
       </div>
@@ -118,12 +112,9 @@ export function DashboardHomePage({
           <div className="mt-8 flex h-72 items-end gap-3">
             {sales.map((item) => (
               <div className="flex h-full flex-1 flex-col justify-end gap-3" key={item.day}>
-                <motion.div
+                <div
                   className="min-h-8 rounded-t-xl bg-[linear-gradient(180deg,var(--primary-light),var(--primary))] shadow-[0_0_28px_rgba(255,122,0,0.22)]"
-                  initial={{ height: 0 }}
-                  whileInView={{ height: `${item.value}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.7, ease: dashboardEase }}
+                  style={{ height: `${item.value}%` }}
                 />
                 <div className="text-center text-xs font-semibold text-[color:var(--text-muted)]">
                   {item.day}
@@ -158,7 +149,7 @@ export function DashboardHomePage({
                       className="object-cover"
                       fill
                       sizes="4rem"
-                      src={product?.image ?? "/main.png"}
+                      src={product?.image ?? "/main.webp"}
                     />
                   </div>
                   <div className="min-w-0">

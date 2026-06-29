@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import {
   ArrowRight,
   CheckCircle2,
@@ -19,8 +16,6 @@ import Image from "next/image";
 import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
-
-const sectionEase = [0.16, 1, 0.3, 1] as const;
 
 const stats = [
   { value: "10+", label: "Years Experience" },
@@ -102,16 +97,6 @@ const particles = [
   "right-[38%] bottom-[22%] size-1",
 ];
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 30, filter: "blur(8px)" },
-  visible: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.78, ease: sectionEase },
-  },
-};
-
 function SectionBadge({ children }: { children: React.ReactNode }) {
   return (
     <div className="mb-6 inline-flex max-w-full items-center gap-3 rounded-full border border-[color:var(--primary)]/30 bg-[linear-gradient(135deg,rgba(255,122,0,0.14),rgba(255,255,255,0.035))] px-3 py-2 text-[0.68rem] font-semibold tracking-[0.2em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_rgba(255,122,0,0.14),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur sm:gap-4 sm:px-4 sm:tracking-[0.24em]">
@@ -130,15 +115,9 @@ function MotionSection({
   className: string;
 }) {
   return (
-    <motion.section
-      className={className}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}
-      variants={fadeUp}
-    >
+    <section className={className}>
       {children}
-    </motion.section>
+    </section>
   );
 }
 
@@ -202,38 +181,25 @@ export function AboutPageContent() {
         ))}
 
         <div className="mx-auto w-full max-w-7xl text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, ease: sectionEase }}
-          >
+          <div>
             <SectionBadge>{isArabic ? "عن سافورا" : "About Savora"}</SectionBadge>
-          </motion.div>
-          <motion.h1
+          </div>
+          <h1
             className="mx-auto max-w-5xl text-[clamp(3.1rem,9vw,6.8rem)] font-semibold leading-[0.92] text-balance"
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08, duration: 0.78, ease: sectionEase }}
           >
             {isArabic ? "حيث يلتقي المذاق" : "Where Flavor Meets"}
             <span className="block text-[color:var(--primary-light)] drop-shadow-[0_0_32px_rgba(255,122,0,0.22)]">
               {isArabic ? "بأناقة الضيافة" : "Elegant Dining"}
             </span>
-          </motion.h1>
-          <motion.p
+          </h1>
+          <p
             className="mx-auto mt-7 max-w-3xl text-base leading-8 text-[color:var(--text-muted)] sm:text-lg sm:leading-9"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.16, duration: 0.72, ease: sectionEase }}
           >
             {isArabic ? "سافورا تجربة مطعم فاخرة تقوم على أطباق مصنوعة بإتقان وضيافة دافئة ونكهات لا تُنسى في أجواء سينمائية." : "Savora is a premium restaurant experience built around handcrafted dishes, warm hospitality, and unforgettable flavors served in a cinematic dining atmosphere."}
-          </motion.p>
+          </p>
 
-          <motion.div
+          <div
             className="mx-auto mt-10 grid max-w-4xl overflow-hidden rounded-lg border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.075),rgba(255,255,255,0.026)_60%,rgba(255,122,0,0.045))] shadow-[0_24px_80px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl sm:grid-cols-3"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.24, duration: 0.72, ease: sectionEase }}
           >
             {stats.map((stat) => (
               <div
@@ -248,7 +214,7 @@ export function AboutPageContent() {
                 </div>
               </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -293,7 +259,7 @@ export function AboutPageContent() {
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                   fill
                   sizes="(min-width: 1024px) 50vw, 100vw"
-                  src="/whyChooseUs.png"
+                  src="/whyChooseUs.webp"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--background)]/62 via-transparent to-black/10" />
                 <div className="absolute inset-x-4 bottom-4 rounded-lg border border-white/10 bg-[color:var(--background)]/68 px-5 py-4 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-md sm:inset-x-5 sm:bottom-5">
@@ -324,13 +290,9 @@ export function AboutPageContent() {
             <div className="absolute bottom-3 left-4 top-3 w-px bg-gradient-to-b from-transparent via-[color:var(--primary)]/90 to-transparent sm:left-1/2 sm:-translate-x-1/2" />
             <div className="grid gap-7 sm:gap-8">
               {timelineItems.map((item, index) => (
-                <motion.article
+                <article
                   className="relative grid pl-11 sm:grid-cols-[minmax(0,1fr)_5rem_minmax(0,1fr)] sm:items-center sm:pl-0"
-                  initial={{ opacity: 0, y: 26 }}
                   key={item.year}
-                  transition={{ delay: index * 0.08, duration: 0.68, ease: sectionEase }}
-                  viewport={{ once: true, amount: 0.35 }}
-                  whileInView={{ opacity: 1, y: 0 }}
                 >
                   <div className="absolute left-4 top-7 flex -translate-x-1/2 items-center justify-center sm:static sm:col-start-2 sm:row-start-1 sm:translate-x-0">
                     <span className="relative flex size-8 items-center justify-center rounded-full border border-[color:var(--primary-light)]/65 bg-[color:var(--background)] shadow-[0_0_28px_rgba(255,122,0,0.58)]">
@@ -352,7 +314,7 @@ export function AboutPageContent() {
                         : "sm:col-start-2 sm:mr-10 sm:bg-gradient-to-l sm:from-[color:var(--primary)]/45 sm:to-transparent"
                     }`}
                   />
-                </motion.article>
+                </article>
               ))}
             </div>
           </div>
@@ -374,17 +336,13 @@ export function AboutPageContent() {
             </p>
           </div>
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {values.map((value, index) => {
+            {values.map((value) => {
               const Icon = value.icon;
 
               return (
-                <motion.article
+                <article
                   className="group relative min-h-64 overflow-hidden rounded-[1.35rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.08),rgba(255,255,255,0.028)_58%,rgba(255,122,0,0.04))] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:border-[color:var(--primary)]/55 hover:shadow-[0_32px_92px_rgba(255,122,0,0.16)] lg:min-h-72"
-                  initial={{ opacity: 0, y: 26 }}
                   key={value.title}
-                  transition={{ delay: index * 0.07, duration: 0.68, ease: sectionEase }}
-                  viewport={{ once: true, amount: 0.35 }}
-                  whileInView={{ opacity: 1, y: 0 }}
                 >
                   <div className="absolute -right-16 -top-16 size-36 rounded-full bg-[color:var(--primary)]/0 blur-2xl transition-colors duration-500 group-hover:bg-[color:var(--primary)]/18" />
                   <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -397,7 +355,7 @@ export function AboutPageContent() {
                   <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">
                     {isArabic ? "نلتزم بالجودة والعناية في كل تفصيل لنقدّم تجربة غنية ومريحة ولا تُنسى." : value.description}
                   </p>
-                </motion.article>
+                </article>
               );
             })}
           </div>
@@ -505,12 +463,8 @@ export function AboutPageContent() {
 
       <section className="relative px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <motion.div
+          <div
             className="relative overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035)_54%,rgba(255,122,0,0.07))] p-8 text-center shadow-[0_34px_110px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl sm:p-10 lg:p-12"
-            initial={{ opacity: 0, y: 34, filter: "blur(8px)" }}
-            transition={{ duration: 0.82, ease: sectionEase }}
-            viewport={{ once: true, amount: 0.35 }}
-            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           >
             <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-[color:var(--primary)]/22 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-28 left-10 size-72 rounded-full bg-[color:var(--gold)]/12 blur-3xl" />
@@ -539,7 +493,7 @@ export function AboutPageContent() {
                 </Link>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
     </main>

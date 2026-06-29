@@ -68,7 +68,7 @@ export function AdminLoginPage() {
       <motion.div
         animate={reduceMotion ? undefined : { opacity: [0.2, 0.5, 0.2], scale: [0.9, 1.12, 0.9] }}
         className="absolute -left-40 top-[-8rem] -z-10 size-[34rem] rounded-full bg-[color:var(--primary)]/15 blur-[110px]"
-        transition={{ duration: 6, ease: "easeInOut", repeat: Infinity }}
+        transition={reduceMotion ? undefined : { duration: 6, ease: "easeInOut", repeat: Infinity }}
       />
       <div className="absolute -bottom-64 -right-52 -z-10 size-[38rem] rounded-full bg-[color:var(--gold)]/10 blur-[130px]" />
 
@@ -77,7 +77,7 @@ export function AdminLoginPage() {
           animate={reduceMotion ? undefined : { opacity: [0.15, 0.8, 0.15], y: [0, -24, 0] }}
           className={`absolute hidden rounded-full bg-[color:var(--primary-light)] shadow-[0_0_18px_rgba(255,157,51,0.9)] lg:block ${className}`}
           key={className}
-          transition={{ delay: index * 0.45, duration: 3.6 + index * 0.25, repeat: Infinity }}
+          transition={reduceMotion ? undefined : { delay: index * 0.45, duration: 3.6 + index * 0.25, repeat: Infinity }}
         />
       ))}
 
@@ -165,7 +165,7 @@ export function AdminLoginPage() {
             >
               <motion.div className="flex items-start justify-between gap-4" variants={formItem}>
                 <div className="relative h-20 w-36 overflow-hidden rounded-xl bg-black/30">
-                  <Image alt="Savora" className="scale-[1.72] object-cover object-[50%_46%]" fill priority sizes="144px" src="/logo.png" />
+                  <Image alt="Savora" className="scale-[1.72] object-cover object-[50%_46%]" fill sizes="144px" src="/logo.webp" />
                 </div>
                 <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-2 text-[0.62rem] font-bold tracking-[0.16em] text-emerald-300 uppercase">
                   <ShieldCheck aria-hidden="true" size={13} />
