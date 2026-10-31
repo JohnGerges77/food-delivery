@@ -1,0 +1,10 @@
+# Phase 8.1 owner authentication setup
+
+The existing frontend runs on `http://localhost:3000` with `npm run dev`; the backend defaults to port `5000`. Copy `frontend/.env.example` to `frontend/.env.local` and set `NEXT_PUBLIC_SAVORA_API_BASE_URL=http://localhost:5000`. The value is a browser-visible origin, with no `/api` suffix. Restart or rebuild Next.js after changing it. Do not put credentials or secrets in a `NEXT_PUBLIC_` variable.
+
+In `backend/.env`, set `AUTH_TRUSTED_ORIGINS=http://localhost:3000` exactly, and use `NODE_ENV=development` for plain HTTP localhost. Use `localhost` in both browser and API URLs; mixing it with `127.0.0.1` changes the cookie site. The backend still needs its own valid `MONGODB_URI` to start. No test or setup step should provision a real owner account as a side effect.
+
+For HTTPS deployment, use same-site sibling hostnames (for example, `dashboard.example.com` and `api.example.com`) and trust the exact dashboard origin. The API's host-only `SameSite=Lax`, `Path=/api`, `Secure`, HttpOnly session cookie stays on the API host. The frontend uses `GET /api/auth/csrf` with credentials to obtain the session-bound CSRF value for mutations; it never reads the session cookie. A same-origin `/api` proxy is not yet verified for this flow: the backend requires `Origin` on its GET CSRF route, while browsers may omit `Origin` on same-origin GET, and the `/api` cookie path prevents dashboard-page JavaScript from reading the fallback CSRF cookie. Review that backend contract before using a same-origin deployment. An unrelated-site dashboard needs a separately reviewed cookie design. This phase does not configure deployment or proxy infrastructure.
+
+The existing dashboard content still comes from local fixtures. Authentication protects the screens, but subsequent frontend phases must replace fixture service boundaries before they show live tenant data.
+The current route guard is a browser UI guard. When real owner data replaces fixtures, server-side rendering and any new owner API route must also verify the backend session so private data is never put into an unauthenticated response.

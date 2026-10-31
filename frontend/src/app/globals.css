@@ -1,0 +1,359 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0d0d0d;
+  --foreground: #ffffff;
+  --card: #1f1f1f;
+  --card-muted: #262626;
+
+  --primary: #ff7a00;
+  --primary-light: #ff9d33;
+
+  --gold: #d4a017;
+
+  --text: #ffffff;
+  --text-muted: #a3a3a3;
+
+  --border: rgba(255, 255, 255, 0.1);
+  --glass: rgba(255, 255, 255, 0.04);
+  --glass-strong: rgba(255, 255, 255, 0.08);
+  --page-gradient: linear-gradient(135deg, #0d0d0d, rgba(31, 31, 31, 0.72) 48%, #0d0d0d);
+  --hero-background: radial-gradient(circle at 80% 44%, rgba(255, 122, 0, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(31, 31, 31, 0.96), rgba(13, 13, 13, 0.98) 48%, #0d0d0d);
+  --footer-background: radial-gradient(circle at 50% 0%, rgba(255, 157, 51, 0.12), transparent 34%),
+    radial-gradient(circle at 92% 28%, rgba(255, 122, 0, 0.12), transparent 30%),
+    linear-gradient(180deg, #0d0d0d, rgba(31, 31, 31, 0.62) 45%, #0d0d0d);
+  --panel-gradient: linear-gradient(145deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.025) 58%, rgba(255, 122, 0, 0.055));
+  --surface-shadow: 0 28px 90px rgba(0, 0, 0, 0.38);
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --background: #fff8ef;
+  --foreground: #1a120b;
+  --card: #ffffff;
+  --card-muted: #fff1df;
+
+  --primary: #ff7a00;
+  --primary-light: #ff9d33;
+  --gold: #b8860b;
+
+  --text: #1a120b;
+  --text-muted: #6b5b4a;
+
+  --border: rgba(26, 18, 11, 0.12);
+  --glass: rgba(255, 255, 255, 0.65);
+  --glass-strong: rgba(255, 255, 255, 0.85);
+  --page-gradient: linear-gradient(135deg, #fff8ef, rgba(255, 241, 223, 0.92) 48%, #fff8ef);
+  --hero-background: radial-gradient(circle at 80% 44%, rgba(255, 122, 0, 0.12), transparent 34%),
+    radial-gradient(circle at 10% 18%, rgba(212, 160, 23, 0.08), transparent 28%),
+    linear-gradient(135deg, #fff8ef, #fff1df 48%, #fff8ef);
+  --footer-background: radial-gradient(circle at 50% 0%, rgba(255, 157, 51, 0.1), transparent 34%),
+    radial-gradient(circle at 92% 28%, rgba(255, 122, 0, 0.08), transparent 30%),
+    linear-gradient(180deg, #fff8ef, rgba(255, 241, 223, 0.9) 45%, #fff8ef);
+  --panel-gradient: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 248, 239, 0.88) 58%, rgba(255, 122, 0, 0.08));
+  --surface-shadow: 0 24px 70px rgba(101, 65, 24, 0.12);
+  color-scheme: light;
+}
+
+/* Restaurant palettes live on each resolved storefront, independent of the
+   visitor/dashboard appearance setting on html. Change a preset here only. */
+[data-storefront-theme="savora-classic"] {
+  --sf-background: #0d0d0d;
+  --sf-surface: #1f1f1f;
+  --sf-surface-alt: #262626;
+  --sf-text: #ffffff;
+  --sf-text-muted: #a3a3a3;
+  --sf-primary: #ff7a00;
+  --sf-primary-hover: #ff9d33;
+  --sf-on-primary: #0d0d0d;
+  --sf-accent: #d4a017;
+  --sf-border: rgba(255, 255, 255, 0.1);
+  --sf-highlight: rgba(255, 122, 0, 0.18);
+  --background: var(--sf-background);
+  --foreground: var(--sf-text);
+  --card: var(--sf-surface);
+  --card-muted: var(--sf-surface-alt);
+  --primary: var(--sf-primary);
+  --primary-light: var(--sf-primary-hover);
+  --gold: var(--sf-accent);
+  --text: var(--sf-text);
+  --text-muted: var(--sf-text-muted);
+  --border: var(--sf-border);
+  --glass: rgba(255, 255, 255, 0.04);
+  --glass-strong: rgba(255, 255, 255, 0.08);
+  --page-gradient: linear-gradient(135deg, #0d0d0d, rgba(31, 31, 31, 0.72) 48%, #0d0d0d);
+  --hero-background: radial-gradient(circle at 80% 44%, rgba(255, 122, 0, 0.18), transparent 34%), linear-gradient(135deg, rgba(31, 31, 31, 0.96), rgba(13, 13, 13, 0.98) 48%, #0d0d0d);
+  --footer-background: radial-gradient(circle at 50% 0%, rgba(255, 157, 51, 0.12), transparent 34%), radial-gradient(circle at 92% 28%, rgba(255, 122, 0, 0.12), transparent 30%), linear-gradient(180deg, #0d0d0d, rgba(31, 31, 31, 0.62) 45%, #0d0d0d);
+  --panel-gradient: linear-gradient(145deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.025) 58%, rgba(255, 122, 0, 0.055));
+  --surface-shadow: 0 28px 90px rgba(0, 0, 0, 0.38);
+  color-scheme: dark;
+}
+
+[data-storefront-theme="savora-aqua"] {
+  --sf-background: #f3faf7;
+  --sf-surface: #ffffff;
+  --sf-surface-alt: #e3f2eb;
+  --sf-text: #102b2d;
+  --sf-text-muted: #466466;
+  --sf-primary: #06363a;
+  --sf-primary-hover: #136367;
+  --sf-on-primary: #f3faf7;
+  --sf-accent: #98ffe1;
+  --sf-border: rgba(6, 54, 58, .16);
+  --sf-highlight: #d7eee2;
+  --sf-hero-copy: #d6ebe6;
+  --sf-hero-tile: #c5eade;
+  --sf-image-ground: #d8f2e8;
+  --sf-line: #8bb9a9;
+  --sf-focus: #278f85;
+  --sf-footer: #042c30;
+  --sf-information: #0c4c4d;
+  --sf-tone-126a62: #126a62;
+  --sf-tone-397174: #397174;
+  --sf-tone-3a9b89: #3a9b89;
+  --sf-tone-526b69: #526b69;
+  --sf-tone-71c8b0: #71c8b0;
+  --sf-tone-a5c9b9: #a5c9b9;
+  --sf-tone-aadfca: #aadfca;
+  --sf-tone-b3d8cb: #b3d8cb;
+  --sf-tone-b5d6c6: #b5d6c6;
+  --sf-tone-badfce: #badfce;
+  --sf-tone-bbd9d1: #bbd9d1;
+  --sf-tone-c4ffed: #c4ffed;
+  --sf-tone-c7dfd3: #c7dfd3;
+  --sf-tone-c7ffed: #c7ffed;
+  --sf-tone-d2e5db: #d2e5db;
+  --sf-tone-d7e9df: #d7e9df;
+  --sf-tone-d8eae6: #d8eae6;
+  --sf-on-accent: #06363a;
+  --background: var(--sf-background);
+  --foreground: var(--sf-text);
+  --card: var(--sf-surface);
+  --card-muted: var(--sf-surface-alt);
+  --primary: var(--sf-primary);
+  --primary-light: var(--sf-primary-hover);
+  --gold: var(--sf-primary-hover);
+  --text: var(--sf-text);
+  --text-muted: var(--sf-text-muted);
+  --border: var(--sf-border);
+  --glass: rgba(255, 255, 255, .64);
+  --glass-strong: var(--sf-surface);
+  --page-gradient: var(--sf-background);
+  --panel-gradient: var(--sf-surface);
+  --hero-background: var(--sf-primary);
+  --footer-background: var(--sf-primary);
+  --surface-shadow: 0 20px 50px rgba(6, 54, 58, .08);
+  color-scheme: light;
+}
+
+[data-storefront-theme="savora-cafe"] {
+  --sf-background: #f7f0e6;
+  --sf-surface: #fffdf9;
+  --sf-surface-alt: #eee0ce;
+  --sf-text: #2d211b;
+  --sf-text-muted: #715c50;
+  --sf-primary: #5b3827;
+  --sf-primary-hover: #8b5c3c;
+  --sf-on-primary: #fffdf9;
+  --sf-accent: #b98858;
+  --sf-border: #dacbb9;
+  --sf-highlight: #e9daca;
+  --sf-focus: #9c6739;
+  --sf-line: #d8c0a8;
+  --sf-footer: #2d211b;
+  --sf-tone-2d211b55: #2d211b55;
+  --sf-tone-594438: #594438;
+  --sf-tone-5b382712: #5b382712;
+  --sf-tone-5b38271a: #5b38271a;
+  --sf-tone-795037: #795037;
+  --sf-tone-a16a3f: #a16a3f;
+  --sf-tone-d5aa7c: #d5aa7c;
+  --sf-tone-ddc8b4: #ddc8b4;
+  --sf-tone-dfcfbc: #dfcfbc;
+  --sf-tone-e1d2c0: #e1d2c0;
+  --sf-tone-e3d4c2: #e3d4c2;
+  --sf-tone-e3d5c4: #e3d5c4;
+  --sf-tone-e5c7a7: #e5c7a7;
+  --sf-tone-ebd0b4: #ebd0b4;
+  --sf-tone-f0e4d4: #f0e4d4;
+  --sf-tone-f4d5b5: #f4d5b5;
+  --sf-tone-ffffff33: #ffffff33;
+  --sf-tone-ffffff55: #ffffff55;
+  --background: var(--sf-background);
+  --foreground: var(--sf-text);
+  --card: var(--sf-surface);
+  --card-muted: var(--sf-surface-alt);
+  --primary: var(--sf-primary);
+  --primary-light: var(--sf-primary-hover);
+  --gold: var(--sf-accent);
+  --text: var(--sf-text);
+  --text-muted: var(--sf-text-muted);
+  --border: var(--sf-border);
+  --glass: var(--sf-surface);
+  --glass-strong: var(--sf-surface);
+  --page-gradient: var(--sf-background);
+  --panel-gradient: var(--sf-surface);
+  --hero-background: var(--sf-background);
+  --footer-background: var(--sf-primary);
+  color-scheme: light;
+}
+
+[data-storefront-theme="savora-luxury"] {
+  --sf-background: #fffdf9;
+  --sf-surface: #ffffff;
+  --sf-surface-alt: #f7f5ef;
+  --sf-text: #20251f;
+  --sf-text-muted: #5a6258;
+  --sf-primary: #2f472d;
+  --sf-primary-hover: #253a24;
+  --sf-on-primary: #ffffff;
+  --sf-accent: #b3925a;
+  --sf-border: #dedbd2;
+  --sf-highlight: #eae4d7;
+  --sf-cta: #b94e1d;
+  --sf-cta-hover: #963e17;
+  --sf-footer: #f7f5ef;
+  --background: var(--sf-background);
+  --foreground: var(--sf-text);
+  --card: var(--sf-surface);
+  --card-muted: var(--sf-surface-alt);
+  --primary: var(--sf-primary);
+  --primary-light: var(--sf-primary-hover);
+  --gold: var(--sf-accent);
+  --text: var(--sf-text);
+  --text-muted: var(--sf-text-muted);
+  --border: var(--sf-border);
+  --glass: var(--sf-surface);
+  --glass-strong: var(--sf-surface);
+  --page-gradient: var(--sf-background);
+  --panel-gradient: var(--sf-surface);
+  --hero-background: var(--sf-background);
+  --footer-background: var(--sf-footer);
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: "Courier New", Courier, monospace;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  overscroll-behavior-y: contain;
+  transition: background-color 300ms ease, color 300ms ease;
+}
+
+html[lang="ar"] body,
+html[lang="ar"] :is(button, input, textarea, select, dialog),
+html[lang="ar"] svg text {
+  font-family: var(--font-tajawal), Arial, Helvetica, sans-serif;
+}
+
+html[lang="ar"] [class*="tracking-"] {
+  letter-spacing: normal;
+}
+
+* {
+  box-sizing: border-box;
+  scrollbar-color: color-mix(in srgb, var(--primary) 58%, transparent) transparent;
+  scrollbar-width: thin;
+}
+
+html {
+  scroll-padding-top: 6rem;
+}
+
+html.lenis,
+html.lenis body {
+  scroll-behavior: auto;
+}
+
+::-webkit-scrollbar {
+  height: 0.625rem;
+  width: 0.625rem;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--primary) 44%, transparent);
+  border: 0.1875rem solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--primary-light) 62%, transparent);
+  background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Existing cinematic surfaces use translucent white utilities. These semantic
+   light-mode overrides preserve their dark appearance while warming them in light mode. */
+html[data-theme="light"] :not([data-storefront-theme] *)[class*="border-white/"] {
+  border-color: var(--border);
+}
+
+html[data-theme="light"] :not([data-storefront-theme] *)[class*="divide-white/"] > :not(:last-child) {
+  border-color: var(--border);
+}
+
+html[data-theme="light"] :not([data-storefront-theme] *)[class*="bg-white/"] {
+  background-color: var(--glass);
+}
+
+html[data-theme="light"] :not([data-storefront-theme] *)[class*="hover:bg-white/"]:hover {
+  background-color: var(--glass-strong);
+}
+
+html[data-theme="light"] :not([data-storefront-theme] *)[class*="rgba(31,31,31"],
+html[data-theme="light"] :not([data-storefront-theme] *)[class*="#17120e"] {
+  background-image: var(--page-gradient);
+}
+
+html[data-theme="light"] :not([data-storefront-theme] *)[class*="linear-gradient(145deg,rgba(255,255,255"] {
+  background-image: var(--panel-gradient);
+  box-shadow: var(--surface-shadow);
+}
+
+html[data-theme="light"] :not([data-storefront-theme] *)[class*="linear-gradient(145deg,rgba(31,31,31"] {
+  background-image: var(--panel-gradient);
+  box-shadow: var(--surface-shadow);
+}
+
+html[data-theme="light"] :not([data-storefront-theme] *)[class*="linear-gradient(180deg,rgba(31,31,31"] {
+  background-image: linear-gradient(180deg, var(--card), var(--card-muted));
+}
+
+html[data-theme="light"] :not([data-storefront-theme] *)[class*="text-white/"] {
+  color: var(--text-muted);
+}
+
+html[data-theme="light"] :not([data-storefront-theme] *)[class*="text-emerald-"] {
+  color: #047857;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--primary) 35%, transparent);
+  color: var(--text);
+}
