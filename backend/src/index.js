@@ -13,9 +13,18 @@ export function stagingConfig(env = process.env) {
   if (!/^[a-z0-9-]+\.vercel\.app$/.test(env.VERCEL_URL ?? '')) {
     throw new Error('A Vercel deployment URL is required');
   }
-  const allowedOrigins = `https://${env.VERCEL_URL}`;
-  if (env.AUTH_TRUSTED_ORIGINS && env.AUTH_TRUSTED_ORIGINS !== allowedOrigins) {
-    throw new Error('Trusted Origin does not match this Preview deployment');
+  const deploymentOrigin = `https://${env.VERCEL_URL}`;
+  const branchUrl = env.VERCEL_BRANCH_URL;
+  if (branchUrl && !/^[a-z0-9-]+-git-[a-z0-9-]+\.vercel\.app$/.test(branchUrl)) {
+    throw new Error('A valid Vercel Preview branch URL is required');
+  }
+  const origins = new Set([deploymentOrigin]);
+  if (branchUrl) origins.add(`https://${branchUrl}`);
+  if (env.AUTH_TRUSTED_ORIGINS) {
+    const configured = env.AUTH_TRUSTED_ORIGINS.split(',').map((origin) => origin.trim());
+    if (configured.some((origin) => !origins.has(origin))) {
+      throw new Error('Trusted Origin does not match this Preview deployment or branch');
+    }
   }
 
   let uri;
@@ -27,7 +36,7 @@ export function stagingConfig(env = process.env) {
       [...uri.searchParams.keys()].some((key) => key.toLowerCase() === 'dbname')) {
     throw new Error('MongoDB URI must use the dedicated savora_staging database and user');
   }
-  return { mongoUri: env.MONGODB_URI, allowedOrigins };
+  return { mongoUri: env.MONGODB_URI, allowedOrigins: [...origins].join(',') };
 }
 
 const entry = express();
