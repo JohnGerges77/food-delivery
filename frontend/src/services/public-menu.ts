@@ -1,6 +1,8 @@
 export type PublicRestaurant = {
   name: string; slug: string; description: string | null; logoUrl: string | null;
   storefrontTheme?: string;
+  heroProduct?: PublicProduct | null;
+  heroProductSelected?: boolean;
   currency: string; phone: string | null; contactEmail: string | null;
   address: string | null; openingHours: string | null;
   deliverySettings: { deliveryFee: number | null; minimumOrder: number | null;

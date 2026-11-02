@@ -357,3 +357,6 @@ html[data-theme="light"] :not([data-storefront-theme] *)[class*="text-emerald-"]
   background: color-mix(in srgb, var(--primary) 35%, transparent);
   color: var(--text);
 }
+@keyframes cart-add-attention { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.18) translateY(-2px); } }
+.cart-add-attention { animation: cart-add-attention .48s cubic-bezier(.2,.8,.2,1) both; }
+@media (prefers-reduced-motion: reduce) { .cart-add-attention { animation: none; } }

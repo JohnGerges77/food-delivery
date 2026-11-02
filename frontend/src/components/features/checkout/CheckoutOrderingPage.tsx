@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import {
   ClipboardList,
-  Mail,
   MapPin,
   Phone,
   ShoppingBag,
@@ -25,7 +24,6 @@ const sectionEase = [0.16, 1, 0.3, 1] as const;
 const fields = [
   { name: "fullName", label: "Full Name", type: "text", icon: User },
   { name: "phone", label: "Phone Number", type: "tel", icon: Phone },
-  { name: "email", label: "Email", type: "email", icon: Mail },
   { name: "address", label: "Address", type: "text", icon: MapPin },
   { name: "city", label: "City", type: "text", icon: MapPin },
 ] as const;
@@ -44,7 +42,9 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);
   const [details, setDetails] = useState<CheckoutDetails>(emptyCheckoutDetails);
   const [step, setStep] = useState(0);
-  const [method, setMethod] = useState<SubmissionMethod>("direct");
+  const whatsappAvailable = /^https:\/\/wa\.me\/[1-9][0-9]{6,14}$/.test(restaurant.socialLinks.whatsapp ?? "");
+  const [method, setMethod] = useState<SubmissionMethod>(whatsappAvailable ? "whatsapp" : "direct");
+  const [handoffBlocked, setHandoffBlocked] = useState(false);
   const [errors, setErrors] = useState<CheckoutErrors>({});
   const [failure, setFailure] = useState<{ status: number | null; message: string; uncertain: boolean } | null>(null);
   const [sending, setSending] = useState(false);
@@ -75,6 +75,16 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
       const payload = buildCheckoutPayload(details, items, method);
       const result = await coordinator.current.submit(slug, payload);
       setConfirmation(result);
+      if (result.order.submissionMethod === "whatsapp" && result.whatsapp) {
+        try {
+          const opened = window.open("", "_blank");
+          if (!opened) setHandoffBlocked(true);
+          else {
+            opened.opener = null;
+            opened.location.replace(result.whatsapp.url);
+          }
+        } catch { setHandoffBlocked(true); }
+      }
       const currentCart = useCartStore.getState();
       if (currentCart.tenantSlug === slug && JSON.stringify(currentCart.items.map((item) => [item.productId, item.quantity, item.notes])) ===
         JSON.stringify(items.map((item) => [item.productId, item.quantity, item.notes]))) currentCart.clearCart();
@@ -87,8 +97,8 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
 
   function fieldError(field: keyof CheckoutDetails) {
     if (!errors[field]) return null;
-    if (isArabic) return field === "phone" ? "أدخل رقم هاتف صالحًا." : field === "email" ? "أدخل بريدًا إلكترونيًا صالحًا." : "راجع هذه البيانات؛ الحقل مطلوب أو أطول من المسموح.";
-    return field === "phone" ? "Enter a valid phone number." : field === "email" ? "Enter a valid email address." : "Check this field; it is required or too long.";
+    if (isArabic) return field === "phone" ? "أدخل رقم هاتف صالحًا." : "راجع هذه البيانات؛ الحقل مطلوب أو أطول من المسموح.";
+    return field === "phone" ? "Enter a valid phone number." : "Check this field; it is required or too long.";
   }
 
   function failureMessage() {
@@ -185,8 +195,8 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
                   <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "رقم الطلب" : "Order reference"}: <strong className="text-[color:var(--text)]">{confirmation.order.orderNumber}</strong></p>
                   <p className="mt-2 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "الإجمالي المؤكد" : "Confirmed total"}: <strong className="text-[color:var(--text)]">{publicMoney(confirmation.order.total, confirmation.order.currency, locale)}</strong></p>
                   {confirmation.order.submissionMethod === "whatsapp" ? <>
-                    <p className="mt-4 text-sm leading-7 text-[color:var(--text)]">{isArabic ? "تم حفظ الطلب بنجاح. لم تُرسل رسالة WhatsApp بعد." : "Order saved successfully. WhatsApp message has not been sent yet."}</p>
-                    <a className="mt-6 inline-flex min-h-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 text-sm font-bold text-[color:var(--background)]" href={confirmation.whatsapp!.url} target="_blank" rel="noopener noreferrer">{isArabic ? "المتابعة إلى WhatsApp" : "Continue to WhatsApp"}</a>
+                    <p className="mt-4 text-sm leading-7 text-[color:var(--text)]">{handoffBlocked ? (isArabic ? "تعذّر فتح WhatsApp تلقائيًا. افتحه من الزر بالأسفل وأرسل الرسالة بنفسك." : "WhatsApp could not open automatically. Use the button below and send the message yourself.") : (isArabic ? "فتح WhatsApp لا يعني إرسال الرسالة. راجعها وأرسلها بنفسك." : "Opening WhatsApp does not send the message. Review and send it yourself.")}</p>
+                    <a className="mt-6 inline-flex min-h-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 text-sm font-bold text-[color:var(--background)]" href={confirmation.whatsapp!.url} target="_blank" rel="noopener noreferrer">{isArabic ? "فتح WhatsApp" : "Open WhatsApp"}</a>
                   </> : <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "استلم المطعم طلبك في Savora. لم يتم تأكيد الدفع." : "Your order is saved in Savora. Payment has not been confirmed."}</p>}
                 </div>
               ) : <>
@@ -195,7 +205,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
                 {fields.map((field) => {
                   const Icon = field.icon;
                   const fieldLabel = isArabic
-                    ? ({name: "الاسم", email: "البريد الإلكتروني", phone: "رقم الهاتف", address: "عنوان التوصيل", city: "المدينة"} as Record<string, string>)[field.name]
+                    ? ({fullName: "الاسم", phone: "رقم الهاتف", address: "عنوان التوصيل", city: "المدينة"} as Record<string, string>)[field.name]
                     : field.label;
 
                   return (
@@ -245,7 +255,6 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
                 <dl className="mt-4 grid gap-2 text-[color:var(--text-muted)]">
                   <div><dt className="inline font-semibold text-[color:var(--gold)]">{isArabic ? "الاسم" : "Name"}: </dt><dd className="inline">{details.fullName}</dd></div>
                   <div><dt className="inline font-semibold text-[color:var(--gold)]">{isArabic ? "الهاتف" : "Phone"}: </dt><dd className="inline">{details.phone}</dd></div>
-                  {details.email && <div><dt className="inline font-semibold text-[color:var(--gold)]">{isArabic ? "البريد الإلكتروني" : "Email"}: </dt><dd className="inline">{details.email}</dd></div>}
                   <div><dt className="inline font-semibold text-[color:var(--gold)]">{isArabic ? "العنوان" : "Address"}: </dt><dd className="inline">{details.address}, {details.city}</dd></div>
                   {details.notes && <div><dt className="inline font-semibold text-[color:var(--gold)]">{isArabic ? "ملاحظات" : "Notes"}: </dt><dd className="inline">{details.notes}</dd></div>}
                 </dl>
@@ -255,11 +264,12 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
               {step === 2 && <div className="mt-8 rounded-[1rem] border border-white/10 bg-[color:var(--background)]/32 p-5" data-testid="checkout-methods">
                 <h3 className="text-xl font-semibold">{isArabic ? "طريقة إرسال الطلب" : "Submission method"}</h3>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  {(["direct", "whatsapp"] as const).map((option) => <label className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-[1rem] border px-4 text-sm font-semibold ${method === option ? "border-[color:var(--primary)]/70 bg-[color:var(--primary)]/10" : "border-white/10 bg-white/[0.04]"}`} key={option}>
+                  {(["whatsapp", "direct"] as const).filter((option) => option === "direct" || whatsappAvailable).map((option) => <label className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-[1rem] border px-4 text-sm font-semibold ${method === option ? "border-[color:var(--primary)]/70 bg-[color:var(--primary)]/10" : "border-white/10 bg-white/[0.04]"}`} key={option}>
                     <input checked={method === option} disabled={sending} name="submissionMethod" onChange={() => setMethod(option)} type="radio" value={option} />
                     {option === "direct" ? (isArabic ? "مباشر" : "Direct") : "WhatsApp"}
                   </label>)}
                 </div>
+                {!whatsappAvailable && <p className="mt-3 text-sm text-[color:var(--text-muted)]">{isArabic ? "WhatsApp غير مهيأ لهذا المطعم؛ يمكنك حفظ الطلب مباشرة." : "WhatsApp is not configured for this restaurant; you can place the order directly."}</p>}
                 <p className="mt-5 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "سيؤكد الخادم السعر النهائي عند حفظ الطلب. فتح WhatsApp لا يعني إرسال الرسالة." : "The server confirms the final price when saving. Opening WhatsApp does not send the message."}</p>
                 <button className="mt-4 text-sm font-semibold text-[color:var(--primary-light)] hover:underline" disabled={sending} onClick={() => setStep(1)} type="button">{isArabic ? "العودة للمراجعة" : "Back to review"}</button>
               </div>}

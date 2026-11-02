@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { ApiError, clearCsrfToken } from "../src/services/api-client.ts";
 import { getOwnerRestaurant, patchOwnerRestaurant, restaurantToForm, settingsPatch,
-  validateSettingsForm } from "../src/services/owner-restaurant-service.ts";
+  validateSettingsForm, normalizeWhatsAppSetting } from "../src/services/owner-restaurant-service.ts";
 import { useAuthStore } from "../src/store/auth-store.ts";
 
 const originalFetch = globalThis.fetch;
@@ -22,6 +22,19 @@ function dto(overrides = {}) {
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 }
+
+test("Hero patch is isolated from branding and Egyptian WhatsApp phone normalizes per restaurant", () => {
+  const selected = "507f1f77bcf86cd799439012";
+  const initial = dto();
+  const form = { ...restaurantToForm(initial), heroProductId: selected, whatsapp: "01278528656" };
+  assert.deepEqual(settingsPatch(form, initial), { heroProductId: selected,
+    socialLinks: { whatsapp: "https://wa.me/201278528656" } });
+  assert.equal(normalizeWhatsAppSetting("+201278528656"), "https://wa.me/201278528656");
+  assert.equal(normalizeWhatsAppSetting("https://wa.me/201278528656"), "https://wa.me/201278528656");
+  assert.equal(normalizeWhatsAppSetting("0123"), null);
+  assert.deepEqual(settingsPatch({ ...form, heroProductId: "", whatsapp: "" },
+    { ...initial, heroProductId: selected }), { heroProductId: null });
+});
 
 afterEach(() => {
   globalThis.fetch = originalFetch;

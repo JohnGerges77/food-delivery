@@ -8,6 +8,7 @@ import { PublicProductImage } from "../PublicProductImage";
 import { useStorefront } from "../StorefrontContext";
 import { publicMoney, safePublicImage } from "@/lib/public-menu-presentation";
 import { useCartStore } from "@/store/cart-store";
+import { CartAttention } from "../CartAttention";
 import type { PublicPage, PublicProduct, PublicRestaurant } from "@/services/public-menu";
 import styles from "./AquaStorefront.module.css";
 
@@ -32,7 +33,7 @@ export function AquaNavbar() {
       })}</div>
       <div className={styles.navActions}>
         <Link className={styles.language} href={pathname} locale={nextLocale} aria-label={t("switchLanguage", { language: t(`languages.${nextLocale}`) })}><Languages size={18} aria-hidden="true" /><span>{nextLocale === "ar" ? "العربية" : "EN"}</span></Link>
-        <Link className={styles.cartLink} href={href("/cart")} aria-label={t("viewCart")} aria-current={pathname === href("/cart") || pathname === href("/checkout") ? "page" : undefined}><ShoppingBag size={19} aria-hidden="true" /><span>{tenantSlug === restaurant.slug ? count : 0}</span></Link>
+        <Link className={styles.cartLink} href={href("/cart")} aria-label={`${t("viewCart")}: ${tenantSlug === restaurant.slug ? count : 0}`} aria-current={pathname === href("/cart") || pathname === href("/checkout") ? "page" : undefined}><CartAttention><ShoppingBag size={19} aria-hidden="true" /><span>{tenantSlug === restaurant.slug ? count : 0}</span></CartAttention></Link>
       </div>
     </div>
   </nav>;
@@ -47,8 +48,9 @@ export function AquaHome({ restaurant, initialProducts }: { restaurant: PublicRe
   const ar = locale === "ar";
   const { categories, href } = useStorefront();
   const pictured = initialProducts.filter((product) => safePublicImage(product.imageUrl || product.images[0]));
-  const heroProduct = pictured[0];
-  const secondProduct = pictured[1];
+  const heroProduct = restaurant.heroProductSelected ? restaurant.heroProduct ?? undefined : pictured[0];
+  const heroImage = heroProduct && safePublicImage(heroProduct.imageUrl || heroProduct.images[0]);
+  const secondProduct = heroImage ? pictured.find((product) => product.id !== heroProduct?.id) : undefined;
   const showcase = [...initialProducts.filter((product) => product.isFeatured),
     ...initialProducts.filter((product) => !product.isFeatured)]
     .filter((product) => product.id !== heroProduct?.id).slice(0, 3);
@@ -62,7 +64,7 @@ export function AquaHome({ restaurant, initialProducts }: { restaurant: PublicRe
             <Link className={styles.primaryAction} href={href("/menu")}>{ar ? "تصفح القائمة" : "Explore the menu"}<ArrowUpRight aria-hidden="true" size={20} /></Link>
           </div>
           <div className={styles.heroGallery}>
-            {heroProduct ? <Link href={href(`/menu/${heroProduct.id}`)} className={styles.heroTile} aria-label={heroProduct.name}><FoodImage product={heroProduct} sizes="(min-width: 900px) 58vw, 100vw" /><span><strong>{heroProduct.name}</strong><small>{publicMoney(heroProduct.price, restaurant.currency, locale)}</small></span></Link> : <div className={styles.heroEmpty}><span>{ar ? "القائمة في انتظار أطباقها" : "The menu is on its way"}</span><Link href={href("/menu")}>{ar ? "اذهب إلى القائمة" : "Go to the menu"}<ArrowUpRight size={17} aria-hidden="true" /></Link></div>}
+            {heroProduct && heroImage ? <Link href={href(`/menu/${heroProduct.id}`)} className={styles.heroTile} aria-label={heroProduct.name}><FoodImage product={heroProduct} sizes="(min-width: 900px) 58vw, 100vw" /><span><strong>{heroProduct.name}</strong><small>{publicMoney(heroProduct.price, restaurant.currency, locale)}</small></span></Link> : <div className={styles.heroEmpty}><span>{ar ? "اكتشف القائمة" : "Explore the menu"}</span><Link href={href("/menu")}>{ar ? "اذهب إلى القائمة" : "Go to the menu"}<ArrowUpRight size={17} aria-hidden="true" /></Link></div>}
             {secondProduct && <Link href={href(`/menu/${secondProduct.id}`)} className={styles.heroSecondary} aria-label={secondProduct.name}><FoodImage product={secondProduct} sizes="(min-width: 900px) 18vw, 36vw" /><span>{secondProduct.name}</span></Link>}
           </div>
         </div>

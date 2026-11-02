@@ -48,8 +48,6 @@ export function checkoutValidation(details: CheckoutDetails, items: CartItem[]):
     if (!value.trim() || value.length > limit || invalidText(value)) errors[field] = "required";
   }
   if (!errors.phone && !phonePattern.test(details.phone.trim())) errors.phone = "phone";
-  if (details.email && (details.email.length > 254 || invalidText(details.email) ||
-    (details.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email.trim())))) errors.email = "email";
   if (details.notes.length > 500 || invalidText(details.notes)) errors.notes = "notes";
   const ids = new Set<string>();
   let quantity = 0;
@@ -70,7 +68,6 @@ export function buildCheckoutPayload(details: CheckoutDetails, items: CartItem[]
   if (Object.keys(checkoutValidation(details, items)).length) throw new GuestCheckoutError(400, "Please check your details and cart.");
   return {
     customerName: details.fullName.trim(), customerPhone: details.phone.trim(),
-    ...(details.email.trim() ? { customerEmail: details.email.trim().toLowerCase() } : {}),
     deliveryAddress: details.address.trim(), city: details.city.trim(),
     ...(details.notes.trim() ? { notes: details.notes.trim() } : {}),
     submissionMethod: method,

@@ -5,7 +5,7 @@ import { buildCheckoutPayload, checkoutValidation, GuestCheckoutCoordinator, Gue
 
 process.env.NEXT_PUBLIC_SAVORA_API_BASE_URL = "http://localhost:5000";
 const productId = "507f1f77bcf86cd799439012";
-const details = { fullName: "  Aya Hassan ", phone: "+201001234567", email: " AYA@EXAMPLE.COM ",
+const details = { fullName: "  Aya Hassan ", phone: "+201001234567",
   address: "12 Nile Street", city: "Cairo", notes: "No nuts" };
 const items = [{ productId, quantity: 2, name: "Dish", image: "", price: 999 }];
 const order = { orderNumber: "SV-8341302408423A218E893F82", status: "pending",
@@ -22,17 +22,17 @@ function storage() {
 test("form maps exact backend fields and real product IDs without client prices", () => {
   const direct = buildCheckoutPayload(details, items, "direct");
   assert.deepEqual(direct, { customerName: "Aya Hassan", customerPhone: "+201001234567",
-    customerEmail: "aya@example.com", deliveryAddress: "12 Nile Street", city: "Cairo",
+    deliveryAddress: "12 Nile Street", city: "Cairo",
     notes: "No nuts", submissionMethod: "direct", items: [{ productId, quantity: 2 }] });
   assert.equal(JSON.stringify(direct).includes("999"), false);
   assert.equal(buildCheckoutPayload(details, items, "whatsapp").submissionMethod, "whatsapp");
-  assert.deepEqual(buildCheckoutPayload({ ...details, email: "", notes: "" }, items, "direct").items, [{ productId, quantity: 2 }]);
-  assert.equal("customerEmail" in buildCheckoutPayload({ ...details, email: "" }, items, "direct"), false);
+  assert.deepEqual(buildCheckoutPayload({ ...details, notes: "" }, items, "direct").items, [{ productId, quantity: 2 }]);
+  assert.equal("customerEmail" in buildCheckoutPayload(details, items, "direct"), false);
 });
 
 test("customer and cart validation catches invalid input before POST", () => {
   assert.deepEqual(checkoutValidation(details, items), {});
-  assert.ok(checkoutValidation({ ...details, fullName: "", phone: "bad", email: "bad", address: "", city: "" }, []).fullName);
+  assert.ok(checkoutValidation({ ...details, fullName: "", phone: "bad", address: "", city: "" }, []).fullName);
   assert.ok(checkoutValidation(details, [{ ...items[0], quantity: 0 }]).cart);
   assert.ok(checkoutValidation(details, [{ ...items[0], productId: "fixture-product" }]).cart);
   assert.ok(checkoutValidation(details, [{ ...items[0], quantity: 101 }]).cart);

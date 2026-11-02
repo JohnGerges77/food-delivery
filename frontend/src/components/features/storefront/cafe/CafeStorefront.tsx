@@ -6,6 +6,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { MenuOrderingPage } from "@/components/features/menu/MenuOrderingPage";
 import { publicMoney, safePublicImage } from "@/lib/public-menu-presentation";
 import { useCartStore } from "@/store/cart-store";
+import { CartAttention } from "../CartAttention";
 import type { PublicPage, PublicProduct, PublicRestaurant } from "@/services/public-menu";
 import { PublicProductImage } from "../PublicProductImage";
 import { useStorefront } from "../StorefrontContext";
@@ -31,7 +32,7 @@ export function CafeNavbar() {
       </nav>
       <div className={styles.navActions}>
         <Link className={styles.locale} href={pathname} locale={locale === "ar" ? "en" : "ar"} aria-label={t("switchLanguage", { language: t(`languages.${locale === "ar" ? "en" : "ar"}`) })}>{locale === "ar" ? "EN" : "عربي"}</Link>
-        <Link className={styles.cart} href={href("/cart")} aria-label={t("viewCart")} aria-current={pathname === href("/cart") || pathname === href("/checkout") ? "page" : undefined}><span>{locale === "ar" ? "السلة" : "Cart"}</span><strong>{tenantSlug === restaurant.slug ? count : 0}</strong></Link>
+        <Link className={styles.cart} href={href("/cart")} aria-label={`${t("viewCart")}: ${tenantSlug === restaurant.slug ? count : 0}`} aria-current={pathname === href("/cart") || pathname === href("/checkout") ? "page" : undefined}><span>{locale === "ar" ? "السلة" : "Cart"}</span><CartAttention><strong>{tenantSlug === restaurant.slug ? count : 0}</strong></CartAttention></Link>
       </div>
     </div>
   </header>;
@@ -43,7 +44,7 @@ export function CafeHome({ restaurant, initialProducts }: { restaurant: PublicRe
   const reduced = useReducedMotion();
   const { categories, href } = useStorefront();
   const ordered = [...initialProducts.filter((product) => product.isFeatured), ...initialProducts.filter((product) => !product.isFeatured)];
-  const heroProduct = ordered[0];
+  const heroProduct = restaurant.heroProductSelected ? restaurant.heroProduct ?? undefined : ordered[0];
   const heroImage = heroProduct && safePublicImage(heroProduct.imageUrl || heroProduct.images[0]);
   const menuPreview = ordered.filter((product) => product.id !== heroProduct?.id).slice(0, 4);
   const heroCategory = categories.find((category) => category.id === heroProduct?.categoryId);
@@ -62,7 +63,7 @@ export function CafeHome({ restaurant, initialProducts }: { restaurant: PublicRe
           {heroProduct ? <Link href={href(`/menu/${heroProduct.id}`)} className={styles.sheetFeature}>
             {heroImage && <div className={styles.sheetPhoto}><ProductPhoto product={heroProduct} sizes="(min-width: 900px) 38vw, 85vw" /></div>}
             <div className={styles.sheetDetails}>{heroCategory && <span>{heroCategory.name}</span>}<strong>{heroProduct.name}</strong>{heroProduct.description && <p>{heroProduct.description}</p>}<b>{publicMoney(heroProduct.price, restaurant.currency, locale)}</b></div>
-          </Link> : <div className={styles.sheetEmpty}>{ar ? "لم تُضف منتجات إلى القائمة بعد." : "The menu has no products yet."}</div>}
+          </Link> : <div className={styles.sheetEmpty}>{ar ? "اكتشف القائمة" : "Explore the menu"}</div>}
           <Link href={href("/menu")} className={styles.sheetBottom}>{ar ? "القائمة كاملة" : "View the full menu"}<span aria-hidden="true">↗</span></Link>
         </div>
       </div>

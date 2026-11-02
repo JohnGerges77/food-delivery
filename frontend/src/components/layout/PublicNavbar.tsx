@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { Languages, ShoppingCart } from "lucide-react";
+import { CartAttention } from "@/components/features/storefront/CartAttention";
 import { useEffect, useState } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
@@ -112,9 +113,9 @@ export function PublicNavbar() {
               cartIsActive && "border-[color:var(--primary)]/70 bg-[color:var(--primary)] text-[color:var(--background)] shadow-[0_14px_38px_rgba(255,122,0,0.38)]",
             )}
             href={href(routes.cart)}
-            aria-label={t("viewCart")}
+            aria-label={`${t("viewCart")}: ${tenantSlug === restaurant.slug ? cartCount : 0}`}
           >
-            <ShoppingCart aria-hidden="true" className="size-5 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110" strokeWidth={2.2} />
+            <CartAttention><ShoppingCart aria-hidden="true" className="size-5 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110" strokeWidth={2.2} /></CartAttention>
             {tenantSlug === restaurant.slug && cartCount > 0 ? <span className="absolute -right-1 -top-1 rounded-full bg-[color:var(--primary)] px-1.5 text-xs text-[color:var(--background)]">{cartCount}</span> : null}
           </Link>
         </div>

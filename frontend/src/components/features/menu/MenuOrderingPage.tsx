@@ -205,39 +205,39 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
               </button>
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {visibleProducts.map((product) => {
                 const productCartQuantity = getCartQuantity(product.id);
 
                 return (
               <article data-menu-card
-                className="group relative cursor-pointer overflow-hidden rounded-[1.35rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.082),rgba(255,255,255,0.026)_60%,rgba(255,122,0,0.045))] shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:border-[color:var(--primary)]/50 hover:shadow-[0_32px_96px_rgba(255,122,0,0.16)]"
+                className="group relative flex min-h-28 cursor-pointer overflow-hidden rounded-[1.1rem] border border-[color:var(--sf-border)] bg-[color:var(--sf-surface)] shadow-sm transition-all focus-within:ring-2 focus-within:ring-[color:var(--sf-primary)] sm:block sm:rounded-[1.35rem] sm:border-white/10 sm:bg-[linear-gradient(145deg,rgba(255,255,255,0.082),rgba(255,255,255,0.026)_60%,rgba(255,122,0,0.045))] sm:shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.07)] sm:backdrop-blur-xl sm:duration-500 sm:hover:-translate-y-1 sm:hover:border-[color:var(--primary)]/50 sm:hover:shadow-[0_32px_96px_rgba(255,122,0,0.16)]"
                 key={product.id}
               >
-                <button className="absolute inset-0 z-10 cursor-pointer" aria-label={isArabic ? `معاينة ${product.name}` : `Preview ${product.name}`} onClick={() => openPreview(product)} type="button" />
-                <div data-menu-image className="relative aspect-[1.5] overflow-hidden">
+                <button className="absolute inset-0 z-10 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[color:var(--sf-primary)]" aria-label={isArabic ? `معاينة ${product.name}` : `Preview ${product.name}`} onClick={() => openPreview(product)} type="button" />
+                <div data-menu-image className="relative m-2 w-24 shrink-0 overflow-hidden rounded-lg sm:m-0 sm:aspect-[1.5] sm:w-auto sm:rounded-none">
                   <PublicProductImage alt={product.name} className="object-cover transition-transform duration-700 group-hover:scale-[1.08]" sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw" src={product.imageUrl || product.images[0]} />
-                  <div data-menu-overlay className="absolute inset-0 bg-gradient-to-t from-[color:var(--background)] via-transparent to-black/10" />
-                  <div className="absolute left-4 top-4 max-w-[calc(100%-2rem)] truncate rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--background)]/70 px-3 py-1.5 text-xs font-semibold tracking-[0.16em] text-[color:var(--primary-light)] uppercase backdrop-blur">
+                  <div data-menu-overlay className="absolute inset-0 hidden bg-gradient-to-t from-[color:var(--background)] via-transparent to-black/10 sm:block" />
+                  <div className="absolute left-4 top-4 hidden max-w-[calc(100%-2rem)] truncate rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--background)]/70 px-3 py-1.5 text-xs font-semibold tracking-[0.16em] text-[color:var(--primary-light)] uppercase backdrop-blur sm:block">
                     {categoryLabels.get(product.categoryId)}
                   </div>
                   {product.isFeatured ? (
-                    <div data-menu-featured className="absolute bottom-4 right-4 max-w-[calc(100%-2rem)] truncate rounded-full border border-[color:var(--gold)]/35 bg-[color:var(--gold)]/12 px-3 py-1.5 text-xs font-semibold tracking-[0.16em] text-[color:var(--gold)] uppercase backdrop-blur">
+                    <div data-menu-featured className="absolute bottom-4 right-4 hidden max-w-[calc(100%-2rem)] truncate rounded-full border border-[color:var(--gold)]/35 bg-[color:var(--gold)]/12 px-3 py-1.5 text-xs font-semibold tracking-[0.16em] text-[color:var(--gold)] uppercase backdrop-blur sm:block">
                       {isArabic ? "مميز" : "Featured"}
                     </div>
                   ) : null}
                 </div>
-                <div className="p-4">
+                <div className="min-w-0 flex-1 py-3 ps-1 pe-2 sm:p-4">
                   <div className="flex items-start justify-between gap-4">
-                    <h3 className="text-lg font-semibold leading-tight text-[color:var(--text)]">
+                    <h3 className="line-clamp-2 text-sm font-semibold leading-tight text-[color:var(--text)] sm:text-lg">
                       {product.name}
                     </h3>
-                    {product.oldPrice !== null && product.oldPrice > product.price && <span className="shrink-0 text-sm text-[color:var(--text-muted)] line-through">{publicMoney(product.oldPrice, restaurant.currency, locale)}</span>}
+                    {product.oldPrice !== null && product.oldPrice > product.price && <span className="hidden shrink-0 text-sm text-[color:var(--text-muted)] line-through sm:block">{publicMoney(product.oldPrice, restaurant.currency, locale)}</span>}
                   </div>
-                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-[color:var(--text-muted)]">
+                  <p className="mt-1 line-clamp-1 text-xs leading-5 text-[color:var(--text-muted)] sm:mt-2 sm:line-clamp-2 sm:text-sm sm:leading-6">
                     {product.description}
                   </p>
-                  <div className="mt-3 flex items-center gap-2 text-xs font-semibold tracking-[0.16em] text-[color:var(--gold)] uppercase">
+                  <div className="mt-3 hidden items-center gap-2 text-xs font-semibold tracking-[0.16em] text-[color:var(--gold)] uppercase sm:flex">
                     {product.preparationTime !== null && <span>{product.preparationTime} {isArabic ? "دقيقة" : "min"}</span>}
                     {product.preparationTime !== null && product.calories !== null && <span className="size-1 rounded-full bg-white/20" />}
                     {product.calories !== null && <span>{product.calories} {isArabic ? "سعرة" : "cal"}</span>}
@@ -250,25 +250,27 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
                       </>
                     ) : null}
                   </div>
-                  <div className="mt-4 flex items-center justify-between gap-2">
+                  <div className="mt-1 flex items-end justify-between gap-2 sm:mt-4 sm:items-center">
                     <div>
-                      <div className="text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">
+                      <div className="hidden text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase sm:block">
                         {isArabic ? "السعر" : "Price"}
                       </div>
-                      <div className="mt-1 text-xl font-semibold text-[color:var(--primary-light)]">
+                      <div className="text-sm font-semibold text-[color:var(--primary-light)] sm:mt-1 sm:text-xl">
                         {publicMoney(product.price, restaurant.currency, locale)}
                       </div>
                     </div>
                     <button
-                      className="relative z-20 inline-flex cursor-pointer min-h-12 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-4 text-sm font-bold text-[color:var(--background)] shadow-[0_18px_48px_rgba(255,122,0,0.3)] transition-transform hover:-translate-y-0.5"
+                      aria-label={isArabic ? `أضف ${product.name} إلى السلة` : `Add ${product.name} to cart`}
+                      className="relative z-20 inline-flex size-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full bg-[color:var(--sf-primary)] text-sm font-bold text-[color:var(--sf-on-primary)] transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--sf-primary)] sm:min-h-12 sm:w-auto sm:bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] sm:px-4 sm:text-[color:var(--background)] sm:shadow-[0_18px_48px_rgba(255,122,0,0.3)] sm:hover:-translate-y-0.5"
                       onClick={(event) => {
                         event.stopPropagation();
                         addProduct(product);
                       }}
                       type="button"
                     >
-                      {isArabic ? "أضف" : "Add"}
+                      <span className="sr-only sm:not-sr-only">{isArabic ? "أضف" : "Add"}</span>
                       <Plus aria-hidden="true" size={16} />
+                      {productCartQuantity > 0 && <span className="absolute -top-2 -end-2 grid size-5 place-items-center rounded-full bg-[color:var(--sf-accent)] text-[10px] text-[color:var(--sf-background)] sm:hidden">{productCartQuantity}</span>}
                     </button>
                   </div>
                 </div>

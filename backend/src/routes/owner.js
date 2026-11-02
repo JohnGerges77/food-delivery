@@ -18,6 +18,7 @@ export function serializeOwnerRestaurant(restaurant) {
     slug: restaurant.slug,
     currency: restaurant.currency,
     status: restaurant.status,
+    heroProductId: restaurant.heroProductId ? String(restaurant.heroProductId) : null,
     description: restaurant.description ?? null,
     logoUrl: restaurant.logoUrl ?? null,
     phone: restaurant.phone ?? null,

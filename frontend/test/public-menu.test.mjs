@@ -128,3 +128,16 @@ test("cart accepts real IDs and clears between restaurants including legacy fixt
   useCartStore.getState().setTenant("other");
   assert.deepEqual(useCartStore.getState().items, []);
 });
+
+test("cart attention revision advances only for successful public adds", () => {
+  const cart = useCartStore.getState();
+  const initial = cart.addRevision;
+  const product = { id, name: "Burger", price: 12, imageUrl: null };
+  cart.addPublicItem("cafe", product, 1);
+  assert.equal(useCartStore.getState().addRevision, initial + 1);
+  cart.addPublicItem("cafe", product, 2);
+  assert.equal(useCartStore.getState().addRevision, initial + 2);
+  cart.addPublicItem("cafe", product, 0);
+  cart.addPublicItem("cafe", { ...product, id: "invalid" });
+  assert.equal(useCartStore.getState().addRevision, initial + 2);
+});

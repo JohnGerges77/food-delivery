@@ -7,6 +7,7 @@ import type { PublicProduct } from "@/services/public-menu";
 type CartState = {
   tenantSlug: string | null;
   items: CartItem[];
+  addRevision: number;
   setTenant: (slug: string) => void;
   addPublicItem: (slug: string, product: PublicProduct, quantity?: number) => void;
   addItem: (product: Product, quantity?: number) => void;
@@ -21,12 +22,15 @@ type CartState = {
 export const useCartStore = create<CartState>((set, get) => ({
   tenantSlug: null,
   items: [],
+  addRevision: 0,
   setTenant: (slug) => set((state) => state.tenantSlug === slug ? state : { tenantSlug: slug, items: [] }),
   addPublicItem: (slug, product, quantity = 1) => set((state) => {
+    if (!Number.isSafeInteger(quantity) || quantity < 1 ||
+        !/^[0-9a-fA-F]{24}$/.test(product.id)) return state;
     const items = state.tenantSlug === slug ? state.items : [];
-    const safeQuantity = Math.max(1, Math.floor(quantity));
+    const safeQuantity = quantity;
     const existing = items.find((item) => item.productId === product.id);
-    return { tenantSlug: slug, items: existing
+    return { tenantSlug: slug, addRevision: state.addRevision + 1, items: existing
       ? items.map((item) => item.productId === product.id ? { ...item, quantity: item.quantity + safeQuantity } : item)
       : [...items, { productId: product.id, name: product.name, price: product.price,
         image: product.imageUrl ?? "", quantity: safeQuantity }] };

@@ -6,7 +6,6 @@ test("each checkout field accepts text without erasing earlier fields", () => {
   const entries = [
     ["fullName", "Aya Hassan"],
     ["phone", "01012345678"],
-    ["email", "aya@example.com"],
     ["address", "12 Nile Street"],
     ["city", "Cairo"],
     ["notes", "بدون مكسرات"],
@@ -18,7 +17,7 @@ test("each checkout field accepts text without erasing earlier fields", () => {
   }
   assert.deepEqual(details, Object.fromEntries(entries));
   assert.deepEqual(emptyCheckoutDetails, {
-    fullName: "", phone: "", email: "", address: "", city: "", notes: "",
+    fullName: "", phone: "", address: "", city: "", notes: "",
   });
 });
 

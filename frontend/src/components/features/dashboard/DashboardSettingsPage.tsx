@@ -3,6 +3,10 @@
 import { CheckCircle2, ImageIcon, LoaderCircle, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ApiError } from "@/services/api-client";
+import { listOwnerProducts, type OwnerProduct } from "@/services/owner-products-service";
+import { allOwnerCategories } from "@/services/owner-categories-service";
+import { safePublicImage } from "@/lib/public-menu-presentation";
+import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";
 import { getOwnerRestaurant, patchOwnerRestaurant, restaurantToForm, settingsPatch, validateSettingsForm,
   type OwnerRestaurant, type RestaurantSettingsForm } from "@/services/owner-restaurant-service";
 import { useAuthStore } from "@/store/auth-store";
@@ -14,7 +18,7 @@ const profile: [Key, string, string?][] = [
   ["name", "Restaurant Name"], ["phone", "Phone", "tel"], ["contactEmail", "Email", "email"],
   ["address", "Address"], ["logoUrl", "Logo URL", "url"], ["description", "Description", "textarea"],
 ];
-const social: [Key, string, string?][] = [["facebook", "Facebook", "url"], ["instagram", "Instagram", "url"], ["whatsapp", "WhatsApp", "url"]];
+const social: [Key, string, string?][] = [["facebook", "Facebook", "url"], ["instagram", "Instagram", "url"], ["whatsapp", "WhatsApp phone or wa.me URL", "text"]];
 
 function message(error: unknown, action: "load" | "save") {
   if (error instanceof ApiError) {
@@ -42,6 +46,32 @@ function RestaurantSettingsEditor({ ownerId }: { ownerId: string | undefined }) 
   const [saved, setSaved] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
   const [reload, setReload] = useState(0);
+  const [heroProducts, setHeroProducts] = useState<OwnerProduct[]>([]);
+  const [heroPage, setHeroPage] = useState(1);
+  const [heroHasNext, setHeroHasNext] = useState(false);
+  const [heroError, setHeroError] = useState("");
+  const [activeHeroCategories, setActiveHeroCategories] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!ownerId) return;
+    let cancelled = false;
+    void allOwnerCategories().then((categories) => {
+      if (!cancelled) setActiveHeroCategories(new Set(categories.filter((item) => item.isActive).map((item) => item.id)));
+    }).catch(() => { if (!cancelled) setHeroError("Could not load eligible categories. Retry to choose a Hero product."); });
+    return () => { cancelled = true; };
+  }, [ownerId, reload]);
+
+  useEffect(() => {
+    if (!ownerId) return;
+    let cancelled = false;
+    void listOwnerProducts({ page: heroPage, limit: 100, isAvailable: true, sort: "name" }).then((result) => {
+      if (cancelled) return;
+      setHeroProducts((current) => heroPage === 1 ? result.products : [...current, ...result.products]);
+      setHeroHasNext(result.pagination.hasNext);
+      setHeroError("");
+    }).catch(() => { if (!cancelled) setHeroError("Could not load products. Retry to choose a Hero product."); });
+    return () => { cancelled = true; };
+  }, [ownerId, heroPage, reload]);
 
   useEffect(() => {
     let cancelled = false;
@@ -62,6 +92,7 @@ function RestaurantSettingsEditor({ ownerId }: { ownerId: string | undefined }) 
   }, [ownerId, reload, restore]);
 
   let dirty = false;
+  const eligibleHeroProducts = heroProducts.filter((item) => activeHeroCategories.has(item.categoryId));
   if (restaurant && form) {
     try { dirty = Object.keys(settingsPatch(form, restaurant)).length > 0; }
     catch { dirty = true; }
@@ -129,6 +160,18 @@ function RestaurantSettingsEditor({ ownerId }: { ownerId: string | undefined }) 
         <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">Restaurant Profile</h3><div className="mt-5 grid gap-4 sm:grid-cols-2">{profile.map(([key, label, type]) => field(key, label, type))}</div><p className="mt-5 text-sm text-[color:var(--text-muted)]">Storefront slug: <span className="text-[color:var(--text)]">{restaurant.slug}</span> · Currency: <span className="text-[color:var(--text)]">{restaurant.currency}</span></p></DashboardCard>
         <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">Opening Hours</h3><p className="mt-2 text-sm text-[color:var(--text-muted)]">Display text for your storefront.</p><div className="mt-5">{field("openingHours", "Opening Hours")}</div></DashboardCard>
         <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">Social Links</h3><div className="mt-5 grid gap-4 sm:grid-cols-3">{social.map(([key, label, type]) => field(key, label, type))}</div></DashboardCard>
+        <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">Hero Product</h3><p className="mt-2 text-sm text-[color:var(--text-muted)]">Choose an available product for your storefront Hero. Its own image appears when available.</p>
+          <label htmlFor="settings-hero-product" className="mt-5 block text-sm font-semibold">Featured Hero product</label>
+          <select id="settings-hero-product" className={`${inputClass} mt-2`} value={form.heroProductId} disabled={saving} onChange={(event) => change("heroProductId", event.target.value)}>
+            <option value="">Automatic selection / graphic fallback</option>
+            {form.heroProductId && !eligibleHeroProducts.some((item) => item.id === form.heroProductId) && <option value={form.heroProductId}>Previously selected product (unavailable or not loaded)</option>}
+            {eligibleHeroProducts.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+          </select>
+          {errors.heroProductId && <p role="alert" className="mt-2 text-sm text-red-300">{errors.heroProductId}</p>}
+          {heroError && <p role="alert" className="mt-3 text-sm text-red-300">{heroError} <button type="button" className="underline" onClick={() => setReload((value) => value + 1)}>Retry</button></p>}
+          {heroHasNext && <button type="button" className="mt-3 min-h-11 text-sm font-semibold text-[color:var(--primary-light)] underline" onClick={() => setHeroPage((page) => page + 1)}>Load more products</button>}
+          {(() => { const product = eligibleHeroProducts.find((item) => item.id === form.heroProductId); const image = product && safePublicImage(product.imageUrl || product.images[0]); return product ? <div className="mt-5 flex items-center gap-4 rounded-xl border border-white/10 p-3"><div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-white/5">{image ? <PublicProductImage src={image} alt={product.name} className="object-cover" sizes="80px" /> : <ImageIcon aria-hidden="true" className="m-auto mt-6" />}</div><div><strong>{product.name}</strong><p className="text-sm text-[color:var(--text-muted)]">{image ? "Image preview" : "No image; storefront graphic will appear"}</p></div></div> : null; })()}
+        </DashboardCard>
       </div>
       <div className="grid content-start gap-6">
         <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">Delivery Settings</h3><div className="mt-5 grid gap-4">

@@ -6,6 +6,7 @@ export interface OwnerRestaurant {
   slug: string;
   currency: string;
   status: "active" | "suspended";
+  heroProductId: string | null;
   description: string | null;
   logoUrl: string | null;
   phone: string | null;
@@ -24,6 +25,7 @@ export interface OwnerRestaurant {
 
 export interface RestaurantSettingsForm {
   name: string;
+  heroProductId: string;
   description: string;
   logoUrl: string;
   phone: string;
@@ -42,7 +44,7 @@ export interface RestaurantSettingsForm {
 }
 
 export type RestaurantSettingsPatch = Partial<Pick<OwnerRestaurant,
-  "name" | "description" | "logoUrl" | "phone" | "contactEmail" | "address" | "openingHours">> & {
+  "name" | "heroProductId" | "description" | "logoUrl" | "phone" | "contactEmail" | "address" | "openingHours">> & {
   deliverySettings?: Partial<OwnerRestaurant["deliverySettings"]>;
   socialLinks?: Partial<OwnerRestaurant["socialLinks"]>;
   branding?: Partial<OwnerRestaurant["branding"]>;
@@ -60,9 +62,26 @@ function nullableAmount(value: unknown): value is number | null {
   return value === null || (typeof value === "number" && Number.isFinite(value) && value >= 0);
 }
 
+export function normalizeWhatsAppSetting(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  const compact = trimmed.replace(/[\s()-]/g, "");
+  if (/^01[0-9]{9}$/.test(compact)) return `https://wa.me/2${compact}`;
+  if (/^\+?[1-9][0-9]{6,14}$/.test(compact)) return `https://wa.me/${compact.replace(/^\+/, "")}`;
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol === "https:" && url.hostname === "wa.me" &&
+        /^\/[1-9][0-9]{6,14}$/.test(url.pathname) && !url.search && !url.hash &&
+        !url.port && !url.username && !url.password) return url.href;
+  } catch { /* invalid input */ }
+  return null;
+}
+
 export function parseOwnerRestaurant(value: unknown): OwnerRestaurant {
   if (!record(value) || !record(value.deliverySettings) || !record(value.socialLinks) || !record(value.branding) ||
       ![value.id, value.name, value.slug, value.currency].every((field) => typeof field === "string" && field.length > 0) ||
+      !(value.heroProductId === undefined || value.heroProductId === null ||
+        (typeof value.heroProductId === "string" && /^[0-9a-fA-F]{24}$/.test(value.heroProductId))) ||
       ![value.description, value.logoUrl, value.phone, value.contactEmail, value.address, value.openingHours,
         value.deliverySettings.estimatedDeliveryTime, value.socialLinks.facebook, value.socialLinks.instagram,
         value.socialLinks.whatsapp, value.branding.brandName, value.branding.primaryColor].every(nullableString) ||
@@ -71,7 +90,7 @@ export function parseOwnerRestaurant(value: unknown): OwnerRestaurant {
       !["active", "suspended"].includes(String(value.status))) {
     throw new ApiError(null, "Invalid server response");
   }
-  return value as unknown as OwnerRestaurant;
+  return { ...value, heroProductId: value.heroProductId ?? null } as OwnerRestaurant;
 }
 
 function parseResponse(value: unknown): OwnerRestaurant {
@@ -92,6 +111,7 @@ export async function patchOwnerRestaurant(patch: RestaurantSettingsPatch): Prom
 export function restaurantToForm(restaurant: OwnerRestaurant): RestaurantSettingsForm {
   return {
     name: restaurant.name,
+    heroProductId: restaurant.heroProductId ?? "",
     description: restaurant.description ?? "",
     logoUrl: restaurant.logoUrl ?? "",
     phone: restaurant.phone ?? "",
@@ -117,10 +137,12 @@ export function validateSettingsForm(form: RestaurantSettingsForm, original: Own
     if (typeof value === "string" && value.length > 2048) errors[key] = "Use 2048 characters or fewer.";
   }
   if (!form.name.trim()) errors.name = "Restaurant name is required.";
+  if (form.heroProductId && !/^[0-9a-fA-F]{24}$/.test(form.heroProductId)) errors.heroProductId = "Select a valid product.";
   if (form.contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.contactEmail.trim())) {
     errors.contactEmail = "Enter a valid email address.";
   }
-  for (const key of ["logoUrl", "facebook", "instagram", "whatsapp"] as const) {
+  if (normalizeWhatsAppSetting(form.whatsapp) === null) errors.whatsapp = "Enter a valid WhatsApp phone or wa.me URL.";
+  for (const key of ["logoUrl", "facebook", "instagram"] as const) {
     const value = form[key].trim();
     if (!value) continue;
     try {
@@ -150,6 +172,7 @@ export function settingsPatch(form: RestaurantSettingsForm, original: OwnerResta
   const errors = validateSettingsForm(form, original);
   if (Object.keys(errors).length) throw new Error("Invalid settings form");
   const patch: RestaurantSettingsPatch = {};
+  if (form.heroProductId !== (original.heroProductId ?? "")) patch.heroProductId = form.heroProductId || null;
   for (const key of ["name", "description", "logoUrl", "phone", "contactEmail", "address", "openingHours"] as const) {
     const value = form[key].trim();
     if (value !== (original[key] ?? "")) patch[key] = value;
@@ -166,7 +189,7 @@ export function settingsPatch(form: RestaurantSettingsForm, original: OwnerResta
   if (Object.keys(delivery).length) patch.deliverySettings = delivery;
   const social: NonNullable<RestaurantSettingsPatch["socialLinks"]> = {};
   for (const key of ["facebook", "instagram", "whatsapp"] as const) {
-    const value = form[key].trim();
+    const value = key === "whatsapp" ? normalizeWhatsAppSetting(form.whatsapp)! : form[key].trim();
     if (value !== (original.socialLinks[key] ?? "")) social[key] = value;
   }
   if (Object.keys(social).length) patch.socialLinks = social;

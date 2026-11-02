@@ -7,7 +7,7 @@ import { serializeOwnerRestaurant } from '../src/routes/owner.js';
 import { createOwnerTenantScope, ownerIdFilter, ownerListFilter,
   OwnerResourceNotFound } from '../src/services/ownerTenant.js';
 import { InvalidRestaurantSettings, parseRestaurantSettingsPatch,
-  getOwnerRestaurant } from '../src/services/restaurantSettings.js';
+  getOwnerRestaurant, assertHeroProductEligible } from '../src/services/restaurantSettings.js';
 
 test('tenant query helpers reject caller-constructed owner contexts', () => {
   const forged = {
@@ -27,11 +27,37 @@ test('owner restaurant serializer uses an explicit safe field list', () => {
   };
   const result = serializeOwnerRestaurant(restaurant);
   assert.deepEqual(Object.keys(result), [
-    'id', 'name', 'slug', 'currency', 'status', 'description', 'logoUrl',
+    'id', 'name', 'slug', 'currency', 'status', 'heroProductId', 'description', 'logoUrl',
     'phone', 'contactEmail', 'address', 'openingHours', 'deliverySettings',
     'socialLinks', 'branding',
   ]);
   assert.doesNotMatch(JSON.stringify(result), /secret|passwordHash|tokenHash|credentials/);
+});
+
+test('Hero selection is a nullable ObjectId and checks tenant, availability and active category', async () => {
+  const restaurantId = new mongoose.Types.ObjectId();
+  const productId = String(new mongoose.Types.ObjectId());
+  const categoryId = new mongoose.Types.ObjectId();
+  assert.equal(parseRestaurantSettingsPatch({ heroProductId: productId }).heroProductId, productId);
+  assert.equal(parseRestaurantSettingsPatch({ heroProductId: null }).heroProductId, null);
+  for (const heroProductId of ['bad', '', {}, 42]) {
+    assert.throws(() => parseRestaurantSettingsPatch({ heroProductId }), InvalidRestaurantSettings);
+  }
+  let found = { categoryId };
+  let active = true;
+  const Product = { findOne(filter) {
+    assert.deepEqual(filter, { _id: productId, restaurantId, isAvailable: true });
+    return { select() { return { lean: async () => found }; } };
+  } };
+  const Category = { async exists(filter) {
+    assert.deepEqual(filter, { _id: categoryId, restaurantId, isActive: true });
+    return active;
+  } };
+  await assert.doesNotReject(assertHeroProductEligible(Product, Category, restaurantId, productId));
+  found = null;
+  await assert.rejects(assertHeroProductEligible(Product, Category, restaurantId, productId), InvalidRestaurantSettings);
+  found = { categoryId }; active = false;
+  await assert.rejects(assertHeroProductEligible(Product, Category, restaurantId, productId), InvalidRestaurantSettings);
 });
 
 test('restaurant settings require a verified owner context', async () => {

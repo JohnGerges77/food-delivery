@@ -28,6 +28,11 @@ async function validationError(document) {
 
 test('valid restaurant passes offline validation', async () => {
   await assert.doesNotReject(new Restaurant(validRestaurant()).validate());
+  assert.equal(new Restaurant(validRestaurant()).heroProductId, null);
+  await assert.doesNotReject(new Restaurant({ ...validRestaurant(),
+    heroProductId: '507f1f77bcf86cd799439012' }).validate());
+  assert.ok((await validationError(new Restaurant({ ...validRestaurant(),
+    heroProductId: 'invalid' }))).errors.heroProductId);
 });
 
 test('required fields and blank name fail validation', async () => {

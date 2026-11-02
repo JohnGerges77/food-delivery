@@ -14,7 +14,7 @@
 .navLinks a:hover, .navLinks a[aria-current='page'], .navActions > a:hover { color: var(--sf-cta); }
 .navActions { justify-content: flex-end; gap: 16px; }
 .cartLink { gap: 7px; }
-.cartLink span { display: grid; place-items: center; min-width: 25px; height: 25px; border-radius: 50%; background: var(--sf-primary); color: var(--sf-on-primary); font-size: .8rem; }
+.cartLink > span > span { display: grid; place-items: center; min-width: 25px; height: 25px; border-radius: 50%; background: var(--sf-primary); color: var(--sf-on-primary); font-size: .8rem; }
 .home { overflow: clip; }
 .hero { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); min-height: min(710px, calc(100svh - 115px)); background: var(--sf-background); }
 .heroCopy { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; min-width: 0; padding: clamp(65px, 9vw, 140px) clamp(26px, 7vw, 110px); }
@@ -159,3 +159,8 @@
 @media (max-width: 390px) { .navLinks a { font-size: .82rem; }.navActions > a:first-child { font-size: .85rem; }.heroCopy p { font-size: 1.08rem; } }
 :global(html[lang='ar']) .root :is(.wordmark, .hero h1, .heroPhoto strong, .heroNoPhoto strong, .storyCopy h2, .storyText, .sectionHeading h2, .cardNoImage, .cardDetails h3, .categoryList a, .contact h2, .pageIntro h1, .productCopy h1, .productNoImage strong, .aboutIntro h1, .footerTop strong) { font-family: var(--font-tajawal), Tajawal, sans-serif; letter-spacing: normal; }
 @media (prefers-reduced-motion: reduce) { .root *, .root *::before, .root *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+@media (max-width: 639px) {
+  .menu :global([data-menu-image]), .menu :global([data-menu-image]:has([role='img'])) { height: auto; aspect-ratio: auto; }
+  .menu :global([data-menu-image]:has([role='img']) [role='img']) { display: flex; }
+  .menu :global([data-menu-card] button:last-child) { min-width: 44px; }
+}

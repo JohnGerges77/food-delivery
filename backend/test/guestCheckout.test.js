@@ -66,10 +66,14 @@ test('WhatsApp requires a clean wa.me target and uses a bounded encoded message'
   }
   const url = buildWhatsAppUrl({ orderNumber: 'SV-123', customerName: 'Mona',
     customerPhone: '+201001234567', deliveryAddress: '12 Nile', city: 'Cairo',
-    total: 42.5, items: [{ name: 'Burger', quantity: 2 }] },
-  'https://wa.me/201001234567', 'EGP');
+    subtotal: 40, deliveryFee: 2.5, total: 42.5,
+    notes: 'No onions', items: [{ name: 'Burger', quantity: 2, unitPrice: 20 }] },
+  'https://wa.me/201001234567', 'EGP', 'Cafe One');
   assert.ok(url.length < 4096);
   assert.match(decodeURIComponent(url), /2 x Burger/);
+  assert.match(decodeURIComponent(url), /Cafe One/);
+  assert.match(decodeURIComponent(url), /20.00 EGP = 40.00 EGP/);
+  assert.match(decodeURIComponent(url), /Notes: No onions/);
 });
 
 test('internal checkout fields are hidden by Order serialization', () => {

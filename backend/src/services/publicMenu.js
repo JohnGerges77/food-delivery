@@ -61,6 +61,8 @@ export function serializePublicRestaurant(restaurant) {
   return {
     name: restaurant.name, slug: restaurant.slug,
     storefrontTheme: restaurant.storefrontTheme ?? 'savora-classic',
+    heroProduct: restaurant.heroProduct ?? null,
+    heroProductSelected: Boolean(restaurant.heroProductId),
     description: restaurant.description ?? null, logoUrl: restaurant.logoUrl ?? null,
     currency: restaurant.currency, phone: restaurant.phone ?? null,
     contactEmail: restaurant.contactEmail ?? null, address: restaurant.address ?? null,
@@ -113,11 +115,19 @@ function modelsFor(connection) {
 
 export async function resolvePublicRestaurant(connection, slug) {
   const normalized = normalizePublicSlug(slug);
-  const { Restaurant } = modelsFor(connection);
+  const { Restaurant, Product, Category } = modelsFor(connection);
   const restaurant = await Restaurant.findOne({ slug: normalized, status: { $ne: 'suspended' } })
-    .select('_id name slug storefrontTheme description logoUrl currency phone contactEmail address openingHours deliverySettings socialLinks branding')
+    .select('_id name slug storefrontTheme heroProductId description logoUrl currency phone contactEmail address openingHours deliverySettings socialLinks branding')
     .lean();
   if (!restaurant) throw new PublicRestaurantNotFound();
+  if (restaurant.heroProductId) {
+    const product = await Product.findOne({ _id: restaurant.heroProductId,
+      restaurantId: restaurant._id, isAvailable: true }).lean();
+    if (product && await Category.exists({ _id: product.categoryId,
+      restaurantId: restaurant._id, isActive: true })) {
+      restaurant.heroProduct = serializePublicProduct(product);
+    }
+  }
   return restaurant;
 }
 

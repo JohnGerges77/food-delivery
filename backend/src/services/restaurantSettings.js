@@ -1,4 +1,6 @@
 import RestaurantSchema from '../models/Restaurant.js';
+import ProductSchema from '../models/Product.js';
+import CategorySchema from '../models/Category.js';
 import { isVerifiedOwnerContext } from './ownerAuth.js';
 import { OwnerResourceNotFound } from './ownerTenant.js';
 
@@ -10,6 +12,7 @@ export class InvalidRestaurantSettings extends Error {
 
 const fields = Object.freeze({
   name: 'requiredText', description: 'text', logoUrl: 'webUrl',
+  heroProductId: 'heroProduct',
   phone: 'text', contactEmail: 'text', address: 'text', openingHours: 'text',
   deliverySettings: Object.freeze({
     deliveryFee: 'amount', minimumOrder: 'amount',
@@ -41,6 +44,8 @@ function validWebUrl(value) {
 }
 
 function validValue(value, kind) {
+  if (kind === 'heroProduct') return value === null ||
+    (typeof value === 'string' && /^[0-9a-fA-F]{24}$/.test(value));
   if (kind === 'amount') return typeof value === 'number' && Number.isFinite(value) && value >= 0;
   if (kind === 'boolean') return typeof value === 'boolean';
   if (typeof value !== 'string' || value.length > 2048) return false;
@@ -87,9 +92,21 @@ export async function getOwnerRestaurant(connection, auth) {
   return restaurant;
 }
 
+export async function assertHeroProductEligible(Product, Category, restaurantId, productId) {
+  const product = await Product.findOne({ _id: productId,
+    restaurantId, isAvailable: true }).select('categoryId').lean();
+  if (!product || !await Category.exists({ _id: product.categoryId,
+    restaurantId, isActive: true })) throw new InvalidRestaurantSettings();
+}
+
 export async function patchOwnerRestaurant(connection, auth, body) {
   const updates = parseRestaurantSettingsPatch(body);
   const Restaurant = ownerRestaurantModel(connection, auth);
+  if (Object.hasOwn(updates, 'heroProductId') && updates.heroProductId !== null) {
+    const Product = connection.models.Product ?? connection.model('Product', ProductSchema.schema);
+    const Category = connection.models.Category ?? connection.model('Category', CategorySchema.schema);
+    await assertHeroProductEligible(Product, Category, auth.restaurantId, updates.heroProductId);
+  }
   const restaurant = await getOwnerRestaurant(connection, auth);
   for (const [path, value] of Object.entries(updates)) restaurant.set(path, value);
   try {

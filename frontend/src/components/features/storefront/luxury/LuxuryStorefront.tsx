@@ -6,6 +6,7 @@ import { ArrowUpRight, ShoppingBag, Plus } from "lucide-react";
 import { MenuOrderingPage } from "@/components/features/menu/MenuOrderingPage";
 import { publicMoney, safePublicImage } from "@/lib/public-menu-presentation";
 import { useCartStore } from "@/store/cart-store";
+import { CartAttention } from "../CartAttention";
 import type { PublicPage, PublicProduct, PublicRestaurant } from "@/services/public-menu";
 import { PublicProductImage } from "../PublicProductImage";
 import { useStorefront } from "../StorefrontContext";
@@ -42,7 +43,7 @@ export function LuxuryNavbar() {
       })}</nav>
       <div className={styles.navActions}>
         <Link href={pathname} locale={locale === "ar" ? "en" : "ar"} aria-label={t("switchLanguage", { language: t(`languages.${locale === "ar" ? "en" : "ar"}`) })}>{locale === "ar" ? "EN" : "عربي"}</Link>
-        <Link href={href("/cart")} className={styles.cartLink} aria-label={t("viewCart")} aria-current={pathname === href("/cart") || pathname === href("/checkout") ? "page" : undefined}><ShoppingBag size={19} aria-hidden="true" /><span>{tenantSlug === restaurant.slug ? count : 0}</span></Link>
+        <Link href={href("/cart")} className={styles.cartLink} aria-label={`${t("viewCart")}: ${tenantSlug === restaurant.slug ? count : 0}`} aria-current={pathname === href("/cart") || pathname === href("/checkout") ? "page" : undefined}><CartAttention><ShoppingBag size={19} aria-hidden="true" /><span>{tenantSlug === restaurant.slug ? count : 0}</span></CartAttention></Link>
       </div>
     </div>
   </header>;
@@ -64,7 +65,7 @@ export function LuxuryHome({ restaurant, initialProducts }: { restaurant: Public
   const ar = locale === "ar";
   const { categories, href } = useStorefront();
   const ordered = [...initialProducts.filter((item) => item.isFeatured), ...initialProducts.filter((item) => !item.isFeatured)];
-  const heroProduct = ordered.find(hasImage) || ordered[0];
+  const heroProduct = restaurant.heroProductSelected ? restaurant.heroProduct ?? undefined : ordered.find(hasImage) || ordered[0];
   const featured = ordered.filter((item) => item.id !== heroProduct?.id).slice(0, 3);
   return <main className={styles.home}>
     <section className={styles.hero}>

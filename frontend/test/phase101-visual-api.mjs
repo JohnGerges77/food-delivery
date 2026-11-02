@@ -70,7 +70,11 @@ createServer((request, response) => {
   const listing = slug === "phase103-cafe" ? suffix === "/categories" ? cafeCategories : cafeProducts :
     suffix === "/categories" ? categories : products;
   if (suffix === "" || suffix === "/categories" || suffix === "/products") {
-    response.writeHead(200).end(JSON.stringify(suffix === "" ? { restaurant: slug === "phase102-aqua" ? aquaRestaurant : slug === "phase103-cafe" ? cafeRestaurant : slug === "phase104-luxury" ? luxuryRestaurant : restaurant } : {
+    response.writeHead(200).end(JSON.stringify(suffix === "" ? { restaurant: {
+      ...(slug === "phase102-aqua" ? aquaRestaurant : slug === "phase103-cafe" ? cafeRestaurant : slug === "phase104-luxury" ? luxuryRestaurant : restaurant),
+      heroProductSelected: true, heroProduct: slug === "phase103-cafe" ? cafeProducts[0] : products[1],
+      socialLinks: { facebook: null, instagram: null, whatsapp: "https://wa.me/201000000000" },
+    } } : {
       [suffix === "/categories" ? "categories" : "products"]: listing,
       ...(suffix === "/products" ? { currency: "EGP" } : {}),
       pagination: { page: 1, limit: 100, total: listing.length, hasNext: false },

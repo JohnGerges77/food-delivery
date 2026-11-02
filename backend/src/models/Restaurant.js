@@ -80,6 +80,7 @@ const restaurantSchema = new mongoose.Schema(
     },
     status: { type: String, enum: ['active', 'suspended'], default: 'active' },
     storefrontTheme: { type: String, enum: ['savora-classic', 'savora-aqua', 'savora-cafe', 'savora-luxury'], default: 'savora-classic' },
+    heroProductId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', default: null },
     openingHours: { type: String, trim: true },
     deliverySettings: deliverySettingsSchema,
     socialLinks: socialLinksSchema,

@@ -1,7 +1,6 @@
 export type CheckoutDetails = {
   fullName: string;
   phone: string;
-  email: string;
   address: string;
   city: string;
   notes: string;
@@ -10,7 +9,6 @@ export type CheckoutDetails = {
 export const emptyCheckoutDetails: CheckoutDetails = {
   fullName: "",
   phone: "",
-  email: "",
   address: "",
   city: "",
   notes: "",

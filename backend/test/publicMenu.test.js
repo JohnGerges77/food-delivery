@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import mongoose from 'mongoose';
 import { createApp } from '../src/app.js';
 import { InvalidPublicRequest, normalizePublicSlug, parsePublicCategoriesQuery,
   parsePublicProductsQuery, serializePublicCategory, serializePublicProduct,
-  serializePublicRestaurant } from '../src/services/publicMenu.js';
+  serializePublicRestaurant, resolvePublicRestaurant } from '../src/services/publicMenu.js';
 
 test('public slug normalization and query validation are strict and bounded', () => {
   assert.equal(normalizePublicSlug('  GOOD-CAFE  '), 'good-cafe');
@@ -38,10 +39,42 @@ test('public serializers preserve prices and expose explicit safe fields', () =>
   assert.equal(product.price, 12.34);
   assert.equal(restaurant.currency, 'EGP');
   assert.equal(restaurant.storefrontTheme, 'savora-classic');
+  assert.equal(restaurant.heroProduct, null);
+  assert.equal(restaurant.heroProductSelected, false);
   assert.equal(restaurant.contactEmail, 'hello@example.test');
   assert.equal(category.id, 'category-id');
   assert.doesNotMatch(JSON.stringify({ restaurant, category, product }),
     /passwordHash|tokenHash|trackingTokenHash|restaurantId|"status"/);
+});
+
+test('public Hero resolves only a tenant-owned available product in an active category', async () => {
+  const restaurantId = new mongoose.Types.ObjectId();
+  const heroProductId = new mongoose.Types.ObjectId();
+  const categoryId = new mongoose.Types.ObjectId();
+  let product = { _id: heroProductId, categoryId, name: 'Burger', slug: 'burger',
+    price: 12, imageUrl: '/burger.jpg', images: [], isFeatured: false };
+  let categoryActive = true;
+  const connection = { readyState: 1, models: {
+    Restaurant: { findOne(filter) {
+      assert.deepEqual(filter, { slug: 'cafe', status: { $ne: 'suspended' } });
+      return { select() { return { lean: async () => ({ _id: restaurantId,
+        heroProductId, name: 'Cafe', slug: 'cafe', currency: 'EGP' }) }; } };
+    } },
+    Product: { findOne(filter) {
+      assert.deepEqual(filter, { _id: heroProductId, restaurantId, isAvailable: true });
+      return { lean: async () => product };
+    } },
+    Category: { async exists(filter) {
+      assert.deepEqual(filter, { _id: categoryId, restaurantId, isActive: true });
+      return categoryActive;
+    } },
+  } };
+  assert.equal(serializePublicRestaurant(await resolvePublicRestaurant(connection, 'cafe')).heroProduct.name, 'Burger');
+  product = null;
+  assert.equal(serializePublicRestaurant(await resolvePublicRestaurant(connection, 'cafe')).heroProduct, null);
+  product = { _id: heroProductId, categoryId, name: 'Burger', slug: 'burger', price: 12 };
+  categoryActive = false;
+  assert.equal(serializePublicRestaurant(await resolvePublicRestaurant(connection, 'cafe')).heroProduct, null);
 });
 
 test('public CORS is non-credentialed and does not change owner CORS', async () => {

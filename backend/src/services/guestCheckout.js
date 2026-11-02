@@ -126,14 +126,16 @@ function confirmation(order, currency) {
     deliveryFee: order.deliveryFee, total: order.total, savedInSavora: true };
 }
 
-export function buildWhatsAppUrl(order, target, currency) {
+export function buildWhatsAppUrl(order, target, currency, restaurantName = '') {
   const safe = (value) => String(value).replace(/[\x00-\x1f\x7f]/g, ' ').slice(0, 240);
-  const essential = [`Order ${safe(order.orderNumber)}`, `Name: ${safe(order.customerName)}`,
+  const money = (amount) => `${Number(amount).toFixed(currencyDigits(currency))} ${currency}`;
+  const essential = [safe(restaurantName), `Order ${safe(order.orderNumber)}`, `Name: ${safe(order.customerName)}`,
     `Phone: ${safe(order.customerPhone)}`, `Address: ${safe(order.deliveryAddress)}, ${safe(order.city)}`,
-    `Total: ${order.total} ${currency}`];
+    `Subtotal: ${money(order.subtotal)}`, `Delivery: ${money(order.deliveryFee)}`,
+    `Total: ${money(order.total)}`];
   let message = essential.join('\n');
   const lines = order.items.map((item) =>
-    `${item.quantity} x ${safe(item.name).slice(0, 70)}`);
+    `${item.quantity} x ${safe(item.name).slice(0, 70)} @ ${money(item.unitPrice)} = ${money(item.quantity * item.unitPrice)}${item.notes ? ` (${safe(item.notes)})` : ''}`);
   for (const line of lines) {
     const candidate = `${message}\n${line}`;
     if (encodeURIComponent(candidate).length > 3500) break;
@@ -144,7 +146,7 @@ export function buildWhatsAppUrl(order, target, currency) {
     message += `\nNotes: ${safe(order.notes)}`;
   }
   if (encodeURIComponent(message).length > 3500) {
-    message = `Order ${safe(order.orderNumber)}\nTotal: ${order.total} ${currency}`;
+    message = `${safe(restaurantName)}\nOrder ${safe(order.orderNumber)}\nTotal: ${money(order.total)}`;
   }
   return `${target}?text=${encodeURIComponent(message)}`;
 }
@@ -153,7 +155,7 @@ function resultFor(order, restaurant) {
   const result = { order: confirmation(order, restaurant.currency) };
   if (order.submissionMethod === 'whatsapp') {
     result.whatsapp = { url: buildWhatsAppUrl(order, order.whatsappTarget,
-      restaurant.currency), messageSent: false };
+      restaurant.currency, restaurant.name), messageSent: false };
   }
   return result;
 }
@@ -180,7 +182,7 @@ export async function createGuestOrder(connection, slug, body, idempotencyKey) {
       // cannot both commit against an earlier active snapshot.
       const currentRestaurant = await Restaurant.findOneAndUpdate({ _id: restaurant._id,
         status: { $ne: 'suspended' } }, { $inc: { __v: 1 } }, { returnDocument: 'after' })
-        .select('_id currency deliverySettings socialLinks')
+        .select('_id name currency deliverySettings socialLinks')
         .session(session).lean();
       if (!currentRestaurant) throw new PublicRestaurantNotFound();
       const digits = currencyDigits(currentRestaurant.currency);

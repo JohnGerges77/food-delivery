@@ -7,6 +7,8 @@ import { Link } from "@/i18n/navigation";
 import { sectionEase } from "@/lib/animations";
 import { routes } from "@/lib/routes";
 import type { PublicRestaurant } from "@/services/public-menu";
+import { safePublicImage } from "@/lib/public-menu-presentation";
+import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";
 import { useStorefront } from "@/components/features/storefront/StorefrontContext";
 
 export function HeroSection({ restaurant }: { restaurant: PublicRestaurant }) {
@@ -152,7 +154,8 @@ export function HeroSection({ restaurant }: { restaurant: PublicRestaurant }) {
             className="relative w-full"
             transition={reduceMotion ? undefined : { duration: 5.8, ease: "easeInOut", repeat: Infinity }}
           >
-            <Image
+            {restaurant.heroProduct && safePublicImage(restaurant.heroProduct.imageUrl || restaurant.heroProduct.images[0]) ?
+              <div className="relative z-10 aspect-square w-full overflow-hidden rounded-full border border-[color:var(--primary)]/35 shadow-[0_40px_70px_rgba(0,0,0,0.45)]"><PublicProductImage alt={restaurant.heroProduct.name} src={restaurant.heroProduct.imageUrl || restaurant.heroProduct.images[0]} sizes="(min-width: 1024px) 54vw, 100vw" className="object-cover" /><span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-8 text-center text-lg font-semibold text-white">{restaurant.heroProduct.name}</span></div> : <Image
               alt=""
               className="relative z-10 h-auto w-full drop-shadow-[0_40px_70px_rgba(0,0,0,0.62)]"
               height={760}
@@ -161,7 +164,7 @@ export function HeroSection({ restaurant }: { restaurant: PublicRestaurant }) {
               sizes="(min-width: 1024px) 54vw, 100vw"
               src="/home2.webp"
               width={760}
-            />
+            />}
           </motion.div>
         </motion.div>
       </div>
