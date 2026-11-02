@@ -119,7 +119,8 @@ export function createAuthRouter({ connection = mongoose.connection,
   allowedOrigins = process.env.AUTH_TRUSTED_ORIGINS,
   secureCookies = process.env.NODE_ENV === 'production',
   loginLimiter = createLoginLimiter() } = {}) {
-  const { cors, trustedMutationOrigin } = createAuthGuards({ allowedOrigins, secureCookies });
+  const { cors, trustedMutationOrigin, trustedCsrfReadOrigin } = createAuthGuards({
+    allowedOrigins, secureCookies });
   const router = express.Router();
   router.use(cors);
   const requireOwner = createOwnerMiddleware({ connection, secureCookies });
@@ -151,7 +152,7 @@ export function createAuthRouter({ connection = mongoose.connection,
   }));
 
   // A dashboard on a sibling hostname cannot read the API's host-only CSRF cookie.
-  router.get('/csrf', trustedMutationOrigin, requireOwner, (req, res) => {
+  router.get('/csrf', trustedCsrfReadOrigin, requireOwner, (req, res) => {
     const csrfToken = readCookie(req, CSRF_COOKIE);
     if (!TOKEN_PATTERN.test(csrfToken ?? '') ||
         tokenHash(csrfToken) !== req.auth.csrfTokenHash) {
@@ -191,6 +192,23 @@ export function createAuthGuards({ allowedOrigins = process.env.AUTH_TRUSTED_ORI
     },
     trustedMutationOrigin(req, res, next) {
       if (!origins.has(req.get('Origin'))) return res.status(403).json({ error: 'Forbidden' });
+      next();
+    },
+    trustedCsrfReadOrigin(req, res, next) {
+      const origin = req.get('Origin');
+      if (origin) {
+        if (!origins.has(origin)) return res.status(403).json({ error: 'Forbidden' });
+        return next();
+      }
+      // Browsers omit Origin on same-origin GET. Require a trusted Referer instead;
+      // Host and forwarded headers are not proof of the caller's origin.
+      let referer;
+      try { referer = new URL(req.get('Referer')); }
+      catch { return res.status(403).json({ error: 'Forbidden' }); }
+      if (!origins.has(referer.origin) || referer.username || referer.password ||
+          ['cross-site', 'none'].includes(req.get('Sec-Fetch-Site'))) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
       next();
     },
   };

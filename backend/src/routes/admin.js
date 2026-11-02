@@ -68,7 +68,8 @@ export function createAdminRouter({ connection = mongoose.connection,
   secureCookies = process.env.NODE_ENV === 'production',
   adminLoginLimiter = createLoginLimiter() } = {}) {
   const router = express.Router();
-  const { cors, trustedMutationOrigin } = createAuthGuards({ allowedOrigins, secureCookies });
+  const { cors, trustedMutationOrigin, trustedCsrfReadOrigin } = createAuthGuards({
+    allowedOrigins, secureCookies });
   router.use(cors);
   const requireAdmin = createAdminMiddleware({ connection, secureCookies });
   router.post('/auth/login', trustedMutationOrigin, adminLoginLimiter,
@@ -88,7 +89,7 @@ export function createAdminRouter({ connection = mongoose.connection,
   router.get('/auth/me', (req, res) => res.json({ admin: {
     id: String(req.platformAuth.admin._id), email: req.platformAuth.admin.email,
   } }));
-  router.get('/auth/csrf', trustedMutationOrigin, (req, res) => {
+  router.get('/auth/csrf', trustedCsrfReadOrigin, (req, res) => {
     const value = readCookie(req, CSRF);
     if (!TOKEN.test(value ?? '') || tokenHash(value) !== req.platformAuth.csrfTokenHash) {
       return res.status(403).json({ error: 'Forbidden' });

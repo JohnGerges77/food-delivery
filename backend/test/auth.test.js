@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createApp } from '../src/app.js';
 import OwnerSession from '../src/models/OwnerSession.js';
-import { createLoginLimiter, sessionCookies } from '../src/routes/auth.js';
+import { createAuthGuards, createLoginLimiter, sessionCookies } from '../src/routes/auth.js';
 import { tokenHash } from '../src/services/ownerAuth.js';
 
 const origin = 'http://localhost:3000';
@@ -47,6 +47,33 @@ test('session cookie is HttpOnly, Secure in production, SameSite Lax, and API sc
   assert.ok(csrf.includes('Secure'));
   assert.ok(!csrf.includes('HttpOnly'));
   assert.ok(!sessionCookies('a'.repeat(64), 'b'.repeat(64), false)[0].includes('Secure'));
+});
+
+test('CSRF read accepts a trusted Referer on no-Origin GET without relaxing mutation Origin', () => {
+  const trusted = 'https://staging.example.test';
+  const { trustedCsrfReadOrigin, trustedMutationOrigin } = createAuthGuards({
+    allowedOrigins: trusted, secureCookies: true });
+  function status(guard, headers) {
+    let result = 200;
+    const req = { get: (name) => headers[name.toLowerCase()] };
+    const res = { status(code) { result = code; return this; }, json() {} };
+    guard(req, res, () => {});
+    return result;
+  }
+  const sameOriginGet = { referer: `${trusted}/en/admin/restaurants`,
+    'sec-fetch-site': 'same-origin' };
+  assert.equal(status(trustedCsrfReadOrigin, sameOriginGet), 200);
+  assert.equal(status(trustedCsrfReadOrigin, { origin: trusted }), 200);
+  assert.equal(status(trustedCsrfReadOrigin, { ...sameOriginGet,
+    origin: 'https://evil.example.test' }), 403);
+  assert.equal(status(trustedCsrfReadOrigin, { ...sameOriginGet,
+    'sec-fetch-site': 'cross-site' }), 403);
+  assert.equal(status(trustedCsrfReadOrigin, { referer: 'https://evil.example.test/page',
+    'sec-fetch-site': 'same-origin' }), 403);
+  assert.equal(status(trustedCsrfReadOrigin, { referer: 'https://staging.example.test.evil.test/' }), 403);
+  assert.equal(status(trustedCsrfReadOrigin, { 'sec-fetch-site': 'same-origin' }), 403);
+  assert.equal(status(trustedMutationOrigin, sameOriginGet), 403);
+  assert.equal(status(trustedMutationOrigin, { origin: trusted }), 200);
 });
 
 test('auth routes reject untrusted origins, missing CSRF header, and malformed input', async () => {
