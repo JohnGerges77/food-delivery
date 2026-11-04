@@ -105,6 +105,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
     if (!failure) return "";
     if (!isArabic) return failure.message;
     if (failure.uncertain) return "نتيجة الطلب غير مؤكدة. أعد المحاولة بنفس البيانات لاستعادة التأكيد؛ ربما تم حفظه بالفعل.";
+    if (failure.status === 401 || failure.status === 403) return "رُفض الوصول لإتمام الطلب. تأكد من صلاحية دخولك إلى النسخة التجريبية ثم أعد المحاولة.";
     if (failure.status === 404) return "هذا المطعم غير متاح حاليًا.";
     if (failure.status === 409) return "تعذر إتمام الطلب: قد توجد محاولة سابقة متعارضة، أو أن المنتج أو التوصيل أو WhatsApp غير متاح. راجع البيانات قبل إعادة المحاولة.";
     if (failure.status === 429) return "محاولات كثيرة جدًا. انتظر قليلًا ثم أعد المحاولة.";

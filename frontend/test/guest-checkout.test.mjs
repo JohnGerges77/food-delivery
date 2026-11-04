@@ -39,14 +39,14 @@ test("customer and cart validation catches invalid input before POST", () => {
   assert.throws(() => buildCheckoutPayload(details, [], "direct"), GuestCheckoutError);
 });
 
-test("public request uses slug, no owner credentials, and only confirmed backend amounts", async () => {
+test("public request uses slug, same-origin credentials, and only confirmed backend amounts", async () => {
   const payload = buildCheckoutPayload(details, items, "direct");
   let calls = 0;
   const result = await submitGuestCheckout("Cafe-One", payload, "12345678-1234-1234-1234-123456789012", async (url, options) => {
     calls++;
     assert.equal(url, "http://localhost:5000/api/public/restaurants/cafe-one/orders");
     assert.equal(options.method, "POST");
-    assert.equal(options.credentials, "omit");
+    assert.equal(options.credentials, "same-origin");
     assert.equal(options.cache, "no-store");
     assert.equal(options.headers["Content-Type"], "application/json");
     assert.equal(options.headers["Idempotency-Key"], "12345678-1234-1234-1234-123456789012");
@@ -58,6 +58,24 @@ test("public request uses slug, no owner credentials, and only confirmed backend
   assert.equal(result.order.orderNumber, order.orderNumber);
   assert.equal(result.order.total, 25);
   assert.equal(result.order.currency, "EGP");
+});
+
+test("401 protection response does not confirm an order and retry keeps the idempotency key", async () => {
+  const memory = storage();
+  const coordinator = new GuestCheckoutCoordinator();
+  const payload = buildCheckoutPayload(details, items, "direct");
+  const keys = [];
+  const denied = async (_url, options) => {
+    keys.push(options.headers["Idempotency-Key"]);
+    return new Response("Protected by Vercel Authentication", { status: 401 });
+  };
+  await assert.rejects(coordinator.submit("cafe", payload, denied, memory),
+    (error) => error.status === 401 && error.uncertain === false && /access was denied/.test(error.message));
+  await assert.rejects(coordinator.submit("cafe", payload, denied, memory),
+    (error) => error.status === 401);
+  assert.equal(keys.length, 2);
+  assert.equal(keys[0], keys[1]);
+  assert.equal(memory.map.size, 1);
 });
 
 test("WhatsApp link appears only after saved response and never claims sent", async () => {

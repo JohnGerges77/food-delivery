@@ -33,10 +33,10 @@ test("explicit slug normalizes and local preview only applies in development", (
   assert.equal(localPreviewSlug(), process.env.NODE_ENV === "development" ? "savora-demo" : null);
 });
 
-test("restaurant response preserves public null and zero values without credentials", async () => {
+test("restaurant response preserves public null and zero values with same-origin credentials", async () => {
   globalThis.fetch = async (url, options) => {
     assert.equal(url, "http://localhost:5000/api/public/restaurants/cafe");
-    assert.equal(options.credentials, "omit");
+    assert.equal(options.credentials, "same-origin");
     assert.equal(options.cache, "no-store");
     assert.equal(options.method, "GET");
     return json({ restaurant });

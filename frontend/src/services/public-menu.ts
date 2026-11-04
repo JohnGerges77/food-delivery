@@ -43,7 +43,8 @@ export function localPreviewSlug(): string | null {
 
 function apiBaseUrl(): string {
   const value = process.env.NEXT_PUBLIC_SAVORA_API_BASE_URL ||
-    (typeof window === "undefined" ? process.env.SAVORA_INTERNAL_API_URL : window.location.origin);
+    (typeof window === "undefined" ? process.env.SAVORA_INTERNAL_API_URL : "");
+  if (typeof window !== "undefined" && !value) return "";
   if (!value) throw new PublicMenuError(null, "Menu API is not configured");
   try {
     const url = new URL(value);
@@ -56,7 +57,7 @@ async function request<T>(slug: string, suffix = "", params?: URLSearchParams): 
   const url = `${apiBaseUrl()}/api/public/restaurants/${encodeURIComponent(validateStorefrontSlug(slug))}${suffix}${params ? `?${params}` : ""}`;
   let response: Response;
   try {
-    response = await fetch(url, { method: "GET", credentials: "omit", cache: "no-store", signal: AbortSignal.timeout(12_000) });
+    response = await fetch(url, { method: "GET", credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(12_000) });
   } catch (error) {
     throw new PublicMenuError(null, error instanceof Error && error.name === "TimeoutError" ? "Menu request timed out" : "Cannot reach menu server");
   }

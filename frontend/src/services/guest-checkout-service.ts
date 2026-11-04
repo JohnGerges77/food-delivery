@@ -78,7 +78,8 @@ export function buildCheckoutPayload(details: CheckoutDetails, items: CartItem[]
 
 function apiBaseUrl() {
   const value = process.env.NEXT_PUBLIC_SAVORA_API_BASE_URL ||
-    (typeof window === "undefined" ? process.env.SAVORA_INTERNAL_API_URL : window.location.origin);
+    (typeof window === "undefined" ? process.env.SAVORA_INTERNAL_API_URL : "");
+  if (typeof window !== "undefined" && !value) return "";
   if (!value) throw new GuestCheckoutError(null, "Checkout API is not configured.");
   try {
     const url = new URL(value);
@@ -114,13 +115,14 @@ export async function submitGuestCheckout(slug: string, payload: GuestCheckoutPa
   const url = `${apiBaseUrl()}/api/public/restaurants/${encodeURIComponent(validateSlug(slug))}/orders`;
   let response: Response;
   try {
-    response = await fetcher(url, { method: "POST", credentials: "omit", cache: "no-store",
+    response = await fetcher(url, { method: "POST", credentials: "same-origin", cache: "no-store",
       headers: { "Content-Type": "application/json", "Idempotency-Key": key },
       body: JSON.stringify(payload), signal: AbortSignal.timeout(20_000) });
   } catch { throw new GuestCheckoutError(null, "The result is unknown. Retry with the same details to recover your order.", true); }
   if (!response.ok) {
     const body = await response.json().catch(() => null) as { error?: string } | null;
-    const message = response.status === 404 ? "This restaurant is unavailable." :
+    const message = response.status === 401 || response.status === 403 ? "Checkout access was denied. Check preview access and retry." :
+      response.status === 404 ? "This restaurant is unavailable." :
       response.status === 409 && body?.error === "Idempotency key conflict" ? "This retry conflicts with an earlier order. Review your details before trying again." :
       response.status === 409 ? "Checkout is unavailable. Check delivery, minimum order, products, or WhatsApp availability." :
       response.status === 400 ? "The server rejected these checkout details. Please review them." :
