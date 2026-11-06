@@ -11,12 +11,13 @@ import { getOwnerRestaurant, patchOwnerRestaurant, restaurantToForm, settingsPat
   type OwnerRestaurant, type RestaurantSettingsForm } from "@/services/owner-restaurant-service";
 import { useAuthStore } from "@/store/auth-store";
 import { ActionButton, DashboardCard, DashboardPageHeader, inputClass, textareaClass } from "./DashboardUI";
+import { OwnerImageUpload } from "./OwnerImageUpload";
 
 type Key = Exclude<keyof RestaurantSettingsForm, "deliveryAvailable">;
 type Errors = Partial<Record<keyof RestaurantSettingsForm, string>>;
 const profile: [Key, string, string?][] = [
   ["name", "Restaurant Name"], ["phone", "Phone", "tel"], ["contactEmail", "Email", "email"],
-  ["address", "Address"], ["logoUrl", "Logo URL", "url"], ["description", "Description", "textarea"],
+  ["address", "Address"], ["logoUrl", "Logo URL"], ["description", "Description", "textarea"],
 ];
 const social: [Key, string, string?][] = [["facebook", "Facebook", "url"], ["instagram", "Instagram", "url"], ["whatsapp", "WhatsApp phone or wa.me URL", "text"]];
 
@@ -157,7 +158,7 @@ function RestaurantSettingsEditor({ ownerId }: { ownerId: string | undefined }) 
     </div> : !form || !restaurant ? <DashboardCard className="p-6"><p role="alert" className="text-red-200">{error}</p><ActionButton className="mt-5" onClick={() => { setLoading(true); setError(""); setReload((value) => value + 1); }}>Retry</ActionButton></DashboardCard> :
     <form noValidate onSubmit={(event) => void save(event)} className="grid gap-6 xl:grid-cols-[1fr_0.85fr]">
       <div className="grid gap-6">
-        <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">Restaurant Profile</h3><div className="mt-5 grid gap-4 sm:grid-cols-2">{profile.map(([key, label, type]) => field(key, label, type))}</div><p className="mt-5 text-sm text-[color:var(--text-muted)]">Storefront slug: <span className="text-[color:var(--text)]">{restaurant.slug}</span> · Currency: <span className="text-[color:var(--text)]">{restaurant.currency}</span></p></DashboardCard>
+        <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">Restaurant Profile</h3><div className="mt-5 grid gap-4 sm:grid-cols-2">{profile.map(([key, label, type]) => field(key, label, type))}</div><div className="mt-5"><OwnerImageUpload target={{ kind: "logo" }} currentUrl={restaurant.logoUrl} onChanged={(url) => { setRestaurant({ ...restaurant, logoUrl: url }); setForm({ ...form, logoUrl: url ?? "" }); setSaved(false); }} /></div><p className="mt-5 text-sm text-[color:var(--text-muted)]">Storefront slug: <span className="text-[color:var(--text)]">{restaurant.slug}</span></p></DashboardCard>
         <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">Opening Hours</h3><p className="mt-2 text-sm text-[color:var(--text-muted)]">Display text for your storefront.</p><div className="mt-5">{field("openingHours", "Opening Hours")}</div></DashboardCard>
         <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">Social Links</h3><div className="mt-5 grid gap-4 sm:grid-cols-3">{social.map(([key, label, type]) => field(key, label, type))}</div></DashboardCard>
         <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">Hero Product</h3><p className="mt-2 text-sm text-[color:var(--text-muted)]">Choose an available product for your storefront Hero. Its own image appears when available.</p>

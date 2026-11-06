@@ -9,6 +9,7 @@ import { useCartStore } from "@/store/cart-store";
 import { CartAttention } from "../CartAttention";
 import type { PublicPage, PublicProduct, PublicRestaurant } from "@/services/public-menu";
 import { PublicProductImage } from "../PublicProductImage";
+import { ProductImageGallery } from "../ProductImageGallery";
 import { useStorefront } from "../StorefrontContext";
 import styles from "./LuxuryStorefront.module.css";
 
@@ -36,7 +37,7 @@ export function LuxuryNavbar() {
       <div>{restaurant.address && <span>{restaurant.address}</span>}{restaurant.openingHours && <span>{restaurant.openingHours}</span>}{restaurant.phone && <a href={`tel:${restaurant.phone.replace(/[^+\d]/g, "")}`}>{restaurant.phone}</a>}</div>
     </div>}
     <div className={styles.navInner}>
-      <Link href={href("/")} className={styles.wordmark} aria-label={restaurant.name}>{restaurant.name}</Link>
+      <Link href={href("/")} className={styles.wordmark} aria-label={restaurant.name}>{restaurant.logoUrl && <span className="relative me-2 inline-block size-8 align-middle"><PublicProductImage src={restaurant.logoUrl} alt={restaurant.name} className="object-contain" sizes="32px" /></span>}{restaurant.name}</Link>
       <nav className={styles.navLinks} aria-label={locale === "ar" ? "التنقل الرئيسي" : "Main navigation"}>{links.map(({ path, label }) => {
         const active = path === "/" ? pathname === href("/") : path.includes("#") ? false : pathname === href(path) || pathname.startsWith(`${href(path)}/`);
         return <Link key={path} href={href(path)} aria-current={active ? "page" : undefined}>{label}</Link>;
@@ -53,10 +54,11 @@ function FeaturedCard({ product, restaurant, locale }: { product: PublicProduct;
   const { href } = useStorefront();
   const add = useCartStore((state) => state.addPublicItem);
   const ar = locale === "ar";
-  return <article className={styles.featuredCard}>
-    <Link href={href(`/menu/${product.id}`)} className={styles.cardVisual}>{hasImage(product) ? <ProductImage product={product} sizes="(min-width: 900px) 28vw, 100vw" /> : <span className={styles.cardNoImage}>{product.name}</span>}</Link>
-    <div className={styles.cardDetails}><div><h3><Link href={href(`/menu/${product.id}`)}>{product.name}</Link></h3>{product.description && <p>{product.description}</p>}</div><strong>{publicMoney(product.price, restaurant.currency, locale)}</strong></div>
-    <button type="button" onClick={() => add(restaurant.slug, product)} className={styles.cardAdd}><Plus size={17} aria-hidden="true" />{ar ? "أضف إلى السلة" : "Add to cart"}</button>
+  return <article className={`${styles.featuredCard} relative`}>
+    <Link href={href(`/menu/${product.id}`)} className="absolute inset-0 z-10" aria-label={ar ? `تفاصيل ${product.name}` : `Details for ${product.name}`} />
+    <div className={styles.cardVisual}>{hasImage(product) ? <ProductImage product={product} sizes="(min-width: 900px) 28vw, 100vw" /> : <span className={styles.cardNoImage}>{product.name}</span>}</div>
+    <div className={styles.cardDetails}><div><h3>{product.name}</h3>{product.description && <p>{product.description}</p>}</div><strong>{publicMoney(product.price, restaurant.currency, locale)}</strong></div>
+    <button type="button" onClick={() => add(restaurant.slug, product)} className={`${styles.cardAdd} relative z-20`}><Plus size={17} aria-hidden="true" />{ar ? "أضف إلى السلة" : "Add to cart"}</button>
   </article>;
 }
 
@@ -96,7 +98,7 @@ export function LuxuryProduct({ product }: { product: PublicProduct }) {
   const { restaurant, categories, href } = useStorefront();
   const add = useCartStore((state) => state.addPublicItem);
   const category = categories.find((item) => item.id === product.categoryId);
-  return <main className={styles.product}><Link href={href("/menu")} className={styles.back}>{ar ? "العودة للقائمة" : "Back to menu"}</Link><article className={styles.productLayout}><div className={styles.productVisual}>{hasImage(product) ? <ProductImage product={product} sizes="(min-width: 900px) 50vw, 100vw" /> : <div className={styles.productNoImage}><span>{restaurant.name}</span><strong>{product.name}</strong></div>}</div><div className={styles.productCopy}>{category && <span>{category.name}</span>}<h1>{product.name}</h1>{product.description && <p>{product.description}</p>}<strong>{publicMoney(product.price, restaurant.currency, locale)}</strong>{product.oldPrice !== null && product.oldPrice > product.price && <del>{publicMoney(product.oldPrice, restaurant.currency, locale)}</del>}{product.preparationTime !== null && <small>{ar ? "وقت التحضير" : "Preparation time"}: {product.preparationTime} {ar ? "دقيقة" : "min"}</small>}<button type="button" className={styles.mainAction} onClick={() => add(restaurant.slug, product)}>{ar ? "أضف إلى السلة" : "Add to cart"}<Plus size={18} aria-hidden="true" /></button></div></article></main>;
+  return <main className={styles.product}><Link href={href("/menu")} className={styles.back}>{ar ? "العودة للقائمة" : "Back to menu"}</Link><article className={styles.productLayout}><div className={styles.productVisual}>{hasImage(product) ? <ProductImageGallery product={product} sizes="(min-width: 900px) 50vw, 100vw" className={styles.image} /> : <div className={styles.productNoImage}><span>{restaurant.name}</span><strong>{product.name}</strong></div>}</div><div className={styles.productCopy}>{category && <span>{category.name}</span>}<h1>{product.name}</h1>{product.description && <p>{product.description}</p>}<strong>{publicMoney(product.price, restaurant.currency, locale)}</strong>{product.oldPrice !== null && product.oldPrice > product.price && <del>{publicMoney(product.oldPrice, restaurant.currency, locale)}</del>}{product.preparationTime !== null && <small>{ar ? "وقت التحضير" : "Preparation time"}: {product.preparationTime} {ar ? "دقيقة" : "min"}</small>}<button type="button" className={styles.mainAction} onClick={() => add(restaurant.slug, product)}>{ar ? "أضف إلى السلة" : "Add to cart"}<Plus size={18} aria-hidden="true" /></button></div></article></main>;
 }
 
 export function LuxuryAbout() {

@@ -1,11 +1,12 @@
 "use client";
 
-import { Edit3, Package, Plus, Trash2 } from "lucide-react";
+import { Edit3, ImageIcon, Package, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
 import { ApiError } from "@/services/api-client";
+import { deleteOwnerGalleryImage, isManagedImage } from "@/services/owner-media-service";
 import { ownerCatalogError, type OwnerPagination } from "@/services/owner-catalog-common";
 import { allOwnerCategories, type OwnerCategory } from "@/services/owner-categories-service";
 import { createOwnerProduct, currencyDigits, deleteOwnerProduct, formatOwnerPrice, getOwnerProduct,
@@ -15,6 +16,8 @@ import { useAuthStore } from "@/store/auth-store";
 import { CatalogImage } from "./CatalogImage";
 import { CatalogToast } from "./CatalogToast";
 import { ActionButton, DashboardCard, DashboardModal, DashboardPageHeader, SearchInput, StatusBadge, inputClass, textareaClass } from "./DashboardUI";
+import { OwnerImageUpload } from "./OwnerImageUpload";
+import { useOwnerMediaAvailability } from "./useOwnerMediaAvailability";
 
 const limit = 12;
 type Errors = Partial<Record<keyof ProductFormValues, string>>;
@@ -27,9 +30,13 @@ export function DashboardProductsPage() {
 }
 
 function ProductEditor({ currency }: { currency: string }) {
+  const { available: mediaAvailable } = useOwnerMediaAvailability();
   const locale = useLocale();
   const restore = useAuthStore((state) => state.restore);
   const [products, setProducts] = useState<OwnerProduct[]>([]);
+  const [imageTarget, setImageTarget] = useState<OwnerProduct | null>(null);
+  const [galleryBusy, setGalleryBusy] = useState(false);
+  const [galleryError, setGalleryError] = useState("");
   const [categories, setCategories] = useState<OwnerCategory[]>([]);
   const [pagination, setPagination] = useState<OwnerPagination | null>(null);
   const [page, setPage] = useState(1);
@@ -184,11 +191,28 @@ function ProductEditor({ currency }: { currency: string }) {
 
   function actions(product: OwnerProduct) {
     return <div className="flex flex-wrap gap-2">
+      <ActionButton variant="ghost" className="min-h-10 px-3" disabled={busy} onClick={() => setImageTarget(product)}><ImageIcon aria-hidden="true" size={15} />Image</ActionButton>
       <ActionButton variant="ghost" className="min-h-10 px-3" disabled={busy || openingId !== null} onClick={() => void openEdit(product)}><Edit3 aria-hidden="true" size={15} />{openingId === product.id ? "Opening…" : "Edit"}</ActionButton>
       <ActionButton variant="ghost" className="min-h-10 px-3" disabled={busy} onClick={() => void toggle(product, "isAvailable")}>{product.isAvailable ? "Make unavailable" : "Make available"}</ActionButton>
       <ActionButton variant="ghost" className="min-h-10 px-3" disabled={busy} onClick={() => void toggle(product, "isFeatured")}>{product.isFeatured ? "Unfeature" : "Feature"}</ActionButton>
       <ActionButton variant="danger" className="min-h-10 px-3" disabled={busy} onClick={() => { setDeleteTarget(product); setDeleteConflict(false); setModalError(""); }}><Trash2 aria-hidden="true" size={15} />Delete</ActionButton>
     </div>;
+  }
+
+  async function removeGalleryImage(url: string) {
+    if (!imageTarget || galleryBusy || !mediaAvailable) return;
+    const assetId = /\/media\/([0-9a-f]{24})\/large$/.exec(url)?.[1];
+    if (!assetId) return;
+    setGalleryBusy(true); setGalleryError("");
+    try {
+      await deleteOwnerGalleryImage(imageTarget.id, assetId);
+      const images = imageTarget.images.filter((item) => item !== url);
+      setImageTarget({ ...imageTarget, images });
+      setProducts((items) => items.map((item) => item.id === imageTarget.id ? { ...item, images } : item));
+      refreshProducts();
+    } catch (error) {
+      setGalleryError(error instanceof Error ? error.message : "Could not remove image.");
+    } finally { setGalleryBusy(false); }
   }
 
   return <section>
@@ -223,5 +247,28 @@ function ProductEditor({ currency }: { currency: string }) {
       {modalError ? <p role="alert" className="text-sm text-red-200">{modalError}</p> : null}<div className="flex justify-end gap-3"><ActionButton variant="ghost" disabled={busy} onClick={closeModal}>Cancel</ActionButton><ActionButton type="submit" disabled={busy}>{busy ? "Saving…" : "Save Product"}</ActionButton></div>
     </form></DashboardModal>
     <DashboardModal open={deleteTarget !== null} title="Delete Product" onClose={closeModal}><p>Delete <strong>{deleteTarget?.name}</strong>? This cannot be undone.</p><p className="mt-2 text-sm text-[color:var(--text-muted)]">Products used by historical Orders cannot be permanently deleted.</p>{modalError ? <p role="alert" className="mt-4 text-sm text-red-200">{modalError}</p> : null}<div className="mt-6 flex flex-wrap justify-end gap-3"><ActionButton variant="ghost" disabled={busy} onClick={closeModal}>Cancel</ActionButton>{deleteConflict ? <ActionButton disabled={busy} onClick={() => void makeUnavailable()}>{busy ? "Saving…" : "Mark Unavailable"}</ActionButton> : <ActionButton variant="danger" disabled={busy} onClick={() => void remove()}>{busy ? "Deleting…" : "Delete Product"}</ActionButton>}</div></DashboardModal>
+    <DashboardModal open={imageTarget !== null} title={imageTarget ? `Images: ${imageTarget.name}` : "Product images"} onClose={() => { if (!galleryBusy) { setImageTarget(null); setGalleryError(""); } }}>
+      {imageTarget && <div className="grid gap-4">
+        <OwnerImageUpload target={{ kind: "product", id: imageTarget.id }} currentUrl={imageTarget.imageUrl} onChanged={(url) => {
+          setImageTarget({ ...imageTarget, imageUrl: url });
+          setProducts((items) => items.map((item) => item.id === imageTarget.id ? { ...item, imageUrl: url } : item));
+          refreshProducts();
+        }} />
+        {imageTarget.images.length < 10 ? <OwnerImageUpload target={{ kind: "gallery", id: imageTarget.id }} currentUrl={null} onChanged={(url) => {
+          if (url && !imageTarget.images.includes(url)) {
+            const images = [...imageTarget.images, url];
+            setImageTarget({ ...imageTarget, images });
+            setProducts((items) => items.map((item) => item.id === imageTarget.id ? { ...item, images } : item));
+            refreshProducts();
+          }
+        }} /> : <p className="text-sm text-[color:var(--text-muted)]">This product has 10 additional images. Remove one before uploading another.</p>}
+        {imageTarget.images.length > 0 && <div><h3 className="text-sm font-semibold">Additional images</h3><div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">{imageTarget.images.map((url, index) =>
+          <div className="rounded-lg border border-white/10 p-2" key={url}>
+            <div className="relative aspect-square overflow-hidden rounded"><CatalogImage src={url} alt={`${imageTarget.name} image ${index + 1}`} sizes="120px" /></div>
+            {mediaAvailable && isManagedImage(url) && <button type="button" className="mt-2 min-h-10 text-sm text-red-200 underline disabled:opacity-50" disabled={galleryBusy} onClick={() => void removeGalleryImage(url)}>Remove image</button>}
+          </div>)}</div></div>}
+        {galleryError && <p role="alert" className="text-sm text-red-200">{galleryError}</p>}
+      </div>}
+    </DashboardModal>
   </section>;
 }

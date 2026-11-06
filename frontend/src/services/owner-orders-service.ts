@@ -72,11 +72,11 @@ export function ownerOrderMethodLabel(method: OwnerOrderMethod, locale: string) 
   return method === "whatsapp" ? "WhatsApp" : locale === "ar" ? "مباشر" : "Direct";
 }
 export function ownerOrderMoney(value: number, currency: string, locale: string) {
-  try { return new Intl.NumberFormat(locale === "ar" ? "ar-EG" : "en-US", { style: "currency", currency }).format(value); }
+  try { return new Intl.NumberFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { style: "currency", currency }).format(value); }
   catch { return `${value} ${currency}`; }
 }
 export function ownerOrderDate(value: string, locale: string) {
-  return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", {
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", {
     dateStyle: "medium", timeStyle: "short",
   }).format(new Date(value));
 }

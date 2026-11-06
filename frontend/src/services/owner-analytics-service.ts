@@ -104,5 +104,5 @@ export async function getOwnerAnalytics<K extends AnalyticsSection>(section: K, 
 export function comparisonLabel(metric: Comparison, locale: string): string {
   if (metric.percentageChange === null) return locale === "ar" ? "لا توجد مقارنة سابقة" : "No previous-period comparison";
   const sign = metric.percentageChange > 0 ? "+" : "";
-  return `${sign}${new Intl.NumberFormat(locale === "ar" ? "ar-EG" : "en-US", { maximumFractionDigits: 2 }).format(metric.percentageChange)}%`;
+  return `${sign}${new Intl.NumberFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { maximumFractionDigits: 2 }).format(metric.percentageChange)}%`;
 }

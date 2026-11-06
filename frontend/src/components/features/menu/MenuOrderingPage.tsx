@@ -5,25 +5,21 @@ import {
   Search,
   X,
 } from "lucide-react";
-import dynamic from "next/dynamic";
 import { useLocale } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "@/i18n/navigation";
 import { publicMoney } from "@/lib/public-menu-presentation";
 import { useCartStore } from "@/store/cart-store";
 import { getPublicProducts, type PublicPage, type PublicProduct } from "@/services/public-menu";
 import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";
 import { useStorefront } from "@/components/features/storefront/StorefrontContext";
 
-const ProductPreviewModal = dynamic(() => import("./ProductPreviewModal"), {
-  ssr: false,
-});
-
 export function MenuOrderingPage({ initialProducts, initialPagination }: {
   initialProducts: PublicProduct[]; initialPagination: PublicPage | null;
 }) {
   const locale = useLocale();
   const isArabic = locale === "ar";
-  const { restaurant, categories } = useStorefront();
+  const { restaurant, categories, href } = useStorefront();
   const localizedCategories = [{ id: "all", label: isArabic ? "الكل" : "All" },
     ...categories.map((category) => ({ id: category.id, label: category.name }))];
   const categoryLabels = useMemo(() => new Map(categories.map((category) => [category.id, category.name])), [categories]);
@@ -34,8 +30,6 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
   const [pagination, setPagination] = useState(initialPagination);
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
-  const [selectedProduct, setSelectedProduct] = useState<PublicProduct | null>(null);
-  const [previewQuantity, setPreviewQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
   const [menuError, setMenuError] = useState("");
   const [retry, setRetry] = useState(0);
@@ -70,7 +64,6 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
   function selectCategory(categoryId: string) {
     if (categoryId === activeCategory) return;
     setActiveCategory(categoryId);
-    setSelectedProduct(null);
     setQuery("");
     setMenuError("");
     setLoading(categoryId !== "all");
@@ -92,13 +85,8 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
     } finally { setLoading(false); }
   }
 
-  function openPreview(product: PublicProduct) {
-    setSelectedProduct(product);
-    setPreviewQuantity(1);
-  }
-
-  function addProduct(product: PublicProduct, quantity = 1) {
-    addItem(restaurant.slug, product, quantity);
+  function addProduct(product: PublicProduct) {
+    addItem(restaurant.slug, product, 1);
   }
 
   function getCartQuantity(productId: string) {
@@ -214,9 +202,9 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
                 className="group relative flex min-h-28 cursor-pointer overflow-hidden rounded-[1.1rem] border border-[color:var(--sf-border)] bg-[color:var(--sf-surface)] shadow-sm transition-all focus-within:ring-2 focus-within:ring-[color:var(--sf-primary)] sm:block sm:rounded-[1.35rem] sm:border-white/10 sm:bg-[linear-gradient(145deg,rgba(255,255,255,0.082),rgba(255,255,255,0.026)_60%,rgba(255,122,0,0.045))] sm:shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.07)] sm:backdrop-blur-xl sm:duration-500 sm:hover:-translate-y-1 sm:hover:border-[color:var(--primary)]/50 sm:hover:shadow-[0_32px_96px_rgba(255,122,0,0.16)]"
                 key={product.id}
               >
-                <button className="absolute inset-0 z-10 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[color:var(--sf-primary)]" aria-label={isArabic ? `معاينة ${product.name}` : `Preview ${product.name}`} onClick={() => openPreview(product)} type="button" />
+                <Link href={href(`/menu/${product.id}`)} className="absolute inset-0 z-10 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[color:var(--sf-primary)]" aria-label={isArabic ? `تفاصيل ${product.name}` : `Details for ${product.name}`} />
                 <div data-menu-image className="relative m-2 w-24 shrink-0 overflow-hidden rounded-lg sm:m-0 sm:aspect-[1.5] sm:w-auto sm:rounded-none">
-                  <PublicProductImage alt={product.name} className="object-cover transition-transform duration-700 group-hover:scale-[1.08]" sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw" src={product.imageUrl || product.images[0]} />
+                  <PublicProductImage alt={product.name} className="object-cover transition-transform duration-700 group-hover:scale-[1.08]" sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw" src={product.imageUrl || product.images[0]} variant="small" />
                   <div data-menu-overlay className="absolute inset-0 hidden bg-gradient-to-t from-[color:var(--background)] via-transparent to-black/10 sm:block" />
                   <div className="absolute left-4 top-4 hidden max-w-[calc(100%-2rem)] truncate rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--background)]/70 px-3 py-1.5 text-xs font-semibold tracking-[0.16em] text-[color:var(--primary-light)] uppercase backdrop-blur sm:block">
                     {categoryLabels.get(product.categoryId)}
@@ -262,10 +250,7 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
                     <button
                       aria-label={isArabic ? `أضف ${product.name} إلى السلة` : `Add ${product.name} to cart`}
                       className="relative z-20 inline-flex size-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full bg-[color:var(--sf-primary)] text-sm font-bold text-[color:var(--sf-on-primary)] transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--sf-primary)] sm:min-h-12 sm:w-auto sm:bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] sm:px-4 sm:text-[color:var(--background)] sm:shadow-[0_18px_48px_rgba(255,122,0,0.3)] sm:hover:-translate-y-0.5"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        addProduct(product);
-                      }}
+                      onClick={() => addProduct(product)}
                       type="button"
                     >
                       <span className="sr-only sm:not-sr-only">{isArabic ? "أضف" : "Add"}</span>
@@ -283,23 +268,6 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
         </div>
       </section>
 
-      {selectedProduct ? (
-        <ProductPreviewModal
-          product={selectedProduct}
-          quantity={previewQuantity}
-          locale={locale}
-          isArabic={isArabic}
-          categoryLabel={categoryLabels.get(selectedProduct.categoryId) ?? ""}
-          currency={restaurant.currency}
-          onClose={() => setSelectedProduct(null)}
-          onDecrease={() => setPreviewQuantity((value) => Math.max(1, value - 1))}
-          onIncrease={() => setPreviewQuantity((value) => value + 1)}
-          onAdd={() => {
-            addProduct(selectedProduct, previewQuantity);
-            setSelectedProduct(null);
-          }}
-        />
-      ) : null}
     </main>
   );
 }

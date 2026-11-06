@@ -107,7 +107,8 @@ test('public restaurant and menu API on savora_test', async (t) => {
       assert.equal(response.headers.get('access-control-allow-credentials'), null);
       assert.equal(response.headers.get('set-cookie'), null);
       const { restaurant } = await response.json();
-      assert.deepEqual(Object.keys(restaurant), ['name', 'slug', 'storefrontTheme', 'description', 'logoUrl',
+      assert.deepEqual(Object.keys(restaurant), ['name', 'slug', 'storefrontTheme', 'heroProduct',
+        'heroProductSelected', 'description', 'logoUrl',
         'currency', 'phone', 'contactEmail', 'address', 'openingHours',
         'deliverySettings', 'socialLinks', 'branding']);
       assert.equal(restaurant.slug, a.slug);

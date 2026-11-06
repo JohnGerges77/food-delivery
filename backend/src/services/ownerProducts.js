@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 import { touchOwnedCategory, withCategoryReferenceTransaction } from './categoryReference.js';
 import { validOwnerImageUrl } from './ownerCategories.js';
 import { createOwnerTenantScope, ownerListFilter, OwnerResourceNotFound } from './ownerTenant.js';
+import { managedMediaId } from './ownerMedia.js';
+import MediaAssetSchema from '../models/MediaAsset.js';
 
 export class InvalidProductInput extends Error {
   constructor() { super('Invalid product input'); }
@@ -61,9 +63,13 @@ export function parseProductInput(body, { create = false, currency = 'EGP' } = {
     } else if (key === 'imageUrl') {
       if (typeof value !== 'string' || value.length > 2048 ||
           !validOwnerImageUrl(value.trim())) invalid();
+      if (value.startsWith('/api/public/restaurants/') &&
+          (create || !managedMediaId(value))) invalid();
     } else if (key === 'images') {
       if (!Array.isArray(value) || value.length > 10 || value.some((url) =>
-        typeof url !== 'string' || url.length > 2048 || !validOwnerImageUrl(url.trim()))) invalid();
+        typeof url !== 'string' || url.length > 2048 || !validOwnerImageUrl(url.trim()) ||
+        (url.startsWith('/api/public/restaurants/') &&
+          (create || !managedMediaId(url))))) invalid();
     } else if (key === 'isAvailable' || key === 'isFeatured') {
       if (typeof value !== 'boolean') invalid();
     } else if (key === 'preparationTime') {
@@ -170,14 +176,27 @@ export async function patchOwnerProduct(connection, auth, id, body) {
   async function update(session) {
     const current = await scope.products.findById(id).session(session);
     if (!current) throw new OwnerResourceNotFound();
+    if (Object.hasOwn(input, 'imageUrl') &&
+        (managedMediaId(input.imageUrl) || managedMediaId(current.imageUrl)) &&
+        input.imageUrl !== current.imageUrl) invalid();
+    if (Object.hasOwn(input, 'images')) {
+      const managed = (urls) => urls.filter(managedMediaId).sort();
+      if (JSON.stringify(managed(input.images)) !==
+          JSON.stringify(managed(current.images ?? []))) invalid();
+    }
     if (Object.hasOwn(input, 'categoryId')) {
       await touchOwnedCategory(Category, auth, input.categoryId, session);
     }
+    const oldImageUrl = current.imageUrl ?? null;
+    const oldImages = Array.from(current.images ?? []);
     for (const [key, value] of Object.entries(input)) current.set(key, value);
     await current.validate();
-    const updated = await Product.findOneAndUpdate(scope.products.idFilter(id),
+    const filter = scope.products.idFilter(id);
+    if (Object.hasOwn(input, 'imageUrl')) filter.imageUrl = oldImageUrl;
+    if (Object.hasOwn(input, 'images')) filter.images = oldImages;
+    const updated = await Product.findOneAndUpdate(filter,
       { $set: input }, { session, returnDocument: 'after', runValidators: true });
-    if (!updated) throw new OwnerResourceNotFound();
+    if (!updated) throw new ProductConflict('Product changed; reload and retry');
     return updated;
   }
   try {
@@ -194,6 +213,13 @@ export async function deleteOwnerProduct(connection, auth, id) {
     if (!deleted) throw new OwnerResourceNotFound();
     if (await Order.exists({ 'items.productId': deleted._id }).session(session)) {
       throw new ProductConflict('Product has orders; mark it unavailable instead');
+    }
+    if (managedMediaId(deleted.imageUrl) || deleted.images?.some(managedMediaId)) {
+      const MediaAsset = connection.models.MediaAsset ??
+        connection.model('MediaAsset', MediaAssetSchema.schema);
+      await MediaAsset.updateMany({ restaurantId: auth.restaurantId,
+        targetKind: { $in: ['product', 'gallery'] }, targetId: deleted._id, status: 'active' },
+      { $set: { status: 'retired' } }, { session });
     }
   });
 }

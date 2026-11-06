@@ -107,7 +107,7 @@ export function currencyDigits(currency: string): number {
 }
 
 export function formatOwnerPrice(value: number, currency: string, locale = "en"): string {
-  return new Intl.NumberFormat(locale === "ar" ? "ar-EG" : "en-US", { style: "currency", currency }).format(value);
+  return new Intl.NumberFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { style: "currency", currency }).format(value);
 }
 
 function validMoneyText(value: string, digits: number): boolean {

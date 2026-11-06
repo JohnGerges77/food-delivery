@@ -13,6 +13,8 @@ import { InvalidOrderInput, OrderStatusConflict } from './services/ownerOrders.j
 import { InvalidAnalyticsQuery } from './services/analyticsPeriod.js';
 import { InvalidPublicRequest, PublicRestaurantNotFound } from './services/publicMenu.js';
 import { CheckoutConflict, CheckoutUnavailable, InvalidCheckout } from './services/guestCheckout.js';
+import { createMediaStorage, storageConfig } from './services/mediaStorage.js';
+import { InvalidMedia, MediaConflict, MediaIndexesUnavailable } from './services/ownerMedia.js';
 
 export function handleApiError(error, _req, res, _next) {
   if (error instanceof InvalidAdminInput) return res.status(400).json({ error: 'Invalid admin input' });
@@ -48,6 +50,9 @@ export function handleApiError(error, _req, res, _next) {
   if (error instanceof ProductConflict) {
     return res.status(409).json({ error: error.message });
   }
+  if (error instanceof InvalidMedia) return res.status(415).json({ error: error.message });
+  if (error instanceof MediaConflict) return res.status(409).json({ error: error.message });
+  if (error instanceof MediaIndexesUnavailable) return res.status(503).json({ error: error.message });
   if (error.type === 'entity.too.large') return res.status(413).json({ error: 'Request too large' });
   if (error.type === 'entity.parse.failed') {
     return res.status(400).json({ error: 'Invalid JSON' });
@@ -58,6 +63,8 @@ export function handleApiError(error, _req, res, _next) {
 export function createApp(options) {
   const app = express();
   const connection = options?.connection ?? mongoose.connection;
+  const mediaStorage = options?.mediaStorage === undefined
+    ? createMediaStorage(storageConfig(options?.env ?? process.env)) : options.mediaStorage;
   app.disable('x-powered-by');
   app.set('trust proxy', options?.trustProxyHops ?? 0);
   app.use((_req, res, next) => {
@@ -69,8 +76,8 @@ export function createApp(options) {
 
   app.use('/api/auth', createAuthRouter(options));
   app.use('/api/admin', createAdminRouter(options));
-  app.use('/api/owner', createOwnerRouter(options));
-  app.use('/api/public', createPublicRouter(options));
+  app.use('/api/owner', createOwnerRouter({ ...options, mediaStorage }));
+  app.use('/api/public', createPublicRouter({ ...options, mediaStorage }));
   app.get('/api/health', (_req, res) => {
     if (connection.readyState !== 1) {
       return res.status(503).json({ status: 'unavailable' });

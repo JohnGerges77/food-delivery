@@ -3,6 +3,7 @@ import { once } from 'node:events';
 import mongoose from 'mongoose';
 import { createApp } from './app.js';
 import { connectDB } from './config/db.js';
+import { storageConfig } from './services/mediaStorage.js';
 
 export function serverConfig(env = process.env) {
   if (Number(process.versions.node.split('.')[0]) !== 24) {
@@ -20,6 +21,7 @@ export function serverConfig(env = process.env) {
     Number(env.TRUST_PROXY_HOPS);
   if (!Number.isSafeInteger(trustProxyHops) || trustProxyHops < 0 ||
       trustProxyHops > 3) throw new Error('TRUST_PROXY_HOPS must be between 0 and 3');
+  storageConfig(env);
   return { mongoUri, allowedOrigins, port,
     secureCookies: env.NODE_ENV === 'production', trustProxyHops };
 }
@@ -29,7 +31,7 @@ export async function startServer({ env = process.env, connect = connectDB,
   const config = serverConfig(env);
   // Validate origin and cookie configuration before contacting MongoDB.
   const app = makeApp({ allowedOrigins: config.allowedOrigins,
-    secureCookies: config.secureCookies, trustProxyHops: config.trustProxyHops });
+    secureCookies: config.secureCookies, trustProxyHops: config.trustProxyHops, env });
   await connect(config.mongoUri);
   const server = app.listen(config.port);
   server.headersTimeout = 15_000;

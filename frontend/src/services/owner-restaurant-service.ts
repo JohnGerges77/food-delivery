@@ -145,6 +145,7 @@ export function validateSettingsForm(form: RestaurantSettingsForm, original: Own
   for (const key of ["logoUrl", "facebook", "instagram"] as const) {
     const value = form[key].trim();
     if (!value) continue;
+    if (key === "logoUrl" && /^\/api\/public\/restaurants\/[a-z0-9-]+\/media\/[0-9a-f]{24}\/large$/.test(value)) continue;
     try {
       const url = new URL(value);
       if (!["http:", "https:"].includes(url.protocol) || !url.hostname || url.username || url.password) throw new Error();

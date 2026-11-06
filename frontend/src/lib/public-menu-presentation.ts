@@ -10,7 +10,7 @@ export function safePublicImage(value: string | null | undefined): string | null
 
 export function publicMoney(amount: number, currency: string, locale: string) {
   try {
-    return new Intl.NumberFormat(locale === "ar" ? "ar-EG" : "en-US",
+    return new Intl.NumberFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US",
       { style: "currency", currency }).format(amount);
   } catch {
     return `${amount} ${currency}`;

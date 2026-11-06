@@ -34,6 +34,7 @@ function validKey(key, allowed) {
 
 function validWebUrl(value) {
   if (value === '') return true;
+  if (/^\/api\/public\/restaurants\/[a-z0-9-]+\/media\/[0-9a-f]{24}\/large$/.test(value)) return true;
   try {
     const url = new URL(value);
     return ['http:', 'https:'].includes(url.protocol) && Boolean(url.hostname) &&
@@ -108,6 +109,11 @@ export async function patchOwnerRestaurant(connection, auth, body) {
     await assertHeroProductEligible(Product, Category, auth.restaurantId, updates.heroProductId);
   }
   const restaurant = await getOwnerRestaurant(connection, auth);
+  if (Object.hasOwn(updates, 'logoUrl') &&
+      (updates.logoUrl.startsWith('/api/public/restaurants/') ||
+       restaurant.logoUrl?.startsWith('/api/public/restaurants/')) &&
+      updates.logoUrl !== restaurant.logoUrl) throw new InvalidRestaurantSettings();
+  const oldLogoUrl = restaurant.logoUrl ?? null;
   for (const [path, value] of Object.entries(updates)) restaurant.set(path, value);
   try {
     await restaurant.validate();
@@ -120,7 +126,8 @@ export async function patchOwnerRestaurant(connection, auth, body) {
   let updated;
   try {
     updated = await Restaurant.findOneAndUpdate(
-      { _id: auth.restaurantId, status: { $ne: 'suspended' } },
+      { _id: auth.restaurantId, status: { $ne: 'suspended' },
+        ...(Object.hasOwn(updates, 'logoUrl') ? { logoUrl: oldLogoUrl } : {}) },
       { $set: updates },
       { returnDocument: 'after', runValidators: true },
     );

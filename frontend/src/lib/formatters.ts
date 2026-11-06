@@ -2,7 +2,7 @@ import { CURRENCY } from "@/lib/constants";
 import type { Locale } from "@/i18n/routing";
 
 function getIntlLocale(locale?: string) {
-  return locale === "ar" ? "ar-EG" : "en-US";
+  return locale === "ar" ? "ar-EG-u-nu-latn" : "en-US";
 }
 
 export function formatCurrency(value: number, locale?: Locale | string) {

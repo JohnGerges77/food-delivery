@@ -5,9 +5,9 @@ import { useId, useState } from "react";
 import type { Breakdown, TrendBucket } from "@/services/owner-analytics-service";
 
 const colors = ["#ff9200", "#67d6c0", "#ffd36d", "#7aaef5", "#b49bf5", "#f08f9c"];
-const number = (n: number, locale: string) => new Intl.NumberFormat(locale === "ar" ? "ar-EG" : "en-US", { maximumFractionDigits: 0 }).format(n);
+const number = (n: number, locale: string) => new Intl.NumberFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { maximumFractionDigits: 0 }).format(n);
 export const money = (n: number, currency: string, locale: string) => {
-  try { return new Intl.NumberFormat(locale === "ar" ? "ar-EG" : "en-US", { style: "currency", currency }).format(n); }
+  try { return new Intl.NumberFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { style: "currency", currency }).format(n); }
   catch { return `${number(n, locale)} ${currency}`; }
 };
 
@@ -20,7 +20,7 @@ export function Sparkline({ points }: { points: { value: number }[] }) {
 
 function bucketLabel(value: string, granularity: "day" | "week" | "month", locale: string) {
   const date = new Date(`${value}T00:00:00.000Z`);
-  return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", {
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", {
     timeZone: "UTC", month: "short", day: granularity === "month" ? undefined : "numeric", year: granularity === "month" ? "numeric" : undefined,
   }).format(date);
 }

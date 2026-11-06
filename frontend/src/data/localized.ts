@@ -82,8 +82,8 @@ export function localizeRestaurant(restaurant: Restaurant, locale?: Locale): Res
     ...restaurant,
     name: "بيسترو سنترال",
     description: "مطعم حي يركز على التوصيل السريع والمأكولات الطازجة المريحة.",
-    address: "٢٢ شارع الجزيرة، القاهرة",
-    openingHours: "١٠:٠٠ صباحًا - ١٢:٠٠ منتصف الليل",
+    address: "22 شارع الجزيرة، القاهرة",
+    openingHours: "10:00 صباحًا - 12:00 منتصف الليل",
   };
 }
 

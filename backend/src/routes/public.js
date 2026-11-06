@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { listPublicCategories, listPublicProducts, resolvePublicRestaurant,
   serializePublicRestaurant } from '../services/publicMenu.js';
 import { createGuestOrder } from '../services/guestCheckout.js';
+import { publicMedia } from '../services/ownerMedia.js';
 
 export function checkoutRateLimit({ limit = 60, windowMs = 60_000 } = {}) {
   const buckets = new Map();
@@ -26,7 +27,7 @@ export function checkoutRateLimit({ limit = 60, windowMs = 60_000 } = {}) {
   };
 }
 
-export function createPublicRouter({ connection = mongoose.connection } = {}) {
+export function createPublicRouter({ connection = mongoose.connection, mediaStorage = null } = {}) {
   const router = express.Router();
 
   router.use((req, res, next) => {
@@ -54,6 +55,17 @@ export function createPublicRouter({ connection = mongoose.connection } = {}) {
   router.get('/restaurants/:slug/products', async (req, res) => {
     const restaurant = await resolvePublicRestaurant(connection, req.params.slug);
     res.json(await listPublicProducts(connection, restaurant, req.query));
+  });
+
+  router.get('/restaurants/:slug/media/:id/:size', async (req, res) => {
+    const restaurant = await resolvePublicRestaurant(connection, req.params.slug);
+    const stream = await publicMedia(connection, mediaStorage, restaurant,
+      req.params.id, req.params.size);
+    if (!stream) return res.status(404).json({ error: 'Not found' });
+    res.set('Content-Type', 'image/webp');
+    res.set('Cache-Control', 'public, max-age=60');
+    stream.on('error', () => res.destroy());
+    stream.pipe(res);
   });
 
   router.post('/restaurants/:slug/orders', checkoutRateLimit(),

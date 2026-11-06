@@ -16,7 +16,7 @@ import ContactSection from "@/components/features/landing/ContactSection";
 import { MenuOrderingPage } from "@/components/features/menu/MenuOrderingPage";
 import { CartOrderingPage } from "@/components/features/cart/CartOrderingPage";
 import { CheckoutOrderingPage } from "@/components/features/checkout/CheckoutOrderingPage";
-import { PublicProductImage } from "./PublicProductImage";
+import { ProductImageGallery } from "./ProductImageGallery";
 import { StorefrontProvider, useStorefront } from "./StorefrontContext";
 import type { StorefrontPage } from "./StorefrontView";
 import { resolveStorefrontTheme, type StorefrontThemeId } from "@/lib/storefront-theme";
@@ -47,7 +47,7 @@ function ProductPage({ product }: { product: PublicProduct }) {
     <div className="mx-auto max-w-7xl">
       <Link className="text-sm font-semibold text-[color:var(--primary-light)] hover:underline" href={href("/menu")}>{isArabic ? "العودة للقائمة" : "Back to menu"}</Link>
       <article className="mt-8 grid gap-8 overflow-hidden rounded-[1.75rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.025)_60%,rgba(255,122,0,.05))] shadow-[0_30px_90px_rgba(0,0,0,.35)] lg:grid-cols-2">
-        <div className="relative aspect-square overflow-hidden"><PublicProductImage alt={product.name} className="object-cover" sizes="(min-width: 1024px) 50vw, 100vw" src={product.imageUrl || product.images[0]} /></div>
+        <div className="relative aspect-square overflow-hidden"><ProductImageGallery product={product} sizes="(min-width: 1024px) 50vw, 100vw" /></div>
         <div className="flex flex-col justify-center p-7 sm:p-10 lg:p-12">
           {category && <p className="text-xs font-semibold uppercase tracking-[.22em] text-[color:var(--gold)]">{category.name}</p>}
           <h1 className="mt-4 text-4xl font-semibold sm:text-6xl">{product.name}</h1>

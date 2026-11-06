@@ -3,6 +3,7 @@ import { afterEach, test } from "node:test";
 import { getAllPublicCategories, getPublicProducts, getPublicRestaurant, findPublicProduct,
   localPreviewSlug, validateStorefrontSlug, PublicMenuError } from "../src/services/public-menu.ts";
 import { publicMoney, safePublicImage } from "../src/lib/public-menu-presentation.ts";
+import { westernDigits } from "../src/lib/western-digits.ts";
 import { resolveStorefrontTheme } from "../src/lib/storefront-theme.ts";
 import { useCartStore } from "../src/store/cart-store.ts";
 
@@ -18,6 +19,20 @@ const restaurant = { name: "Cafe", slug: "cafe", description: null, logoUrl: nul
   deliverySettings: { deliveryFee: 0, minimumOrder: 0, estimatedDeliveryTime: null, deliveryAvailable: false },
   socialLinks: { facebook: null, instagram: null, whatsapp: null },
   branding: { brandName: null, primaryColor: null } };
+
+test("Arabic storefront formatting keeps Western numerals in prices and supplied text", async () => {
+  assert.equal(westernDigits("طلب ١٢٣۴۵٦"), "طلب 123456");
+  assert.match(publicMoney(1234.5, "EGP", "ar"), /1[\s,٬]?234/);
+  assert.doesNotMatch(publicMoney(1234.5, "EGP", "ar"), /[٠-٩۰-۹]/);
+  globalThis.fetch = async () => json({ restaurant: { ...restaurant,
+    name: "مطعم ١٢", address: "شارع ۳", openingHours: "١٠:٣٠",
+    deliverySettings: { ...restaurant.deliverySettings, estimatedDeliveryTime: "٣٠ دقيقة" } } });
+  const displayed = await getPublicRestaurant("cafe");
+  assert.equal(displayed.name, "مطعم 12");
+  assert.equal(displayed.address, "شارع 3");
+  assert.equal(displayed.openingHours, "10:30");
+  assert.equal(displayed.deliverySettings.estimatedDeliveryTime, "30 دقيقة");
+});
 process.env.NEXT_PUBLIC_SAVORA_API_BASE_URL = "http://localhost:5000";
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status });
 afterEach(() => {

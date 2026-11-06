@@ -15,6 +15,7 @@ function BestItemCard({ item, prominent }: { item: PublicProduct; prominent: boo
   return <article className={prominent
     ? "group relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[color:var(--card)]/70 shadow-[0_30px_80px_rgba(0,0,0,0.32)] backdrop-blur transition-transform duration-300 hover:-translate-y-1 lg:row-span-2"
     : "group relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[0.035] shadow-[0_18px_54px_rgba(0,0,0,0.28)] backdrop-blur transition-transform duration-300 hover:-translate-y-1"}>
+    <Link className="absolute inset-0 z-10" href={href(`/menu/${item.id}`)} aria-label={isArabic ? `تفاصيل ${item.name}` : `Details for ${item.name}`} />
     <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"><div className="absolute -right-20 top-10 size-52 rounded-full bg-[color:var(--primary)]/20 blur-3xl" /></div>
     <div className={prominent ? "relative aspect-[4/5] overflow-hidden sm:aspect-[16/11] lg:aspect-auto lg:h-[34rem]" : "relative aspect-[16/11] overflow-hidden"}>
       <PublicProductImage alt={item.name} className="object-cover transition-transform duration-700 group-hover:scale-110" sizes={prominent ? "(min-width: 1024px) 44vw, 100vw" : "(min-width: 1024px) 28vw, (min-width: 640px) 50vw, 100vw"} src={item.imageUrl || item.images[0]} />
@@ -25,7 +26,7 @@ function BestItemCard({ item, prominent }: { item: PublicProduct; prominent: boo
       <div className="mb-3 flex items-center gap-3 text-[0.68rem] font-semibold tracking-[0.2em] text-[color:var(--gold)] uppercase"><span className="h-px w-8 bg-[color:var(--primary)]/70" />{category?.name}</div>
       <div className="flex items-start justify-between gap-5"><h3 className={prominent ? "text-3xl font-semibold text-[color:var(--text)] sm:text-4xl" : "text-xl font-semibold text-[color:var(--text)]"}>{item.name}</h3><span className="rounded-full bg-[color:var(--primary)]/10 px-3 py-1 text-sm font-bold text-[color:var(--primary-light)]">{publicMoney(item.price, restaurant.currency, locale)}</span></div>
       {item.description && <p className={prominent ? "mt-4 max-w-xl text-base leading-8 text-[color:var(--text-muted)]" : "mt-3 text-sm leading-6 text-[color:var(--text-muted)]"}>{item.description}</p>}
-      <Link className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--primary-light)] transition-colors duration-300 hover:text-[color:var(--text)]" href={href(`/menu/${item.id}`)}>{isArabic ? "عرض الطبق" : "View Item"}<span className="transition-transform duration-300 group-hover:translate-x-1">-&gt;</span></Link>
+      <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--primary-light)] transition-colors duration-300 hover:text-[color:var(--text)]">{isArabic ? "عرض الطبق" : "View Item"}<span className="transition-transform duration-300 group-hover:translate-x-1">-&gt;</span></span>
     </div>
   </article>;
 }

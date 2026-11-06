@@ -5,6 +5,7 @@ import { ArrowUpRight, Languages, ShoppingBag, Plus } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { MenuOrderingPage } from "@/components/features/menu/MenuOrderingPage";
 import { PublicProductImage } from "../PublicProductImage";
+import { ProductImageGallery } from "../ProductImageGallery";
 import { useStorefront } from "../StorefrontContext";
 import { publicMoney, safePublicImage } from "@/lib/public-menu-presentation";
 import { useCartStore } from "@/store/cart-store";
@@ -26,7 +27,7 @@ export function AquaNavbar() {
   ];
   return <nav className={styles.nav} aria-label={locale === "ar" ? "التنقل الرئيسي" : "Main navigation"}>
     <div className={styles.navInner}>
-      <Link href={href("/")} className={styles.wordmark} aria-label={restaurant.name}>{restaurant.name}</Link>
+      <Link href={href("/")} className={styles.wordmark} aria-label={restaurant.name}>{restaurant.logoUrl && <span className="relative me-2 inline-block size-8 align-middle"><PublicProductImage src={restaurant.logoUrl} alt={restaurant.name} className="object-contain" sizes="32px" /></span>}{restaurant.name}</Link>
       <div className={styles.navLinks}>{links.map(({ path, label }) => {
         const active = path === "/" ? pathname === href("/") : path.includes("#") ? false : pathname === href(path) || pathname.startsWith(`${href(path)}/`);
         return <Link key={path} href={href(path)} aria-current={active ? "page" : undefined} className={styles.navLink}>{label}</Link>;
@@ -76,9 +77,10 @@ export function AquaHome({ restaurant, initialProducts }: { restaurant: PublicRe
     </section>}
     {showcase.length > 0 && <section className={styles.showcase} id="featured">
       <div className={styles.sectionHead}><h2>{ar ? "أطباق من قائمتنا" : "From our kitchen"}</h2><Link href={href("/menu")}>{ar ? "كل الأطباق" : "Full menu"}<ArrowUpRight size={17} aria-hidden="true" /></Link></div>
-      <div className={styles.showcaseGrid}>{showcase.map((product) => <article key={product.id} className={styles.showcaseItem}>
-        <Link href={href(`/menu/${product.id}`)} className={styles.showcasePhoto}><FoodImage product={product} sizes="(min-width: 768px) 50vw, 100vw" /></Link>
-        <div className={styles.showcaseCaption}><div><h3><Link href={href(`/menu/${product.id}`)}>{product.name}</Link></h3>{product.description && <p>{product.description}</p>}</div><strong>{publicMoney(product.price, restaurant.currency, locale)}</strong></div>
+      <div className={styles.showcaseGrid}>{showcase.map((product) => <article key={product.id} className={`${styles.showcaseItem} relative`}>
+        <Link href={href(`/menu/${product.id}`)} className="absolute inset-0 z-10" aria-label={ar ? `تفاصيل ${product.name}` : `Details for ${product.name}`} />
+        <div className={styles.showcasePhoto}><FoodImage product={product} sizes="(min-width: 768px) 50vw, 100vw" /></div>
+        <div className={styles.showcaseCaption}><div><h3>{product.name}</h3>{product.description && <p>{product.description}</p>}</div><strong>{publicMoney(product.price, restaurant.currency, locale)}</strong></div>
       </article>)}</div>
     </section>}
     <section className={styles.information} id="contact">
@@ -100,7 +102,7 @@ export function AquaProduct({ product }: { product: PublicProduct }) {
   const { restaurant, categories, href } = useStorefront();
   const add = useCartStore((state) => state.addPublicItem);
   const category = categories.find((item) => item.id === product.categoryId);
-  return <main className={styles.productPage}><Link className={styles.backLink} href={href("/menu")}>{ar ? "العودة للقائمة" : "Back to menu"}</Link><article className={styles.productLayout}><div className={styles.productPhoto}><FoodImage product={product} sizes="(min-width: 800px) 50vw, 100vw" /></div><div className={styles.productCopy}>{category && <p className={styles.categoryName}>{category.name}</p>}<h1>{product.name}</h1>{product.description && <p>{product.description}</p>}<strong>{publicMoney(product.price, restaurant.currency, locale)}</strong>{product.preparationTime !== null && <span>{ar ? "وقت التحضير" : "Preparation time"}: {product.preparationTime} {ar ? "دقيقة" : "min"}</span>}<button type="button" className={styles.primaryAction} onClick={() => add(restaurant.slug, product)}>{ar ? "أضف إلى السلة" : "Add to cart"}<Plus size={19} aria-hidden="true" /></button></div></article></main>;
+  return <main className={styles.productPage}><Link className={styles.backLink} href={href("/menu")}>{ar ? "العودة للقائمة" : "Back to menu"}</Link><article className={styles.productLayout}><div className={styles.productPhoto}><ProductImageGallery product={product} sizes="(min-width: 800px) 50vw, 100vw" className={styles.foodImage} /></div><div className={styles.productCopy}>{category && <p className={styles.categoryName}>{category.name}</p>}<h1>{product.name}</h1>{product.description && <p>{product.description}</p>}<strong>{publicMoney(product.price, restaurant.currency, locale)}</strong>{product.preparationTime !== null && <span>{ar ? "وقت التحضير" : "Preparation time"}: {product.preparationTime} {ar ? "دقيقة" : "min"}</span>}<button type="button" className={styles.primaryAction} onClick={() => add(restaurant.slug, product)}>{ar ? "أضف إلى السلة" : "Add to cart"}<Plus size={19} aria-hidden="true" /></button></div></article></main>;
 }
 
 export function AquaAbout() {

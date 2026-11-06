@@ -10,6 +10,8 @@ import { getOwnerOrder, listOwnerOrders, patchOwnerOrderStatus } from '../servic
 import { parseAnalyticsQuery } from '../services/analyticsPeriod.js';
 import { ownerActivity, ownerBreakdowns, ownerOverview,
   ownerTopProducts, ownerTrends } from '../services/ownerAnalytics.js';
+import { cleanupRetiredMedia, deleteOwnerImage, replaceOwnerImage, requireMediaIndexes } from '../services/ownerMedia.js';
+import MediaAssetSchema from '../models/MediaAsset.js';
 
 export function serializeOwnerRestaurant(restaurant) {
   return {
@@ -45,7 +47,7 @@ export function serializeOwnerRestaurant(restaurant) {
 
 export function createOwnerRouter({ connection = mongoose.connection,
   allowedOrigins = process.env.AUTH_TRUSTED_ORIGINS,
-  secureCookies = process.env.NODE_ENV === 'production' } = {}) {
+  secureCookies = process.env.NODE_ENV === 'production', mediaStorage = null } = {}) {
   const router = express.Router();
   const { cors, trustedMutationOrigin } = createAuthGuards({ allowedOrigins, secureCookies });
   router.use(cors);
@@ -115,6 +117,54 @@ export function createOwnerRouter({ connection = mongoose.connection,
   router.delete('/products/:id', trustedMutationOrigin, requireOwnerCsrf,
     async (req, res) => {
       await deleteOwnerProduct(connection, req.auth, req.params.id);
+      if (mediaStorage) {
+        try { await cleanupRetiredMedia(connection, mediaStorage, req.auth.restaurantId); }
+        catch { /* A tombstone remains for reconciliation. */ }
+      }
+      res.status(204).end();
+    });
+
+  const mediaBody = express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: '4mb' });
+  router.get('/media/capabilities', async (_req, res) => {
+    res.set('Cache-Control', 'no-store');
+    if (!mediaStorage) return res.json({ available: false });
+    try {
+      const model = connection.models.MediaAsset ?? connection.model('MediaAsset', MediaAssetSchema.schema);
+      await requireMediaIndexes(model);
+      return res.json({ available: true });
+    } catch { return res.json({ available: false }); }
+  });
+  const requireMediaStorage = (_req, res, next) => mediaStorage ? next() :
+    res.status(503).json({ error: 'Media storage is not configured' });
+  router.put('/media/products/:id', trustedMutationOrigin, requireOwnerCsrf,
+    requireMediaStorage, mediaBody, async (req, res) => {
+      res.json(await replaceOwnerImage(connection, req.auth, mediaStorage,
+        'product', req.params.id, req.body, req.get('Content-Type')));
+    });
+  router.delete('/media/products/:id', trustedMutationOrigin, requireOwnerCsrf,
+    requireMediaStorage, async (req, res) => {
+      await deleteOwnerImage(connection, req.auth, mediaStorage, 'product', req.params.id);
+      res.status(204).end();
+    });
+  router.put('/media/products/:id/images', trustedMutationOrigin, requireOwnerCsrf,
+    requireMediaStorage, mediaBody, async (req, res) => {
+      res.json(await replaceOwnerImage(connection, req.auth, mediaStorage,
+        'gallery', req.params.id, req.body, req.get('Content-Type')));
+    });
+  router.delete('/media/products/:id/images/:assetId', trustedMutationOrigin, requireOwnerCsrf,
+    requireMediaStorage, async (req, res) => {
+      await deleteOwnerImage(connection, req.auth, mediaStorage, 'gallery',
+        req.params.id, req.params.assetId);
+      res.status(204).end();
+    });
+  router.put('/media/logo', trustedMutationOrigin, requireOwnerCsrf,
+    requireMediaStorage, mediaBody, async (req, res) => {
+      res.json(await replaceOwnerImage(connection, req.auth, mediaStorage,
+        'logo', req.auth.restaurantId, req.body, req.get('Content-Type')));
+    });
+  router.delete('/media/logo', trustedMutationOrigin, requireOwnerCsrf,
+    requireMediaStorage, async (req, res) => {
+      await deleteOwnerImage(connection, req.auth, mediaStorage, 'logo', req.auth.restaurantId);
       res.status(204).end();
     });
 
