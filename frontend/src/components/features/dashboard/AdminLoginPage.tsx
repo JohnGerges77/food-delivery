@@ -15,11 +15,13 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { FormEvent, useEffect, useState } from "react";
+import { useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { ApiError } from "@/services/api-client";
 import { useAuthStore } from "@/store/auth-store";
+import { ownerText } from "./owner-copy";
 
 const features = [
   { label: "Manage Orders", icon: ShoppingBag },
@@ -48,6 +50,7 @@ const formItem = {
 };
 
 export function AdminLoginPage() {
+  const locale = useLocale();
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const [showPassword, setShowPassword] = useState(false);
@@ -67,7 +70,7 @@ export function AdminLoginPage() {
     const email = String(data.get("email") ?? "").trim();
     const password = String(data.get("password") ?? "");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 12 || password.length > 128) {
-      setError("Enter a valid email and password.");
+      setError(ownerText(locale, "Enter a valid email and password."));
       return;
     }
     setSubmitting(true);
@@ -76,9 +79,9 @@ export function AdminLoginPage() {
       await login(email, password);
       router.replace(routes.dashboard);
     } catch (cause) {
-      setError(cause instanceof ApiError && cause.status === 429 ? "Too many attempts. Please try again later." :
+      setError(ownerText(locale, cause instanceof ApiError && cause.status === 429 ? "Too many attempts. Please try again later." :
         cause instanceof ApiError && cause.status === null ? "Cannot reach the server. Please try again." :
-        "Unable to sign in. Check your credentials and try again.");
+        "Unable to sign in. Check your credentials and try again."));
     } finally {
       setSubmitting(false);
     }
@@ -126,21 +129,21 @@ export function AdminLoginPage() {
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-[color:var(--primary-light)] opacity-70" />
               <span className="relative inline-flex size-2 rounded-full bg-[color:var(--primary)]" />
             </span>
-            Savora Admin Portal
+            {ownerText(locale, "Savora Admin Portal")}
           </div>
 
           <div className="my-auto max-w-2xl py-14">
             <p className="mb-5 text-xs font-semibold tracking-[0.28em] text-[color:var(--gold)] uppercase">
-              Restaurant operations, refined
+              {ownerText(locale, "Restaurant operations, refined")}
             </p>
             <h1 className="max-w-xl text-5xl leading-[1.02] font-semibold tracking-[-0.04em] text-balance xl:text-7xl">
-              Manage Your Restaurant
+              {ownerText(locale, "Manage Your Restaurant")}
               <span className="mt-2 block bg-gradient-to-r from-[color:var(--primary-light)] via-[#ffc06f] to-[color:var(--gold)] bg-clip-text text-transparent">
-                With Confidence
+                {ownerText(locale, "With Confidence")}
               </span>
             </h1>
             <p className="mt-7 max-w-xl text-base leading-8 text-[color:var(--text-muted)] xl:text-lg">
-              Monitor orders, manage products, update menus, and keep your restaurant running smoothly from one powerful dashboard.
+              {ownerText(locale, "Monitor orders, manage products, update menus, and keep your restaurant running smoothly from one powerful dashboard.")}
             </p>
 
             <div className="mt-9 grid gap-3">
@@ -155,7 +158,7 @@ export function AdminLoginPage() {
                   <span className="grid size-8 place-items-center rounded-xl bg-[color:var(--primary)]/12 text-[color:var(--primary-light)]">
                     <Icon aria-hidden="true" size={16} />
                   </span>
-                  {label}
+                  {ownerText(locale, label)}
                   <Check aria-hidden="true" className="ml-2 text-[color:var(--primary)]" size={15} />
                 </motion.div>
               ))}
@@ -167,7 +170,7 @@ export function AdminLoginPage() {
               <div className="border-r border-white/10 px-4 py-5 last:border-0 xl:px-6" key={stat.label}>
                 <div className="text-2xl font-semibold text-[color:var(--text)] xl:text-3xl">{stat.value}</div>
                 <div className="mt-1.5 text-[0.62rem] font-semibold tracking-[0.13em] text-[color:var(--text-muted)] uppercase xl:text-[0.68rem]">
-                  {stat.label}
+                  {ownerText(locale, stat.label)}
                 </div>
               </div>
             ))}
@@ -198,45 +201,45 @@ export function AdminLoginPage() {
                 </div>
                 <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/[0.07] px-3 py-2 text-[0.62rem] font-bold tracking-[0.16em] text-emerald-300 uppercase">
                   <ShieldCheck aria-hidden="true" size={13} />
-                  Secure Access
+                  {ownerText(locale, "Secure Access")}
                 </span>
               </motion.div>
 
               <motion.div className="mt-7" variants={formItem}>
-                <h2 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">Welcome Back</h2>
+                <h2 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">{ownerText(locale, "Welcome Back")}</h2>
                 <p className="mt-3 text-sm leading-6 text-[color:var(--text-muted)] sm:text-base">
-                  Sign in to access your restaurant dashboard.
+                  {ownerText(locale, "Sign in to access your restaurant dashboard.")}
                 </p>
               </motion.div>
 
               <motion.div className="mt-8" variants={formItem}>
-                <label className="mb-2.5 block text-xs font-semibold tracking-[0.14em] text-[color:var(--text-muted)] uppercase" htmlFor="admin-email">Email</label>
+                <label className="mb-2.5 block text-xs font-semibold tracking-[0.14em] text-[color:var(--text-muted)] uppercase" htmlFor="admin-email">{ownerText(locale, "Email")}</label>
                 <div className="group relative">
-                  <Mail aria-hidden="true" className="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)] transition-colors group-focus-within:text-[color:var(--primary-light)]" size={18} />
-                  <input className="h-14 w-full rounded-2xl border border-[color:var(--border)] bg-[color:var(--glass)] pl-12 pr-4 text-sm text-[color:var(--text)] outline-none transition-all placeholder:text-[color:var(--text-muted)]/50 hover:border-[color:var(--primary)]/30 focus:border-[color:var(--primary)]/55 focus:bg-[color:var(--glass-strong)] focus:shadow-[0_0_0_4px_rgba(255,122,0,0.08),0_10px_35px_rgba(0,0,0,0.12)]" id="admin-email" name="email" placeholder="admin@savora.com" type="email" autoComplete="email" maxLength={254} required />
+                  <Mail aria-hidden="true" className="absolute start-4 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)] transition-colors group-focus-within:text-[color:var(--primary-light)]" size={18} />
+                  <input className="h-14 w-full rounded-2xl border border-[color:var(--border)] bg-[color:var(--glass)] ps-12 pe-4 text-sm text-[color:var(--text)] outline-none transition-all placeholder:text-[color:var(--text-muted)]/50 hover:border-[color:var(--primary)]/30 focus:border-[color:var(--primary)]/55 focus:bg-[color:var(--glass-strong)] focus:shadow-[0_0_0_4px_rgba(255,122,0,0.08),0_10px_35px_rgba(0,0,0,0.12)]" id="admin-email" name="email" placeholder="admin@savora.com" type="email" autoComplete="email" maxLength={254} required />
                 </div>
               </motion.div>
 
               <motion.div className="mt-5" variants={formItem}>
-                <label className="mb-2.5 block text-xs font-semibold tracking-[0.14em] text-[color:var(--text-muted)] uppercase" htmlFor="admin-password">Password</label>
+                <label className="mb-2.5 block text-xs font-semibold tracking-[0.14em] text-[color:var(--text-muted)] uppercase" htmlFor="admin-password">{ownerText(locale, "Password")}</label>
                 <div className="group relative">
-                  <LockKeyhole aria-hidden="true" className="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)] transition-colors group-focus-within:text-[color:var(--primary-light)]" size={18} />
-                  <input className="h-14 w-full rounded-2xl border border-[color:var(--border)] bg-[color:var(--glass)] pl-12 pr-12 text-sm text-[color:var(--text)] outline-none transition-all placeholder:text-[color:var(--text-muted)]/50 hover:border-[color:var(--primary)]/30 focus:border-[color:var(--primary)]/55 focus:bg-[color:var(--glass-strong)] focus:shadow-[0_0_0_4px_rgba(255,122,0,0.08),0_10px_35px_rgba(0,0,0,0.12)]" id="admin-password" name="password" placeholder="Enter your password" type={showPassword ? "text" : "password"} autoComplete="current-password" minLength={12} maxLength={128} required />
-                  <button aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-xl text-[color:var(--text-muted)] transition-colors hover:bg-white/[0.06] hover:text-white" onClick={() => setShowPassword((visible) => !visible)} type="button">
+                  <LockKeyhole aria-hidden="true" className="absolute start-4 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)] transition-colors group-focus-within:text-[color:var(--primary-light)]" size={18} />
+                  <input className="h-14 w-full rounded-2xl border border-[color:var(--border)] bg-[color:var(--glass)] px-12 text-sm text-[color:var(--text)] outline-none transition-all placeholder:text-[color:var(--text-muted)]/50 hover:border-[color:var(--primary)]/30 focus:border-[color:var(--primary)]/55 focus:bg-[color:var(--glass-strong)] focus:shadow-[0_0_0_4px_rgba(255,122,0,0.08),0_10px_35px_rgba(0,0,0,0.12)]" id="admin-password" name="password" placeholder={ownerText(locale, "Enter your password")} type={showPassword ? "text" : "password"} autoComplete="current-password" minLength={12} maxLength={128} required />
+                  <button aria-label={ownerText(locale, showPassword ? "Hide password" : "Show password")} className="absolute end-3 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-xl text-[color:var(--text-muted)] transition-colors hover:bg-white/[0.06] hover:text-white" onClick={() => setShowPassword((visible) => !visible)} type="button">
                     {showPassword ? <EyeOff aria-hidden="true" size={17} /> : <Eye aria-hidden="true" size={17} />}
                   </button>
                 </div>
               </motion.div>
 
-              {error ? <p className="mt-5 text-sm text-red-300" role="alert">{error}</p> : null}
+              {error ? <p className="mt-5 text-sm text-red-300" role="alert">{ownerText(locale, error)}</p> : null}
 
               <motion.button className="group mt-7 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[color:var(--primary)] to-[color:var(--primary-light)] text-sm font-bold tracking-[0.04em] text-[color:var(--background)] shadow-[0_18px_46px_rgba(255,122,0,0.3)] transition-shadow hover:shadow-[0_22px_58px_rgba(255,122,0,0.48)] disabled:opacity-60" type="submit" disabled={submitting || status === "loading"} variants={formItem} whileHover={reduceMotion ? undefined : { y: -3, scale: 1.01 }} whileTap={reduceMotion ? undefined : { scale: 0.985 }}>
-                {submitting ? "Signing in…" : "Login"}
+                {ownerText(locale, submitting ? "Signing in…" : "Login")}
                 <ArrowRight aria-hidden="true" className="transition-transform group-hover:translate-x-1" size={18} />
               </motion.button>
 
               <motion.p className="mt-7 text-center text-xs leading-5 text-[color:var(--text-muted)]/60" variants={formItem}>
-                Protected by Savora secure administration services.
+                {ownerText(locale, "Protected by Savora secure administration services.")}
               </motion.p>
             </motion.form>
           </motion.div>

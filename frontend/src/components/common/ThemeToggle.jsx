@@ -2,10 +2,12 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
+import { useLocale } from "next-intl";
+import { ownerText } from "@/components/features/dashboard/owner-copy";
 
 export function ThemeToggle({ className = "" }) {
   const { isLight, toggleTheme } = useTheme();
-  const label = isLight ? "Switch to dark mode" : "Switch to light mode";
+  const label = ownerText(useLocale(), isLight ? "Switch to dark mode" : "Switch to light mode");
 
   return (
     <button

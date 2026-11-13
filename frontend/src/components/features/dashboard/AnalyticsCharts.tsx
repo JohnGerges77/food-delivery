@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { useId, useState } from "react";
+import { chartSummary, chartTotalOrders, ownerText } from "./owner-copy";
 import type { Breakdown, TrendBucket } from "@/services/owner-analytics-service";
 
 const colors = ["#ff9200", "#67d6c0", "#ffd36d", "#7aaef5", "#b49bf5", "#f08f9c"];
@@ -42,11 +43,11 @@ export function AreaChart({ rows, granularity, locale, currency, kind }: {
   const area = (key: typeof series[number]["key"]) => rows.length ? `${line(key)} L${x(rows.length - 1)} 226 L${x(0)} 226 Z` : "";
   const selected = active === null ? null : rows[active];
   const sample = rows.length <= 5 ? rows : rows.filter((_, i) => i === 0 || i === rows.length - 1 || i % Math.max(1, Math.floor(rows.length / 4)) === 0);
-  return <div className="relative mt-6" aria-label={kind === "orders" ? "Orders performance chart" : "Delivered order value chart"} role="group">
+  return <div className="relative mt-6" aria-label={kind === "orders" ? ownerText(locale, "Orders performance chart") : ownerText(locale, "Delivered order value chart")} role="group">
     <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-[color:var(--text-muted)]">
       {series.map((item) => <span key={item.key} className="inline-flex items-center gap-2"><i className="size-2 rounded-full" style={{ backgroundColor: item.color }} />{item.label}</span>)}
     </div>
-    <svg className="mt-2 h-64 w-full overflow-visible" viewBox="0 0 740 258" preserveAspectRatio="none" role="img" aria-label={`${rows.length} UTC ${granularity} buckets. ${series.map((s) => `${s.label}: ${rows.reduce((sum, r) => sum + r[s.key], 0)}`).join("; ")}`}>
+    <svg className="mt-2 h-64 w-full overflow-visible" viewBox="0 0 740 258" preserveAspectRatio="none" role="img" aria-label={chartSummary(locale, rows.length, granularity, series.map((s) => `${s.label}: ${rows.reduce((sum, r) => sum + r[s.key], 0)}`).join("; "))}>
       <defs>{series.map((s) => <linearGradient id={`${id}-${s.key}`} x1="0" x2="0" y1="0" y2="1" key={s.key}><stop offset="0%" stopColor={s.color} stopOpacity=".32" /><stop offset="100%" stopColor={s.color} stopOpacity=".015" /></linearGradient>)}</defs>
       {[0, 0.25, 0.5, 0.75, 1].map((step) => <g key={step}><line x1="44" x2="696" y1={y(max * step)} y2={y(max * step)} stroke="rgba(255,255,255,.11)" strokeDasharray="3 5" /><text x="38" y={y(max * step) + 4} textAnchor="end" fill="#a9a29b" fontSize="11">{kind === "value" ? number(max * step, locale) : number(Math.round(max * step), locale)}</text></g>)}
       {series.map((s) => <g key={s.key}><motion.path d={area(s.key)} fill={`url(#${id}-${s.key})`} initial={reducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} /><motion.path d={line(s.key)} fill="none" stroke={s.color} strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" initial={reducedMotion ? false : { pathLength: 0, opacity: 0 }} animate={{ pathLength: 1, opacity: 1 }} transition={{ duration: 0.55, ease: "easeOut" }} /></g>)}
@@ -66,7 +67,7 @@ export function DonutChart({ slices, total, locale, labels }: { slices: Breakdow
   const [active, setActive] = useState<string | null>(null);
   return <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row sm:items-center">
     <div className="relative size-44 shrink-0">
-      <svg viewBox="0 0 180 180" className="size-full -rotate-90" role="img" aria-label={`${number(total, locale)} total orders`}>
+      <svg viewBox="0 0 180 180" className="size-full -rotate-90" role="img" aria-label={chartTotalOrders(locale, number(total, locale))}>
         <circle cx="90" cy="90" r="68" stroke="rgba(255,255,255,.08)" strokeWidth="17" fill="none" />
         {slices.map((s, i) => { const length = total ? (s.count / total) * 427 : 0; const start = total ? slices.slice(0, i).reduce((sum, item) => sum + item.count, 0) / total * 427 : 0; return length ? <circle key={s.key} cx="90" cy="90" r="68" fill="none" stroke={colors[i]} strokeWidth="17" strokeDasharray={`${Math.max(0, length - 2)} ${427 - Math.max(0, length - 2)}`} strokeDashoffset={-start} strokeLinecap="round" tabIndex={0} role="button" aria-label={`${labels[s.key]}: ${number(s.count, locale)} (${s.percentage}%)`} onFocus={() => setActive(s.key)} onBlur={() => setActive(null)} onMouseEnter={() => setActive(s.key)} onMouseLeave={() => setActive(null)} onClick={() => setActive(active === s.key ? null : s.key)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setActive(s.key); } }} /> : null; })}
       </svg>

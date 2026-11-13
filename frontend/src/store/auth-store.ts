@@ -14,6 +14,7 @@ interface AuthState {
   status: AuthStatus;
   context: OwnerAuth | null;
   restore: () => Promise<void>;
+  revalidate: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateRestaurantSummary: (restaurant: OwnerAuth["restaurant"]) => void;
@@ -22,7 +23,7 @@ interface AuthState {
 let pendingRestore: Promise<void> | null = null;
 let generation = 0;
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   status: "loading",
   context: null,
   updateRestaurantSummary: (restaurant) => set((state) =>
@@ -30,7 +31,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       ? { context: { ...state.context, restaurant } }
       : state),
   restore: () => {
-    if (pendingRestore) return pendingRestore;
+    if (pendingRestore) {
+      const current = ++generation;
+      const previous = pendingRestore;
+      set({ status: "loading", context: null });
+      return previous.then(() => current === generation ? get().restore() : undefined);
+    }
     const current = ++generation;
     set({ status: "loading", context: null });
     pendingRestore = (async () => {
@@ -41,6 +47,27 @@ export const useAuthStore = create<AuthState>((set) => ({
         if (current !== generation) return;
         clearCsrfToken();
         set({ status: error instanceof ApiError && error.status === 401 ? "unauthenticated" : "unavailable", context: null });
+      }
+    })().finally(() => { pendingRestore = null; });
+    return pendingRestore;
+  },
+  revalidate: () => {
+    if (pendingRestore) return pendingRestore;
+    if (get().status !== "authenticated") return get().restore();
+    const current = ++generation;
+    pendingRestore = (async () => {
+      try {
+        const context = await restoreOwner();
+        if (current === generation) set({ status: "authenticated", context });
+      } catch (error) {
+        if (current !== generation) return;
+        if (error instanceof ApiError && error.status === 401) {
+          clearCsrfToken();
+          set({ status: "unauthenticated", context: null });
+        } else if (get().status !== "authenticated") {
+          clearCsrfToken();
+          set({ status: "unavailable", context: null });
+        }
       }
     })().finally(() => { pendingRestore = null; });
     return pendingRestore;

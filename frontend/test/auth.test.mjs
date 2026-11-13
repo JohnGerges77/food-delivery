@@ -63,6 +63,77 @@ test("session restoration maps /me, and expired session hides owner context", as
   assert.equal(useAuthStore.getState().context, null);
 });
 
+test("background session revalidation keeps the authenticated shell mounted and deduplicates requests", async () => {
+  useAuthStore.setState({ status: "authenticated", context });
+  let resolveRequest;
+  let calls = 0;
+  globalThis.fetch = async () => { calls++; return new Promise((resolve) => { resolveRequest = resolve; }); };
+  const first = useAuthStore.getState().revalidate();
+  const second = useAuthStore.getState().revalidate();
+  assert.equal(calls, 1);
+  assert.equal(useAuthStore.getState().status, "authenticated");
+  assert.deepEqual(useAuthStore.getState().context, context);
+  resolveRequest(json(context));
+  await Promise.all([first, second]);
+  assert.equal(useAuthStore.getState().status, "authenticated");
+});
+
+test("background revalidation revokes expired sessions and cannot undo logout", async () => {
+  useAuthStore.setState({ status: "authenticated", context });
+  globalThis.fetch = async () => json({ error: "Unauthorized" }, 401);
+  await useAuthStore.getState().revalidate();
+  assert.equal(useAuthStore.getState().status, "unauthenticated");
+  assert.equal(useAuthStore.getState().context, null);
+
+  useAuthStore.setState({ status: "authenticated", context });
+  let finish;
+  globalThis.fetch = async (url) => {
+    if (url.endsWith('/me')) return new Promise((resolve) => { finish = resolve; });
+    if (url.endsWith('/csrf')) return json({ csrfToken: token });
+    return new Response(null, { status: 204 });
+  };
+  const pending = useAuthStore.getState().revalidate();
+  await useAuthStore.getState().logout();
+  finish(json(context));
+  await pending;
+  assert.equal(useAuthStore.getState().status, "unauthenticated");
+  assert.equal(useAuthStore.getState().context, null);
+});
+
+test("a protected API rejection supersedes an older successful background check", async () => {
+  useAuthStore.setState({ status: "authenticated", context });
+  let finish;
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls++;
+    return calls === 1 ? new Promise((resolve) => { finish = resolve; }) : json({ error: "Unauthorized" }, 401);
+  };
+  const background = useAuthStore.getState().revalidate();
+  const forced = useAuthStore.getState().restore();
+  assert.equal(useAuthStore.getState().status, "loading");
+  finish(json(context));
+  await Promise.all([background, forced]);
+  assert.equal(calls, 2);
+  assert.equal(useAuthStore.getState().status, "unauthenticated");
+  assert.equal(useAuthStore.getState().context, null);
+});
+
+test("temporary background network errors preserve an already validated session", async () => {
+  useAuthStore.setState({ status: "authenticated", context });
+  globalThis.fetch = async () => { throw new TypeError("offline"); };
+  await useAuthStore.getState().revalidate();
+  assert.equal(useAuthStore.getState().status, "authenticated");
+  assert.deepEqual(useAuthStore.getState().context, context);
+});
+
+test("a generic background 403 does not claim that the owner session expired", async () => {
+  useAuthStore.setState({ status: "authenticated", context });
+  globalThis.fetch = async () => json({ error: "Forbidden" }, 403);
+  await useAuthStore.getState().revalidate();
+  assert.equal(useAuthStore.getState().status, "authenticated");
+  assert.deepEqual(useAuthStore.getState().context, context);
+});
+
 test("protected dashboard waits, redirects unauthenticated users, and shows authenticated users", () => {
   assert.equal(dashboardAccess("loading", false), "wait");
   assert.equal(dashboardAccess("unavailable", false), "wait");

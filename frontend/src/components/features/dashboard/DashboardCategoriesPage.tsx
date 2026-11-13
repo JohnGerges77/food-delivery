@@ -11,6 +11,7 @@ import { categoryPatch, categoryToForm, categoryWrite, createOwnerCategory, dele
 import { useAuthStore } from "@/store/auth-store";
 import { CatalogImage } from "./CatalogImage";
 import { CatalogToast } from "./CatalogToast";
+import { ownerText } from "./owner-copy";
 import { ActionButton, DashboardCard, DashboardModal, DashboardPageHeader, SearchInput, StatusBadge, inputClass, textareaClass } from "./DashboardUI";
 
 const limit = 12;
@@ -58,18 +59,18 @@ function CategoryEditor() {
     }).catch((error: unknown) => {
       if (cancelled) return;
       if (error instanceof ApiError && error.status === 401) { void restore(); return; }
-      setLoadError(ownerCatalogError(error, "Could not load categories. Retry when the connection is available."));
+      setLoadError(ownerCatalogError(error, ownerText(ar ? "ar" : "en", "Could not load categories. Retry when the connection is available.")));
       setLoading(false);
     });
     return () => { cancelled = true; };
-  }, [page, sort, revision, restore]);
+  }, [page, sort, revision, restore, ar]);
 
   function refresh() { setLoading(true); setLoadError(""); setRevision((value) => value + 1); }
   function changePage(next: number) { setLoading(true); setLoadError(""); setPage(next); }
   function changeSort(next: CategorySort) { setLoading(true); setLoadError(""); setPage(1); setSort(next); }
   function failure(error: unknown, fallback: string) {
     if (error instanceof ApiError && error.status === 401) { void restore(); return ""; }
-    return ar ? "تعذّر إكمال العملية. راجع الاتصال وحاول مرة أخرى." : ownerCatalogError(error, fallback);
+    return ownerText(ar ? "ar" : "en", ownerCatalogError(error, fallback));
   }
 
   function openCreate() { setForm(categoryToForm()); setEditing(null); setErrors({}); setModalError(""); setMode("create"); }
@@ -79,7 +80,7 @@ function CategoryEditor() {
     try {
       const detail = await getOwnerCategory(category.id);
       setEditing(detail); setForm(categoryToForm(detail)); setErrors({}); setModalError(""); setMode("edit");
-    } catch (error) { setActionError(failure(error, "Could not open this category. Retry.")); refresh(); }
+    } catch (error) { setActionError(failure(error, ownerText(ar ? "ar" : "en", "Could not open this category. Retry."))); refresh(); }
     finally { setOpeningId(null); }
   }
   function closeModal() { if (!busy) { setMode(null); setEditing(null); setDeleteTarget(null); setModalError(""); } }
@@ -100,7 +101,7 @@ function CategoryEditor() {
       setMode(null); setEditing(null);
       if (!editing) setPage(1);
       refresh();
-    } catch (error) { setModalError(failure(error, "Could not confirm the save. Retry or refresh to check current data.")); }
+    } catch (error) { setModalError(failure(error, ownerText(ar ? "ar" : "en", "Could not confirm the save. Retry or refresh to check current data."))); }
     finally { setBusy(false); }
   }
 
@@ -111,7 +112,7 @@ function CategoryEditor() {
       const result = await patchOwnerCategory(category.id, { isActive: !category.isActive });
       setFeedback(ar ? `تم ${result.isActive ? "تنشيط" : "إيقاف"} ${result.name}.` : `${result.name} is now ${result.isActive ? "active" : "inactive"}.`);
       refresh();
-    } catch (error) { setActionError(failure(error, "Could not update category status.")); }
+    } catch (error) { setActionError(failure(error, ownerText(ar ? "ar" : "en", "Could not update category status."))); }
     finally { setBusy(false); }
   }
 
@@ -127,7 +128,7 @@ function CategoryEditor() {
     } catch (error) {
       setModalError(error instanceof ApiError && error.status === 409 ?
         (ar ? "القسم يحتوي على منتجات. انقلها أو احذفها أولًا، أو أوقف القسم." : "This category still has Products. Move or remove those Products first, or mark the category inactive.") :
-        failure(error, "Could not confirm deletion. Refresh to check current data."));
+        failure(error, ownerText(ar ? "ar" : "en", "Could not confirm deletion. Refresh to check current data.")));
     } finally { setBusy(false); }
   }
 

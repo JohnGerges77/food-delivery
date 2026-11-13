@@ -15,6 +15,7 @@ export function DashboardLayoutShell({ children }: { children: React.ReactNode }
   const router = useRouter();
   const status = useAuthStore((state) => state.status);
   const restore = useAuthStore((state) => state.restore);
+  const revalidate = useAuthStore((state) => state.revalidate);
   const access = dashboardAccess(status, pathname === routes.login);
 
   useEffect(() => {
@@ -22,10 +23,14 @@ export function DashboardLayoutShell({ children }: { children: React.ReactNode }
   }, [restore]);
 
   useEffect(() => {
-    const refresh = () => { if (document.visibilityState === "visible") void restore(); };
+    const refresh = () => { if (document.visibilityState === "visible") void revalidate(); };
     document.addEventListener("visibilitychange", refresh);
-    return () => document.removeEventListener("visibilitychange", refresh);
-  }, [restore]);
+    window.addEventListener("focus", refresh);
+    return () => {
+      document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [revalidate]);
 
   useEffect(() => {
     if (access === "redirect") router.replace(routes.login);
