@@ -126,7 +126,7 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
           </label>
 
           <div
-            aria-label={isArabic ? "أقسام القائمة" : "Menu categories"}
+            aria-label={isArabic ? "أقسام المنيو" : "Menu categories"}
             className="flex flex-wrap gap-2 lg:justify-end"
             role="group"
           >
@@ -170,7 +170,7 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
           </div>
 
           {menuError && <div className="mb-6 rounded-[1.2rem] border border-red-400/30 bg-red-400/10 p-5" role="alert">{menuError}<button className="ml-3 underline" onClick={() => activeCategory === "all" ? loadMore() : setRetry((value) => value + 1)} type="button">{isArabic ? "إعادة المحاولة" : "Retry"}</button></div>}
-          {loading && products.length === 0 ? <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label={isArabic ? "جار تحميل القائمة" : "Loading menu"}>{[1, 2, 3, 4].map((value) => <div className="h-80 animate-pulse rounded-[1.35rem] bg-white/[0.06]" key={value} />)}</div> : visibleProducts.length === 0 ? (
+          {loading && products.length === 0 ? <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label={isArabic ? "جار تحميل المنيو" : "Loading menu"}>{[1, 2, 3, 4].map((value) => <div className="h-80 animate-pulse rounded-[1.35rem] bg-white/[0.06]" key={value} />)}</div> : visibleProducts.length === 0 ? (
             <div
               className="rounded-[1.45rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.075),rgba(255,255,255,0.026)_60%,rgba(255,122,0,0.04))] p-8 text-center shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl"
             >

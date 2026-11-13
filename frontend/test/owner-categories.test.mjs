@@ -52,7 +52,7 @@ test("empty owner Category list remains empty", async () => {
 test("create sends explicit writable fields with CSRF and uses canonical response", async () => {
   const form = { ...categoryToForm(), name: "Pizza", slug: "pizza", sortOrder: "4", isActive: false };
   const body = categoryWrite(form);
-  assert.deepEqual(body, { name: "Pizza", slug: "pizza", description: "", imageUrl: "", sortOrder: 4, isActive: false });
+  assert.deepEqual(body, { name: "Pizza", description: "", imageUrl: "", sortOrder: 4, isActive: false });
   let calls = 0;
   globalThis.fetch = async (url, options) => {
     calls++;
@@ -107,7 +107,7 @@ test("delete retains Category on Product-reference 409 and confirms 204 success"
 test("validation, expired session, network and timeout failures do not produce fixture data", async () => {
   const form = { ...categoryToForm(), name: " ", slug: "bad slug", imageUrl: "javascript:bad", sortOrder: "-1" };
   const errors = validateCategoryForm(form);
-  assert.deepEqual(Object.keys(errors).sort(), ["imageUrl", "name", "slug", "sortOrder"]);
+  assert.deepEqual(Object.keys(errors).sort(), ["imageUrl", "name", "sortOrder"]);
   assert.throws(() => categoryWrite(form));
   globalThis.fetch = async () => json({ error: "Unauthorized" }, 401);
   await assert.rejects(listOwnerCategories(), (error) => error instanceof ApiError && error.status === 401);

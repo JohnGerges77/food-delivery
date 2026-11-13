@@ -62,17 +62,17 @@ export function AquaHome({ restaurant, initialProducts }: { restaurant: PublicRe
         <div className={styles.heroBody}>
           <div className={styles.heroCopy}>
             <p>{restaurant.description || (ar ? "اكتشف قائمة المطعم واختر ما يعجبك." : "Discover the menu and choose what you love.")}</p>
-            <Link className={styles.primaryAction} href={href("/menu")}>{ar ? "تصفح القائمة" : "Explore the menu"}<ArrowUpRight aria-hidden="true" size={20} /></Link>
+            <Link className={styles.primaryAction} href={href("/menu")}>{ar ? "تصفح المنيو" : "Explore the menu"}<ArrowUpRight aria-hidden="true" size={20} /></Link>
           </div>
           <div className={styles.heroGallery}>
-            {heroProduct && heroImage ? <Link href={href(`/menu/${heroProduct.id}`)} className={styles.heroTile} aria-label={heroProduct.name}><FoodImage product={heroProduct} sizes="(min-width: 900px) 58vw, 100vw" /><span><strong>{heroProduct.name}</strong><small>{publicMoney(heroProduct.price, restaurant.currency, locale)}</small></span></Link> : <div className={styles.heroEmpty}><span>{ar ? "اكتشف القائمة" : "Explore the menu"}</span><Link href={href("/menu")}>{ar ? "اذهب إلى القائمة" : "Go to the menu"}<ArrowUpRight size={17} aria-hidden="true" /></Link></div>}
+            {heroProduct && heroImage ? <Link href={href(`/menu/${heroProduct.id}`)} className={styles.heroTile} aria-label={heroProduct.name}><FoodImage product={heroProduct} sizes="(min-width: 900px) 58vw, 100vw" /><span><strong>{heroProduct.name}</strong><small>{publicMoney(heroProduct.price, restaurant.currency, locale)}</small></span></Link> : <div className={styles.heroEmpty}><span>{ar ? "اكتشف المنيو" : "Explore the menu"}</span><Link href={href("/menu")}>{ar ? "اذهب إلى المنيو" : "Go to the menu"}<ArrowUpRight size={17} aria-hidden="true" /></Link></div>}
             {secondProduct && <Link href={href(`/menu/${secondProduct.id}`)} className={styles.heroSecondary} aria-label={secondProduct.name}><FoodImage product={secondProduct} sizes="(min-width: 900px) 18vw, 36vw" /><span>{secondProduct.name}</span></Link>}
           </div>
         </div>
       </div>
     </section>
-    {categories.length > 0 && <section className={styles.categories} aria-label={ar ? "أقسام القائمة" : "Menu categories"}>
-      <div className={styles.categoryIntro}><h2>{ar ? "على القائمة" : "On the menu"}</h2><Link href={href("/menu")}>{ar ? "استكشف القائمة كاملة" : "Explore the full menu"}<ArrowUpRight aria-hidden="true" size={18} /></Link></div>
+    {categories.length > 0 && <section className={styles.categories} aria-label={ar ? "أقسام المنيو" : "Menu categories"}>
+      <div className={styles.categoryIntro}><h2>{ar ? "على المنيو" : "On the menu"}</h2><Link href={href("/menu")}>{ar ? "استكشف المنيو كاملة" : "Explore the full menu"}<ArrowUpRight aria-hidden="true" size={18} /></Link></div>
       <div className={styles.categoryList}>{categories.map((category) => <Link href={href("/menu")} key={category.id}><span>{category.name}</span><ArrowUpRight aria-hidden="true" size={25} /></Link>)}</div>
     </section>}
     {showcase.length > 0 && <section className={styles.showcase} id="featured">
@@ -84,8 +84,8 @@ export function AquaHome({ restaurant, initialProducts }: { restaurant: PublicRe
       </article>)}</div>
     </section>}
     <section className={styles.information} id="contact">
-      <div><h2>{ar ? "عن المطعم" : "A place to return to"}</h2><p>{restaurant.description || (ar ? "تعرّف على معلومات المطعم وتصفح القائمة." : "Discover the restaurant and browse its menu.")}</p><Link href={href("/about")}>{ar ? "معلومات المطعم" : "Restaurant details"}<ArrowUpRight size={17} aria-hidden="true" /></Link></div>
-      <dl>{restaurant.openingHours && <div><dt>{ar ? "ساعات العمل" : "Opening hours"}</dt><dd>{restaurant.openingHours}</dd></div>}{restaurant.address && <div><dt>{ar ? "العنوان" : "Address"}</dt><dd>{restaurant.address}</dd></div>}{restaurant.phone && <div><dt>{ar ? "الهاتف" : "Phone"}</dt><dd><a href={`tel:${restaurant.phone.replace(/[^+\d]/g, "")}`}>{restaurant.phone}</a></dd></div>}{!restaurant.openingHours && !restaurant.address && !restaurant.phone && <div><dt>{ar ? "القائمة" : "Menu"}</dt><dd><Link href={href("/menu")}>{ar ? "تصفح الأطباق المتاحة" : "Browse available dishes"}</Link></dd></div>}</dl>
+      <div><h2>{ar ? "عن المطعم" : "A place to return to"}</h2><p>{restaurant.description || (ar ? "تعرّف على معلومات المطعم وتصفح المنيو." : "Discover the restaurant and browse its menu.")}</p><Link href={href("/about")}>{ar ? "معلومات المطعم" : "Restaurant details"}<ArrowUpRight size={17} aria-hidden="true" /></Link></div>
+      <dl>{restaurant.openingHours && <div><dt>{ar ? "ساعات العمل" : "Opening hours"}</dt><dd>{restaurant.openingHours}</dd></div>}{restaurant.address && <div><dt>{ar ? "العنوان" : "Address"}</dt><dd>{restaurant.address}</dd></div>}{restaurant.phone && <div><dt>{ar ? "الهاتف" : "Phone"}</dt><dd><a href={`tel:${restaurant.phone.replace(/[^+\d]/g, "")}`}>{restaurant.phone}</a></dd></div>}{!restaurant.openingHours && !restaurant.address && !restaurant.phone && <div><dt>{ar ? "المنيو" : "Menu"}</dt><dd><Link href={href("/menu")}>{ar ? "تصفح الأطباق المتاحة" : "Browse available dishes"}</Link></dd></div>}</dl>
     </section>
   </main>;
 }
@@ -94,7 +94,7 @@ export function AquaHome({ restaurant, initialProducts }: { restaurant: PublicRe
 export function AquaMenu({ initialProducts, initialPagination }: { initialProducts: PublicProduct[]; initialPagination: PublicPage | null }) {
   const ar = useLocale() === "ar";
   const { restaurant } = useStorefront();
-  return <div className={styles.aquaMenu}><header className={styles.pageIntro}><div className={styles.pageIntroInner}><span>{restaurant.name}</span><h1>{ar ? "القائمة" : "The menu"}</h1><p>{restaurant.description || (ar ? "اختر طبقك المفضل." : "Find your next favorite dish.")}</p></div></header><MenuOrderingPage initialProducts={initialProducts} initialPagination={initialPagination} /></div>;
+  return <div className={styles.aquaMenu}><header className={styles.pageIntro}><div className={styles.pageIntroInner}><span>{restaurant.name}</span><h1>{ar ? "المنيو" : "The menu"}</h1><p>{restaurant.description || (ar ? "اختر طبقك المفضل." : "Find your next favorite dish.")}</p></div></header><MenuOrderingPage initialProducts={initialProducts} initialPagination={initialPagination} /></div>;
 }
 
 export function AquaProduct({ product }: { product: PublicProduct }) {
@@ -102,18 +102,18 @@ export function AquaProduct({ product }: { product: PublicProduct }) {
   const { restaurant, categories, href } = useStorefront();
   const add = useCartStore((state) => state.addPublicItem);
   const category = categories.find((item) => item.id === product.categoryId);
-  return <main className={styles.productPage}><Link className={styles.backLink} href={href("/menu")}>{ar ? "العودة للقائمة" : "Back to menu"}</Link><article className={styles.productLayout}><div className={styles.productPhoto}><ProductImageGallery product={product} sizes="(min-width: 800px) 50vw, 100vw" className={styles.foodImage} /></div><div className={styles.productCopy}>{category && <p className={styles.categoryName}>{category.name}</p>}<h1>{product.name}</h1>{product.description && <p>{product.description}</p>}<strong>{publicMoney(product.price, restaurant.currency, locale)}</strong>{product.preparationTime !== null && <span>{ar ? "وقت التحضير" : "Preparation time"}: {product.preparationTime} {ar ? "دقيقة" : "min"}</span>}<button type="button" className={styles.primaryAction} onClick={() => add(restaurant.slug, product)}>{ar ? "أضف إلى السلة" : "Add to cart"}<Plus size={19} aria-hidden="true" /></button></div></article></main>;
+  return <main className={styles.productPage}><Link className={styles.backLink} href={href("/menu")}>{ar ? "العودة للمنيو" : "Back to menu"}</Link><article className={styles.productLayout}><div className={styles.productPhoto}><ProductImageGallery product={product} sizes="(min-width: 800px) 50vw, 100vw" className={styles.foodImage} /></div><div className={styles.productCopy}>{category && <p className={styles.categoryName}>{category.name}</p>}<h1>{product.name}</h1>{product.description && <p>{product.description}</p>}<strong>{publicMoney(product.price, restaurant.currency, locale)}</strong>{product.preparationTime !== null && <span>{ar ? "وقت التحضير" : "Preparation time"}: {product.preparationTime} {ar ? "دقيقة" : "min"}</span>}<button type="button" className={styles.primaryAction} onClick={() => add(restaurant.slug, product)}>{ar ? "أضف إلى السلة" : "Add to cart"}<Plus size={19} aria-hidden="true" /></button></div></article></main>;
 }
 
 export function AquaAbout() {
   const ar = useLocale() === "ar";
   const { restaurant, href } = useStorefront();
-  return <main className={styles.aboutPage}><div className={styles.aboutIntro}><h1>{restaurant.name}</h1><p>{restaurant.description || (ar ? "تعرف على المطعم وقائمته." : "Explore the restaurant and its menu.")}</p><Link className={styles.primaryAction} href={href("/menu")}>{ar ? "تصفح القائمة" : "Browse menu"}<ArrowUpRight size={19} aria-hidden="true" /></Link></div><div className={styles.aboutFacts}>{restaurant.address && <div><span>{ar ? "العنوان" : "Address"}</span><strong>{restaurant.address}</strong></div>}{restaurant.openingHours && <div><span>{ar ? "ساعات العمل" : "Opening hours"}</span><strong>{restaurant.openingHours}</strong></div>}{restaurant.phone && <div><span>{ar ? "الهاتف" : "Phone"}</span><strong>{restaurant.phone}</strong></div>}{restaurant.contactEmail && <div><span>{ar ? "البريد الإلكتروني" : "Email"}</span><strong>{restaurant.contactEmail}</strong></div>}</div></main>;
+  return <main className={styles.aboutDetails}><h1>{ar ? "عن المطعم" : "About the restaurant"}</h1><p>{restaurant.description}</p><div className={styles.aboutFacts}>{restaurant.address && <div><span>{ar ? "العنوان" : "Address"}</span><strong>{restaurant.address}</strong></div>}{restaurant.openingHours && <div><span>{ar ? "ساعات العمل" : "Opening hours"}</span><strong>{restaurant.openingHours}</strong></div>}{restaurant.phone && <div><span>{ar ? "الهاتف" : "Phone"}</span><strong>{restaurant.phone}</strong></div>}{restaurant.contactEmail && <div><span>{ar ? "البريد الإلكتروني" : "Email"}</span><strong>{restaurant.contactEmail}</strong></div>}</div><Link className={styles.primaryAction} href={href("/menu")}>{ar ? "تصفح المنيو" : "Browse menu"}<ArrowUpRight size={19} aria-hidden="true" /></Link></main>;
 }
 
 export function AquaFooter() {
   const ar = useLocale() === "ar";
   const { restaurant, href } = useStorefront();
-  return <footer className={styles.footer}><div className={styles.footerTop}><div><p>{restaurant.name}</p><span>{restaurant.description}</span></div><div><Link href={href("/menu")}>{ar ? "القائمة" : "Menu"}</Link><Link href={href("/about")}>{ar ? "عن المطعم" : "About"}</Link><Link href={href("/cart")}>{ar ? "السلة" : "Cart"}</Link></div></div><div className={styles.footerBottom}><span>{restaurant.name}</span><span>Powered by Savora</span></div></footer>;
+  return <footer className={styles.footer}><div className={styles.footerTop}><div><p>{restaurant.name}</p><span>{restaurant.description}</span></div><div><Link href={href("/menu")}>{ar ? "المنيو" : "Menu"}</Link><Link href={href("/about")}>{ar ? "عن المطعم" : "About"}</Link><Link href={href("/cart")}>{ar ? "السلة" : "Cart"}</Link></div></div><div className={styles.footerBottom}><span>{restaurant.name}</span><span>Powered by Savora</span></div></footer>;
 }
 

@@ -17,7 +17,7 @@
     "featured": "مميز",
     "edit": "تعديل",
     "save": "حفظ",
-    "menu": "القائمة",
+    "menu": "المنيو",
     "cart": "السلة",
     "dashboard": "لوحة التحكم"
   },
@@ -25,7 +25,7 @@
     "brand": "بيسترو سنترال",
     "logoAlt": "شعار بيسترو سنترال",
     "dashboardBrand": "لوحة إدارة المطعم",
-    "menu": "القائمة",
+    "menu": "المنيو",
     "cart": "السلة",
     "trackOrder": "تتبع الطلب",
     "overview": "نظرة عامة",
@@ -48,12 +48,12 @@
       "description": "صفحة بداية واجهة المتجر العامة لـ {restaurantName}."
     },
     "menu": {
-      "title": "صفحة القائمة",
+      "title": "صفحة المنيو",
       "description": "تصفح {productCount} منتجات تجريبية ضمن {categoryCount} أقسام."
     },
     "productDetails": {
       "title": "صفحة تفاصيل المنتج",
-      "description": "مسار بداية لعرض تفاصيل صنف محدد من القائمة."
+      "description": "مسار بداية لعرض تفاصيل صنف محدد من المنيو."
     },
     "cart": {
       "title": "صفحة السلة",
@@ -112,7 +112,7 @@
     "testimonialsDescription": "عنصر بداية مخصص لآراء العملاء مستقبلًا.",
     "starterFooter": "{restaurantName} تذييل مبدئي",
     "details": "التفاصيل",
-    "searchMenu": "ابحث في القائمة",
+    "searchMenu": "ابحث في المنيو",
     "price": "السعر",
     "preparation": "التحضير",
     "rating": "التقييم",
@@ -122,8 +122,8 @@
     "delivery": "التوصيل",
     "total": "الإجمالي",
     "emptyCartTitle": "سلتك فارغة",
-    "emptyCartDescription": "حالة السلة جاهزة للتفاعل مع القائمة.",
-    "browseMenu": "تصفح القائمة",
+    "emptyCartDescription": "حالة السلة جاهزة للتفاعل مع المنيو.",
+    "browseMenu": "تصفح المنيو",
     "checkout": "الدفع",
     "clearCart": "تفريغ السلة",
     "orderSummary": "ملخص الطلب",

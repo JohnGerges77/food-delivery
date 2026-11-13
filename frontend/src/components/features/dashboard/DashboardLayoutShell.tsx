@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale } from "next-intl";
 import { DashboardHeader } from "@/components/layout/DashboardHeader";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import { usePathname, useRouter } from "@/i18n/navigation";
@@ -9,6 +10,7 @@ import { dashboardAccess, useAuthStore } from "@/store/auth-store";
 
 export function DashboardLayoutShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const ar = useLocale() === "ar";
   const pathname = usePathname();
   const router = useRouter();
   const status = useAuthStore((state) => state.status);
@@ -17,7 +19,7 @@ export function DashboardLayoutShell({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     void restore();
-  }, [pathname, restore]);
+  }, [restore]);
 
   useEffect(() => {
     const refresh = () => { if (document.visibilityState === "visible") void restore(); };
@@ -38,10 +40,10 @@ export function DashboardLayoutShell({ children }: { children: React.ReactNode }
       <main className="grid min-h-screen place-items-center bg-[color:var(--background)] px-6 text-center text-[color:var(--text)]" aria-live="polite">
         {status === "unavailable" ? (
           <div>
-            <p>Cannot reach the server. Please try again.</p>
-            <button className="mt-4 rounded-xl bg-[color:var(--primary)] px-5 py-3 font-semibold text-[color:var(--background)]" onClick={() => void restore()} type="button">Retry</button>
+            <p>{ar ? "تعذر الاتصال بالخادم. حاول مرة أخرى." : "Cannot reach the server. Please try again."}</p>
+            <button className="mt-4 rounded-xl bg-[color:var(--primary)] px-5 py-3 font-semibold text-[color:var(--background)]" onClick={() => void restore()} type="button">{ar ? "إعادة المحاولة" : "Retry"}</button>
           </div>
-        ) : <p>Checking your session…</p>}
+        ) : <p>{ar ? "جارٍ التحقق من الجلسة…" : "Checking your session…"}</p>}
       </main>
     );
   }
@@ -52,7 +54,7 @@ export function DashboardLayoutShell({ children }: { children: React.ReactNode }
       <DashboardSidebar />
       {menuOpen ? <DashboardSidebar isOpen={menuOpen} onClose={() => setMenuOpen(false)} /> : null}
       <DashboardHeader onMenuClick={() => setMenuOpen(true)} />
-      <main className="px-4 py-6 sm:px-6 lg:ml-72 lg:px-8 lg:py-8">{children}</main>
+      <main className="px-4 py-6 sm:px-6 lg:ms-72 lg:px-8 lg:py-8">{children}</main>
     </div>
   );
 }

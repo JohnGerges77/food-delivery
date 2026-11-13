@@ -316,7 +316,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
                       className="mt-4 inline-flex min-h-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-5 text-sm font-bold text-[color:var(--background)]"
                       href={href("/menu")}
                     >
-                      {isArabic ? "تصفح القائمة" : "Browse Menu"}
+                      {isArabic ? "تصفح المنيو" : "Browse Menu"}
                     </Link>
                   </div>
                 ) : (

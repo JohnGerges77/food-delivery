@@ -45,7 +45,7 @@ function ProductPage({ product }: { product: PublicProduct }) {
   const category = categories.find((entry) => entry.id === product.categoryId);
   return <main className="min-h-screen overflow-hidden bg-[color:var(--background)] px-4 py-16 text-[color:var(--text)] sm:px-6 lg:px-8">
     <div className="mx-auto max-w-7xl">
-      <Link className="text-sm font-semibold text-[color:var(--primary-light)] hover:underline" href={href("/menu")}>{isArabic ? "العودة للقائمة" : "Back to menu"}</Link>
+      <Link className="text-sm font-semibold text-[color:var(--primary-light)] hover:underline" href={href("/menu")}>{isArabic ? "العودة للمنيو" : "Back to menu"}</Link>
       <article className="mt-8 grid gap-8 overflow-hidden rounded-[1.75rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.025)_60%,rgba(255,122,0,.05))] shadow-[0_30px_90px_rgba(0,0,0,.35)] lg:grid-cols-2">
         <div className="relative aspect-square overflow-hidden"><ProductImageGallery product={product} sizes="(min-width: 1024px) 50vw, 100vw" /></div>
         <div className="flex flex-col justify-center p-7 sm:p-10 lg:p-12">
@@ -62,27 +62,8 @@ function ProductPage({ product }: { product: PublicProduct }) {
 }
 
 function AboutPage() {
-  const isArabic = useLocale() === "ar";
   const { restaurant } = useStorefront();
-  const facts = [
-    { value: restaurant.currency, label: isArabic ? "العملة" : "Currency" },
-    { value: restaurant.openingHours || "—", label: isArabic ? "ساعات العمل" : "Opening Hours" },
-    { value: restaurant.deliverySettings.deliveryAvailable ? (isArabic ? "متاح" : "Available") : (isArabic ? "غير متاح" : "Unavailable"), label: isArabic ? "التوصيل" : "Delivery" },
-  ];
   return <main className="min-h-screen overflow-hidden bg-[color:var(--background)] text-[color:var(--text)]">
-    <section className="relative isolate flex min-h-[calc(100svh-74px)] items-center overflow-hidden px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_50%_18%,rgba(255,157,51,.14),transparent_32%),radial-gradient(circle_at_84%_34%,rgba(255,122,0,.18),transparent_30%),linear-gradient(135deg,rgba(31,31,31,.86),rgba(13,13,13,1)_52%,rgba(13,13,13,1))]" />
-      <div className="absolute inset-x-0 bottom-0 -z-10 h-48 bg-gradient-to-t from-[color:var(--background)] to-transparent" />
-      <div className="absolute left-1/2 top-10 -z-10 size-[36rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,122,0,.24),transparent_68%)] blur-3xl" />
-      <div className="mx-auto w-full max-w-7xl text-center">
-        <p className="mx-auto inline-flex rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 px-5 py-2 text-xs font-semibold uppercase tracking-[.24em] text-[color:var(--primary-light)]">{isArabic ? "عن المطعم" : "About the Restaurant"}</p>
-        <h1 className="mx-auto mt-6 max-w-5xl text-[clamp(3.1rem,9vw,6.8rem)] font-semibold leading-[.95] text-balance">{restaurant.name}</h1>
-        <p className="mx-auto mt-7 max-w-3xl text-base leading-8 text-[color:var(--text-muted)] sm:text-lg">{restaurant.description || (isArabic ? "تعرّف على معلومات المطعم وقائمته." : "Explore the restaurant's information and menu.")}</p>
-        <div className="mx-auto mt-10 grid max-w-4xl overflow-hidden rounded-lg border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.026)_60%,rgba(255,122,0,.045))] shadow-[0_24px_80px_rgba(0,0,0,.35)] sm:grid-cols-3">
-          {facts.map((fact) => <div className="border-b border-white/10 px-5 py-5 text-center last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0" key={fact.label}><div className="line-clamp-2 text-2xl font-semibold sm:text-3xl">{fact.value}</div><div className="mt-2 text-xs font-semibold uppercase tracking-[.18em] text-[color:var(--text-muted)]">{fact.label}</div></div>)}
-        </div>
-      </div>
-    </section>
     <WhyChoose restaurant={restaurant} />
     <ContactSection />
   </main>;

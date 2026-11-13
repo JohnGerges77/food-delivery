@@ -13,13 +13,14 @@ test('category payloads normalize explicit slugs and retain only editable fields
   assert.deepEqual({ ...input }, { name: '  Burgers  ', slug: 'burgers-and-fries',
     description: 'Fresh', imageUrl: '/home2.webp', sortOrder: 0, isActive: false });
   assert.deepEqual({ ...parseCategoryInput({ name: 'New name' }) }, { name: 'New name' });
+  assert.deepEqual({ ...parseCategoryInput({ name: 'قسم عربي' }, { create: true }) }, { name: 'قسم عربي' });
   assert.deepEqual({ ...parseCategoryInput({ imageUrl: 'https://example.test/photo.webp' }) },
     { imageUrl: 'https://example.test/photo.webp' });
 });
 
 test('category payloads reject missing, immutable, operator, dotted, and nested fields', () => {
   for (const body of [
-    {}, { name: 'Only name' }, { slug: 'only-slug' }, { name: 'A', slug: 'a', _id: 'x' },
+    {}, { slug: 'only-slug' }, { name: 'A', slug: 'a', _id: 'x' },
     { restaurantId: 'x' }, { userId: 'x' }, { createdAt: 'x' },
     { unknown: true }, { $set: { name: 'x' } }, { 'name.first': 'x' },
     JSON.parse('{"__proto__":{"polluted":true}}'),

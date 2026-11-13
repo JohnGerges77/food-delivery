@@ -5,7 +5,7 @@ import { Clock, MapPin, Phone, UtensilsCrossed } from "lucide-react";
 export default function WhyChoose({ restaurant }) {
   const isArabic = useLocale() === "ar";
   const features = [
-    { title: isArabic ? "القائمة" : "Menu", description: isArabic ? "استكشف الأطباق المتاحة في القائمة." : "Explore the currently available dishes.", icon: UtensilsCrossed },
+    { title: isArabic ? "المنيو" : "Menu", description: isArabic ? "استكشف الأطباق المتاحة في المنيو." : "Explore the currently available dishes.", icon: UtensilsCrossed },
     { title: isArabic ? "ساعات العمل" : "Opening Hours", description: restaurant.openingHours || (isArabic ? "لم تُذكر ساعات العمل." : "Hours have not been listed."), icon: Clock },
     { title: isArabic ? "العنوان" : "Address", description: restaurant.address || (isArabic ? "لم يُذكر العنوان." : "Address has not been listed."), icon: MapPin },
     { title: isArabic ? "التواصل" : "Contact", description: restaurant.phone || restaurant.contactEmail || (isArabic ? "لم تُذكر بيانات التواصل." : "Contact details have not been listed."), icon: Phone },
@@ -103,7 +103,7 @@ export default function WhyChoose({ restaurant }) {
                   {restaurant.name}
                 </div>
                 <div className="mt-1 text-sm text-[color:var(--text-muted)]">
-                  {restaurant.description || (isArabic ? "استكشف القائمة والمعلومات." : "Explore the menu and restaurant information.")}
+                  {restaurant.description || (isArabic ? "استكشف المنيو والمعلومات." : "Explore the menu and restaurant information.")}
                 </div>
               </div>
             </div>

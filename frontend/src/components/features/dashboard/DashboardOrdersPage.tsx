@@ -205,7 +205,7 @@ function OwnerOrdersView({ currency }: { currency: string }) {
       </DashboardCard>
 
       {feedback ? <p className="mt-5 rounded-xl border border-emerald-400/25 bg-emerald-400/10 p-3 text-sm text-emerald-100" role="status">{feedback}</p> : null}
-      {loadError ? <div className="mt-5 rounded-xl border border-red-400/25 bg-red-500/10 p-4 text-sm text-red-100" role="alert">{loadError}<ActionButton className="ml-3" variant="ghost" onClick={refresh}>{isArabic ? "إعادة المحاولة" : "Retry"}</ActionButton></div> : null}
+      {loadError ? <div className="mt-5 rounded-xl border border-red-400/25 bg-red-500/10 p-4 text-sm text-red-100" role="alert">{loadError}<ActionButton className="ms-3" variant="ghost" onClick={refresh}>{isArabic ? "إعادة المحاولة" : "Retry"}</ActionButton></div> : null}
       {!pageReady && !loadError ? <div className="mt-6 grid gap-4" aria-label={isArabic ? "جارٍ تحميل الطلبات" : "Loading orders"}>{Array.from({ length: 3 }, (_, index) => <DashboardCard className="h-32 animate-pulse bg-white/[0.04]" key={index}><span className="sr-only">{isArabic ? "جارٍ التحميل" : "Loading"}</span></DashboardCard>)}</div> : null}
       {!loading && !loadError && pageReady && visiblePagination?.total === 0 ? <DashboardCard className="mt-6 p-8 text-center"><ShoppingBag className="mx-auto text-[color:var(--primary-light)]" size={32} /><h3 className="mt-4 text-xl font-semibold">{isArabic ? "لا توجد طلبات مطابقة" : "No matching orders"}</h3><p className="mt-2 text-sm text-[color:var(--text-muted)]">{isArabic ? "يمكنك تحديث القائمة أو تعديل الفلاتر." : "Refresh the list or adjust the filters."}</p></DashboardCard> : null}
       {pageReady && visiblePagination && visiblePagination.total > 0 ? <p className="mt-5 text-sm text-[color:var(--text-muted)]" role="status">{isArabic ? `${visiblePagination.total} طلب مطابق · صفحة ${visiblePagination.page}` : `${visiblePagination.total} matching orders · page ${visiblePagination.page}`}{loading ? (isArabic ? " · جارٍ التحديث" : " · refreshing") : ""}</p> : null}
@@ -272,7 +272,7 @@ function OwnerOrdersView({ currency }: { currency: string }) {
         onClose={closeOrder}
       >
           {detailLoading ? <div className="grid gap-3" aria-label={isArabic ? "جارٍ تحميل التفاصيل" : "Loading order details"}><div className="h-24 animate-pulse rounded-2xl bg-white/[0.06]" /><div className="h-24 animate-pulse rounded-2xl bg-white/[0.06]" /></div> : null}
-          {detailError ? <p className="rounded-xl border border-red-400/25 bg-red-500/10 p-4 text-sm text-red-100" role="alert">{detailError}<ActionButton className="ml-2" variant="ghost" onClick={() => selectedId && void openOrder(selectedId)}>{isArabic ? "إعادة المحاولة" : "Retry"}</ActionButton></p> : null}
+          {detailError ? <p className="rounded-xl border border-red-400/25 bg-red-500/10 p-4 text-sm text-red-100" role="alert">{detailError}<ActionButton className="ms-2" variant="ghost" onClick={() => selectedId && void openOrder(selectedId)}>{isArabic ? "إعادة المحاولة" : "Retry"}</ActionButton></p> : null}
           {selectedOrder ? (
             <div className="grid gap-5">
               <div className="flex flex-wrap items-center gap-3 text-sm text-[color:var(--text-muted)]"><StatusBadge status={operationalOrderStatus(selectedOrder.status)} label={label(selectedOrder.status)} /><span>{ownerOrderMethodLabel(selectedOrder.submissionMethod, locale)}</span><span>{ownerOrderDate(selectedOrder.createdAt, locale)}</span></div>

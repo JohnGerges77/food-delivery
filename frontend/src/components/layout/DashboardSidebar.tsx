@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useLocale } from "next-intl";
 import {
   BarChart3,
   FolderOpen,
@@ -37,9 +38,11 @@ export function DashboardSidebar({
   onClose?: () => void;
 }) {
   const pathname = usePathname();
+  const ar = useLocale() === "ar";
+  const arabicLabels: Record<string, string> = { Overview: "نظرة عامة", Products: "المنتجات", Categories: "الأقسام", Orders: "الطلبات", Settings: "الإعدادات" };
 
   const sidebar = (
-    <aside className="flex h-full w-72 flex-col overflow-hidden border-r border-white/10 bg-[linear-gradient(180deg,rgba(31,31,31,0.94),rgba(13,13,13,0.98))] text-[color:var(--text)] shadow-[24px_0_80px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
+    <aside className="flex h-full w-72 flex-col overflow-hidden border-e border-white/10 bg-[linear-gradient(180deg,rgba(31,31,31,0.94),rgba(13,13,13,0.98))] text-[color:var(--text)] shadow-[24px_0_80px_rgba(0,0,0,0.35)] backdrop-blur-2xl">
       <div className="flex min-h-20 items-center justify-between border-b border-white/10 px-5">
         <Link className="group flex items-center gap-3" href={routes.dashboard} onClick={onClose}>
           <span className="flex size-11 items-center justify-center rounded-2xl border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/12 text-[color:var(--primary-light)] shadow-[0_0_30px_rgba(255,122,0,0.18)]">
@@ -47,11 +50,11 @@ export function DashboardSidebar({
           </span>
           <span>
             <span className="block text-lg font-semibold tracking-[0.16em]">SAVORA</span>
-            <span className="text-xs text-[color:var(--text-muted)]">Restaurant Admin</span>
+            <span className="text-xs text-[color:var(--text-muted)]">{ar ? "إدارة المطعم" : "Restaurant Admin"}</span>
           </span>
         </Link>
         <button
-          aria-label="Close dashboard menu"
+          aria-label={ar ? "إغلاق قائمة لوحة التحكم" : "Close dashboard menu"}
           className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[color:var(--text-muted)] lg:hidden"
           onClick={onClose}
           type="button"
@@ -77,10 +80,10 @@ export function DashboardSidebar({
               onClick={onClose}
             >
               <Icon aria-hidden="true" size={18} strokeWidth={1.9} />
-              {link.label}
+              {ar ? arabicLabels[link.label] : link.label}
               {active ? (
                 <motion.span
-                  className="absolute right-3 size-2 rounded-full bg-[color:var(--background)]"
+                  className="absolute end-3 size-2 rounded-full bg-[color:var(--background)]"
                   layoutId="dashboard-active-dot"
                 />
               ) : null}
@@ -92,10 +95,10 @@ export function DashboardSidebar({
       <div className="mt-auto p-4">
         <div className="rounded-2xl border border-[color:var(--gold)]/20 bg-[color:var(--gold)]/8 p-4">
           <div className="text-xs font-semibold tracking-[0.2em] text-[color:var(--gold)] uppercase">
-            Live Analytics
+            {ar ? "تحليلات مباشرة" : "Live Analytics"}
           </div>
           <p className="mt-3 text-xs leading-6 text-[color:var(--text-muted)]">
-            View current orders and delivered order value in Overview.
+            {ar ? "تابع الطلبات الحالية وقيمة الطلبات المسلّمة من نظرة عامة." : "View current orders and delivered order value in Overview."}
           </p>
         </div>
       </div>
@@ -105,7 +108,7 @@ export function DashboardSidebar({
   return (
     <>
       {!onClose ? (
-        <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block">
+        <div className="hidden lg:fixed lg:inset-y-0 lg:start-0 lg:z-40 lg:block">
           {sidebar}
         </div>
       ) : null}
@@ -118,9 +121,9 @@ export function DashboardSidebar({
           onClick={onClose}
         >
           <motion.div
-            initial={{ x: -320 }}
+            initial={{ x: ar ? 320 : -320 }}
             animate={{ x: 0 }}
-            exit={{ x: -320 }}
+            exit={{ x: ar ? 320 : -320 }}
             transition={{ type: "spring", stiffness: 380, damping: 34 }}
             onClick={(event) => event.stopPropagation()}
             className="h-full"

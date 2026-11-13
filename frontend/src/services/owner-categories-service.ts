@@ -1,5 +1,5 @@
 import { ApiError, apiRequest } from "./api-client.ts";
-import { isRecord, parsePagination, validOwnerImageUrl, validSlug, type OwnerPagination } from "./owner-catalog-common.ts";
+import { isRecord, parsePagination, validOwnerImageUrl, type OwnerPagination } from "./owner-catalog-common.ts";
 
 export interface OwnerCategory {
   id: string;
@@ -20,7 +20,7 @@ export interface CategoryFormValues {
   isActive: boolean;
 }
 
-export type CategoryWrite = Pick<OwnerCategory, "name" | "slug" | "description" | "imageUrl" | "sortOrder" | "isActive">;
+export type CategoryWrite = Pick<OwnerCategory, "name" | "description" | "imageUrl" | "sortOrder" | "isActive">;
 export type CategoryPatch = Partial<CategoryWrite>;
 export type CategorySort = "sortOrder" | "-sortOrder";
 
@@ -82,7 +82,6 @@ export function categoryToForm(category?: OwnerCategory): CategoryFormValues {
 export function validateCategoryForm(form: CategoryFormValues): Partial<Record<keyof CategoryFormValues, string>> {
   const errors: Partial<Record<keyof CategoryFormValues, string>> = {};
   if (!form.name.trim() || form.name.length > 120) errors.name = "Enter a name of 1–120 characters.";
-  if (!validSlug(form.slug.trim().toLowerCase())) errors.slug = "Use lowercase letters, numbers and single hyphens (max 120).";
   if (form.description.length > 2048) errors.description = "Use 2048 characters or fewer.";
   if (form.imageUrl.length > 2048 || !validOwnerImageUrl(form.imageUrl.trim())) errors.imageUrl = "Enter a root-relative path or HTTP(S) URL.";
   if (!/^\d+$/.test(form.sortOrder.trim()) || Number(form.sortOrder) > 1_000_000 || !Number.isSafeInteger(Number(form.sortOrder))) errors.sortOrder = "Enter a whole number from 0 to 1,000,000.";
@@ -91,7 +90,7 @@ export function validateCategoryForm(form: CategoryFormValues): Partial<Record<k
 
 export function categoryWrite(form: CategoryFormValues): CategoryWrite {
   if (Object.keys(validateCategoryForm(form)).length) throw new Error("Invalid category form");
-  return { name: form.name.trim(), slug: form.slug.trim().toLowerCase(), description: form.description.trim(),
+  return { name: form.name.trim(), description: form.description.trim(),
     imageUrl: form.imageUrl.trim(), sortOrder: Number(form.sortOrder), isActive: form.isActive };
 }
 

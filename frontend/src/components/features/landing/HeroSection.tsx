@@ -30,7 +30,7 @@ export function HeroSection({ restaurant }: { restaurant: PublicRestaurant }) {
 
   const flavorChips = [
     { label: isArabic ? "المطعم" : "Restaurant", className: "left-4 top-[18%]" },
-    { label: isArabic ? "القائمة" : "Menu", className: "right-0 top-[28%]" },
+    { label: isArabic ? "المنيو" : "Menu", className: "right-0 top-[28%]" },
     { label: isArabic ? "تواصل معنا" : "Contact", className: "bottom-[18%] left-[12%]" },
   ];
 
@@ -74,7 +74,7 @@ export function HeroSection({ restaurant }: { restaurant: PublicRestaurant }) {
           >
             {restaurant.branding.brandName || restaurant.name}
             <span className="block text-[color:var(--primary-light)]">
-              {isArabic ? "اكتشف القائمة" : "Explore the Menu"}
+              {isArabic ? "اكتشف المنيو" : "Explore the Menu"}
             </span>
           </motion.h1>
 
@@ -98,7 +98,7 @@ export function HeroSection({ restaurant }: { restaurant: PublicRestaurant }) {
                 className="inline-flex min-h-13 w-full items-center justify-center rounded-full bg-[color:var(--primary)] px-8 text-sm font-bold tracking-wide text-[color:var(--background)] shadow-[0_18px_48px_rgba(255,122,0,0.36)] transition-all duration-300 hover:-translate-y-1 hover:bg-[color:var(--primary-light)] sm:w-auto"
                 href={href(routes.menu)}
               >
-                {isArabic ? "استعرض القائمة" : "Explore Menu"}
+                {isArabic ? "استعرض المنيو" : "Explore Menu"}
               </Link>
             </div>
             <div>

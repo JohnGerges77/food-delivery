@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, X } from "lucide-react";
+import { useLocale } from "next-intl";
 import { useEffect, useRef } from "react";
 
 export const dashboardEase = [0.16, 1, 0.3, 1] as const;
@@ -90,16 +91,17 @@ export function SearchInput({
   onChange: (value: string) => void;
   placeholder: string;
 }) {
+  const ar = useLocale() === "ar";
   return (
     <label className="relative block">
       <span className="sr-only">{placeholder}</span>
       <Search
         aria-hidden="true"
-        className="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--primary-light)]"
+        className="absolute start-4 top-1/2 -translate-y-1/2 text-[color:var(--primary-light)]"
         size={17}
       />
       <input
-        className="h-12 w-full rounded-full border border-white/10 bg-white/[0.045] pl-11 pr-10 text-sm text-[color:var(--text)] outline-none placeholder:text-[color:var(--text-muted)]/55 focus:border-[color:var(--primary)]/60 focus:shadow-[0_0_0_4px_rgba(255,122,0,0.12)]"
+        className="h-12 w-full rounded-full border border-white/10 bg-white/[0.045] ps-11 pe-10 text-sm text-[color:var(--text)] outline-none placeholder:text-[color:var(--text-muted)]/55 focus:border-[color:var(--primary)]/60 focus:shadow-[0_0_0_4px_rgba(255,122,0,0.12)]"
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         type="search"
@@ -107,8 +109,8 @@ export function SearchInput({
       />
       {value ? (
         <button
-          aria-label="Clear search"
-          className="absolute right-3 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-[color:var(--text-muted)] hover:bg-white/[0.08] hover:text-[color:var(--primary-light)]"
+          aria-label={ar ? "مسح البحث" : "Clear search"}
+          className="absolute end-3 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-[color:var(--text-muted)] hover:bg-white/[0.08] hover:text-[color:var(--primary-light)]"
           onClick={() => onChange("")}
           type="button"
         >
@@ -120,6 +122,7 @@ export function SearchInput({
 }
 
 export function StatusBadge({ status, label }: { status: string; label?: string }) {
+  const ar = useLocale() === "ar";
   const normalized = status.toLowerCase();
   const styles =
     normalized === "cancelled" || normalized.includes("unavailable")
@@ -136,7 +139,7 @@ export function StatusBadge({ status, label }: { status: string; label?: string 
 
   return (
     <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold capitalize ${styles}`}>
-      {label ?? status.replaceAll("-", " ")}
+      {label ?? (ar ? ({ active: "نشط", inactive: "غير نشط", available: "متاح", unavailable: "غير متاح", pending: "قيد الانتظار", delivered: "تم التسليم", cancelled: "ملغي" } as Record<string, string>)[normalized] : undefined) ?? status.replaceAll("-", " ")}
     </span>
   );
 }
@@ -152,6 +155,7 @@ export function DashboardModal({
   children: React.ReactNode;
   onClose: () => void;
 }) {
+  const ar = useLocale() === "ar";
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -197,7 +201,7 @@ export function DashboardModal({
           <h3 className="text-2xl font-semibold">{title}</h3>
           <button
             ref={closeRef}
-            aria-label="Close modal"
+            aria-label={ar ? "إغلاق النافذة" : "Close modal"}
             className="flex size-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[color:var(--text-muted)] hover:text-[color:var(--primary-light)]"
             onClick={onClose}
             type="button"

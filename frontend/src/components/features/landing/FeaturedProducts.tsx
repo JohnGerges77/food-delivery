@@ -24,10 +24,10 @@ export function FeaturedProducts({ products }: { products: PublicProduct[] }) {
     <div className="mx-auto max-w-7xl">
       <div className="mx-auto max-w-3xl text-center">
         <div className="mb-5 flex items-center justify-center gap-4 text-xs font-semibold tracking-[0.24em] text-[color:var(--primary-light)] uppercase"><span className="h-px w-10 bg-[color:var(--primary)]/60" />{isArabic ? "قائمتنا" : "Our Menu"}<span className="h-px w-10 bg-[color:var(--primary)]/60" /></div>
-        <h2 className="text-4xl font-semibold text-balance text-[color:var(--text)] sm:text-5xl lg:text-6xl">{isArabic ? "تعرّف على القائمة" : "Discover the Menu"}</h2>
+        <h2 className="text-4xl font-semibold text-balance text-[color:var(--text)] sm:text-5xl lg:text-6xl">{isArabic ? "تعرّف على المنيو" : "Discover the Menu"}</h2>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-[color:var(--text-muted)] sm:text-lg">{isArabic ? "لمحة من الأطباق المتاحة لدى المطعم." : "A preview of this restaurant's available dishes."}</p>
       </div>
-      <div className="mx-auto mt-10 flex max-w-4xl flex-wrap justify-center gap-2 rounded-[2rem] border border-white/10 bg-white/[0.025] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur" role="group" aria-label={isArabic ? "أقسام القائمة" : "Menu categories"}>
+      <div className="mx-auto mt-10 flex max-w-4xl flex-wrap justify-center gap-2 rounded-[2rem] border border-white/10 bg-white/[0.025] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur" role="group" aria-label={isArabic ? "أقسام المنيو" : "Menu categories"}>
         {[{ id: "", name: isArabic ? "الكل" : "All" }, ...categories].map((category) => {
           const selected = activeCategory === category.id;
           return <button aria-pressed={selected} className="relative overflow-hidden rounded-full px-5 py-2.5 text-sm font-semibold transition-colors duration-300" key={category.id} onClick={() => setActiveCategory(category.id)} type="button">
@@ -46,7 +46,7 @@ export function FeaturedProducts({ products }: { products: PublicProduct[] }) {
           <div className="self-start rounded-full border border-[color:var(--primary)]/10 bg-[color:var(--primary)]/10 px-3 py-1 text-sm font-bold text-[color:var(--primary-light)] transition-all duration-300 group-hover:border-[color:var(--primary)]/35 group-hover:bg-[color:var(--primary)]/15">{publicMoney(item.price, restaurant.currency, locale)}</div>
         </Link>)}</div> : <div className="flex min-h-48 items-center justify-center text-center text-[color:var(--text-muted)]">{isArabic ? "لا توجد أطباق متاحة في هذا القسم الآن." : "No dishes are available in this category yet."}</div>}
       </div>
-      <div className="mt-10 flex justify-center"><Link className="rounded-full bg-[color:var(--primary)] px-8 py-3 text-sm font-bold text-[color:var(--background)] shadow-[0_18px_48px_rgba(255,122,0,0.28)] transition-all duration-300 hover:-translate-y-1 hover:bg-[color:var(--primary-light)]" href={href(routes.menu)}>{isArabic ? "عرض القائمة الكاملة" : "View Full Menu"}</Link></div>
+      <div className="mt-10 flex justify-center"><Link className="rounded-full bg-[color:var(--primary)] px-8 py-3 text-sm font-bold text-[color:var(--background)] shadow-[0_18px_48px_rgba(255,122,0,0.28)] transition-all duration-300 hover:-translate-y-1 hover:bg-[color:var(--primary-light)]" href={href(routes.menu)}>{isArabic ? "عرض المنيو الكاملة" : "View Full Menu"}</Link></div>
     </div>
   </section>;
 }

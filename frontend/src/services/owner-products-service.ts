@@ -1,5 +1,5 @@
 import { ApiError, apiRequest } from "./api-client.ts";
-import { isObjectId, isRecord, parsePagination, validOwnerImageUrl, validSlug, type OwnerPagination } from "./owner-catalog-common.ts";
+import { isObjectId, isRecord, parsePagination, validOwnerImageUrl, type OwnerPagination } from "./owner-catalog-common.ts";
 import type { OwnerCategory } from "./owner-categories-service.ts";
 
 export interface OwnerProduct {
@@ -33,7 +33,7 @@ export interface ProductFormValues {
   calories: string;
 }
 
-export type ProductWrite = Pick<OwnerProduct, "name" | "slug" | "categoryId" | "description" | "price" | "oldPrice" | "imageUrl" | "images" | "isAvailable" | "isFeatured" | "preparationTime" | "calories">;
+export type ProductWrite = Pick<OwnerProduct, "name" | "categoryId" | "description" | "price" | "oldPrice" | "imageUrl" | "images" | "isAvailable" | "isFeatured" | "preparationTime" | "calories">;
 export type ProductPatch = Partial<ProductWrite>;
 export type ProductSort = "name" | "-name" | "price" | "-price" | "createdAt" | "-createdAt";
 export interface ProductListOptions {
@@ -119,7 +119,6 @@ export function validateProductForm(form: ProductFormValues, categories: OwnerCa
   Partial<Record<keyof ProductFormValues, string>> {
   const errors: Partial<Record<keyof ProductFormValues, string>> = {};
   if (!form.name.trim() || form.name.length > 120) errors.name = "Enter a name of 1–120 characters.";
-  if (!validSlug(form.slug.trim().toLowerCase())) errors.slug = "Use lowercase letters, numbers and single hyphens (max 120).";
   if (!isObjectId(form.categoryId) || !categories.some((item) => item.id === form.categoryId)) errors.categoryId = "Select a current category.";
   if (form.description.length > 2048) errors.description = "Use 2048 characters or fewer.";
   const digits = currencyDigits(currency);
@@ -135,7 +134,7 @@ export function validateProductForm(form: ProductFormValues, categories: OwnerCa
 
 export function productWrite(form: ProductFormValues, categories: OwnerCategory[], currency: string): ProductWrite {
   if (Object.keys(validateProductForm(form, categories, currency)).length) throw new Error("Invalid product form");
-  return { name: form.name.trim(), slug: form.slug.trim().toLowerCase(), categoryId: form.categoryId,
+  return { name: form.name.trim(), categoryId: form.categoryId,
     description: form.description.trim(), price: Number(form.price.trim()),
     oldPrice: form.oldPrice.trim() ? Number(form.oldPrice.trim()) : null,
     imageUrl: form.imageUrl.trim(), images: form.images.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),

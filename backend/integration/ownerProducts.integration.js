@@ -105,6 +105,22 @@ test('owner Product CRUD on savora_test', async (t) => {
       return product;
     }
 
+    await t.test('automatic product slugs survive concurrent creation and name edits', async () => {
+      const owner = tenants[0];
+      const [a, b] = await Promise.all([
+        createProduct(owner, { name: 'وجبة عربية', slug: undefined }),
+        createProduct(owner, { name: 'وجبة عربية', slug: undefined }),
+      ]);
+      assert.notEqual(a.slug, b.slug);
+      assert.match(a.slug, /^item-[a-f0-9]{12}(?:-\d+)?$/);
+      const renamed = await request(owner.session, 'PATCH', `/products/${a.id}`, { name: 'وجبة جديدة' });
+      assert.equal(renamed.status, 200);
+      assert.equal((await renamed.json()).product.slug, a.slug);
+      for (const product of [a, b]) {
+        assert.equal((await request(owner.session, 'DELETE', `/products/${product.id}`)).status, 204);
+      }
+    });
+
     await t.test('missing, invalid, and expired sessions return 401', async () => {
       assert.equal((await request(null, 'GET', '/products')).status, 401);
       assert.equal((await request(null, 'POST', '/products', {})).status, 401);
@@ -356,7 +372,10 @@ test('owner Product CRUD on savora_test', async (t) => {
     if (connection.readyState === 1) {
       for (const name of ['OwnerSession', 'Order', 'Product', 'Category', 'User', 'Restaurant']) {
         const Model = connection.models[name];
-        for (const _id of created.get(name) ?? []) await Model.deleteOne({ _id });
+        for (const _id of created.get(name) ?? []) {
+          await Model.deleteOne({ _id });
+          assert.equal(await Model.countDocuments({ _id }), 0, `${name} fixture cleanup`);
+        }
       }
     }
     await connection.close();

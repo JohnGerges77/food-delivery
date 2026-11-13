@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { useLocale } from "next-intl";
 import { deleteOwnerImage, isManagedImage, uploadOwnerImage,
   type OwnerMediaTarget } from "@/services/owner-media-service";
 import { useOwnerMediaAvailability } from "./useOwnerMediaAvailability";
@@ -9,6 +10,7 @@ import { useOwnerMediaAvailability } from "./useOwnerMediaAvailability";
 export function OwnerImageUpload({ target, currentUrl, onChanged }: {
   target: OwnerMediaTarget; currentUrl: string | null; onChanged: (url: string | null) => void;
 }) {
+  const ar = useLocale() === "ar";
   const [file, setFile] = useState<File | null>(null);
   const { available, loading } = useOwnerMediaAvailability();
   const [preview, setPreview] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export function OwnerImageUpload({ target, currentUrl, onChanged }: {
   }
 
   return <div className="rounded-xl border border-white/10 p-4">
-    {!available && <p role="status" className="text-sm text-[color:var(--text-muted)]">{loading ? "Checking image uploads…" : "Image uploads are currently unavailable. Existing image URLs remain available."}</p>}
+    {!available && <p role="status" className="text-sm text-[color:var(--text-muted)]">{loading ? (ar ? "جارٍ التحقق من رفع الصور…" : "Checking image uploads…") : (ar ? "رفع الصور غير متاح حاليًا. تظل روابط الصور الحالية متاحة." : "Image uploads are currently unavailable. Existing image URLs remain available.")}</p>}
     {available && <>
     <label className="block text-sm font-semibold" htmlFor={`media-${target.kind === "logo" ? "logo" : `${target.id}-${target.kind}`}`}>{target.kind === "logo" ? "Restaurant logo" : target.kind === "gallery" ? "Additional product image" : "Product image"}</label>
     <input id={`media-${target.kind === "logo" ? "logo" : `${target.id}-${target.kind}`}`} type="file"

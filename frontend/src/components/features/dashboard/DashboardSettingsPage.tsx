@@ -2,6 +2,7 @@
 
 import { CheckCircle2, ImageIcon, LoaderCircle, Save } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLocale } from "next-intl";
 import { ApiError } from "@/services/api-client";
 import { listOwnerProducts, type OwnerProduct } from "@/services/owner-products-service";
 import { allOwnerCategories } from "@/services/owner-categories-service";
@@ -37,6 +38,8 @@ export function DashboardSettingsPage() {
 }
 
 function RestaurantSettingsEditor({ ownerId }: { ownerId: string | undefined }) {
+  const ar = useLocale() === "ar";
+  const labels: Record<string, string> = { "Restaurant Name": "اسم المطعم", Phone: "رقم الهاتف", Email: "البريد الإلكتروني", Address: "العنوان", "Logo URL": "رابط الشعار", Description: "الوصف", "WhatsApp phone or wa.me URL": "رقم واتساب أو رابط wa.me", "Opening Hours": "ساعات العمل", "Estimated Delivery Time": "وقت التوصيل المتوقع", "Brand Name": "اسم العلامة", "Primary Color (hex)": "اللون الأساسي (hex)" };
   const restore = useAuthStore((state) => state.restore);
   const syncRestaurant = useAuthStore((state) => state.updateRestaurantSummary);
   const [restaurant, setRestaurant] = useState<OwnerRestaurant | null>(null);
@@ -143,16 +146,16 @@ function RestaurantSettingsEditor({ ownerId }: { ownerId: string | undefined }) 
       "aria-describedby": errors[key] ? `error-${key}` : undefined,
       onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => change(key, event.target.value) };
     return <div key={key} className={key === "description" || key === "logoUrl" ? "sm:col-span-2" : ""}>
-      <label htmlFor={id} className="mb-2 block text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">{label}</label>
+      <label htmlFor={id} className="mb-2 block text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">{ar ? labels[label] ?? label : label}</label>
       {type === "textarea" ? <textarea {...props} className={textareaClass} /> : <input {...props} className={inputClass} type={type} inputMode={key === "deliveryFee" || key === "minimumOrder" ? "decimal" : undefined} />}
       {errors[key] ? <p id={`error-${key}`} className="mt-2 text-sm text-red-300">{errors[key]}</p> : null}
     </div>;
   }
 
   return <section>
-    <DashboardPageHeader eyebrow="Restaurant Control" title="Settings"
-      description="Maintain your restaurant profile, delivery rules, hours, social links, and appearance."
-      action={saved ? <div role="status" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-5 text-sm font-semibold text-emerald-200"><CheckCircle2 aria-hidden="true" size={16} />Settings saved</div> : null} />
+    <DashboardPageHeader eyebrow={ar ? "إدارة المطعم" : "Restaurant Control"} title={ar ? "الإعدادات" : "Settings"}
+      description={ar ? "إدارة بيانات المطعم والتوصيل وساعات العمل وروابط التواصل والمظهر." : "Maintain your restaurant profile, delivery rules, hours, social links, and appearance."}
+      action={saved ? <div role="status" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-5 text-sm font-semibold text-emerald-200"><CheckCircle2 aria-hidden="true" size={16} />{ar ? "تم حفظ الإعدادات" : "Settings saved"}</div> : null} />
     {loading ? <div role="status" aria-label="Loading restaurant settings" className="grid animate-pulse gap-6 xl:grid-cols-[1fr_0.85fr]">
       {[8, 4].map((count) => <DashboardCard className="p-6" key={count}><div className="h-7 w-48 rounded bg-white/10" /><div className="mt-6 grid gap-4 sm:grid-cols-2">{Array.from({ length: count }, (_, index) => <div className="h-16 rounded-xl bg-white/[0.06]" key={index} />)}</div></DashboardCard>)}
     </div> : !form || !restaurant ? <DashboardCard className="p-6"><p role="alert" className="text-red-200">{error}</p><ActionButton className="mt-5" onClick={() => { setLoading(true); setError(""); setReload((value) => value + 1); }}>Retry</ActionButton></DashboardCard> :
@@ -181,8 +184,8 @@ function RestaurantSettingsEditor({ ownerId }: { ownerId: string | undefined }) 
         </div></DashboardCard>
         <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">Appearance</h3><div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.035] p-5 text-center"><div className="mx-auto flex size-20 items-center justify-center rounded-3xl border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/12 text-[color:var(--primary-light)]"><ImageIcon aria-hidden="true" size={30} /></div><div className="mt-4 text-2xl font-semibold tracking-[0.16em]">{form.brandName || restaurant.name}</div><p className="mt-2 text-sm text-[color:var(--text-muted)]">Brand preview</p></div><div className="mt-5 grid gap-4">{field("brandName", "Brand Name")}{field("primaryColor", "Primary Color (hex)")}<div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-4"><span className="size-10 rounded-full border border-white/20" style={{ backgroundColor: /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(form.primaryColor) ? form.primaryColor : "var(--primary)" }} /><span className="text-sm text-[color:var(--text-muted)]">Color preview</span></div></div></DashboardCard>
         {error ? <p role="alert" className="rounded-xl border border-red-400/25 bg-red-500/10 p-4 text-sm text-red-200">{error}</p> : null}
-        <ActionButton className="min-h-14 w-full" disabled={!dirty || saving} type="submit">{saving ? <LoaderCircle aria-hidden="true" className="animate-spin" size={17} /> : <Save aria-hidden="true" size={17} />}{saving ? "Saving…" : "Save Settings"}</ActionButton>
-        {dirty ? <p className="text-center text-sm text-amber-200">You have unsaved changes.</p> : null}
+        <ActionButton className="min-h-14 w-full" disabled={!dirty || saving} type="submit">{saving ? <LoaderCircle aria-hidden="true" className="animate-spin" size={17} /> : <Save aria-hidden="true" size={17} />}{saving ? (ar ? "جارٍ الحفظ…" : "Saving…") : (ar ? "حفظ الإعدادات" : "Save Settings")}</ActionButton>
+        {dirty ? <p className="text-center text-sm text-amber-200">{ar ? "لديك تغييرات لم تُحفظ." : "You have unsaved changes."}</p> : null}
       </div>
     </form>}
   </section>;

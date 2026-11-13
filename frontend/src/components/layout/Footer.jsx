@@ -127,7 +127,7 @@ export default function Footer() {
                   className="inline-flex min-h-13 w-full items-center justify-center rounded-full border border-white/14 bg-white/[0.045] px-7 text-sm font-bold text-[color:var(--text)] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--primary)]/55 hover:bg-white/[0.08] hover:text-[color:var(--primary-light)] sm:w-auto"
                   href={href(routes.menu)}
                 >
-                  {isArabic ? "عرض القائمة" : "View Menu"}
+                  {isArabic ? "عرض المنيو" : "View Menu"}
                 </Link>
               </div>
             </div>
@@ -181,7 +181,7 @@ export default function Footer() {
             <nav className="mt-6 grid gap-3">
               {quickLinks.map((link) => (
                 <PremiumLink href={href(link.href)} key={link.label}>
-                  {isArabic ? ({Home: "الرئيسية", Menu: "القائمة", About: "من نحن", Contact: "تواصل معنا"})[link.label] : link.label}
+                  {isArabic ? ({Home: "الرئيسية", Menu: "المنيو", About: "من نحن", Contact: "تواصل معنا"})[link.label] : link.label}
                 </PremiumLink>
               ))}
             </nav>
@@ -252,7 +252,7 @@ export default function Footer() {
               className="transition-colors duration-300 hover:text-[color:var(--primary-light)]"
               href={href(routes.menu)}
             >
-              {isArabic ? "القائمة" : "Menu"}
+              {isArabic ? "المنيو" : "Menu"}
             </Link>
           </div>
         </div>

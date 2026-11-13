@@ -4,6 +4,7 @@ import { validOwnerImageUrl } from './ownerCategories.js';
 import { createOwnerTenantScope, ownerListFilter, OwnerResourceNotFound } from './ownerTenant.js';
 import { managedMediaId } from './ownerMedia.js';
 import MediaAssetSchema from '../models/MediaAsset.js';
+import { catalogSlugBase, catalogSlugCandidate, isSlugConflict } from './catalogSlug.js';
 
 export class InvalidProductInput extends Error {
   constructor() { super('Invalid product input'); }
@@ -39,7 +40,7 @@ function validMoney(value, fractionDigits) {
 export function parseProductInput(body, { create = false, currency = 'EGP' } = {}) {
   if (body === null || typeof body !== 'object' || Array.isArray(body) ||
       Object.getPrototypeOf(body) !== Object.prototype || !Object.keys(body).length) invalid();
-  if (create && ['name', 'slug', 'categoryId', 'price'].some((key) => !Object.hasOwn(body, key))) {
+  if (create && ['name', 'categoryId', 'price'].some((key) => !Object.hasOwn(body, key))) {
     invalid();
   }
   const fractionDigits = currencyFractionDigits(currency);
@@ -159,15 +160,23 @@ export async function getOwnerProduct(connection, auth, id) {
 export async function createOwnerProduct(connection, auth, body) {
   const input = parseProductInput(body, { create: true, currency: auth.restaurant.currency });
   const { Product, Category } = modelsFor(connection, auth);
-  try {
-    return await withCategoryReferenceTransaction(connection, async (session) => {
-      await touchOwnedCategory(Category, auth, input.categoryId, session);
-      const product = new Product({ ...input, restaurantId: auth.restaurantId });
-      await product.validate();
-      await product.save({ session });
-      return product;
-    });
-  } catch (error) { mapWriteError(error); }
+  const generated = !Object.hasOwn(input, 'slug');
+  const base = generated ? catalogSlugBase(input.name) : input.slug;
+  for (let attempt = 0; attempt < (generated ? 100 : 1); attempt++) {
+    try {
+      return await withCategoryReferenceTransaction(connection, async (session) => {
+        await touchOwnedCategory(Category, auth, input.categoryId, session);
+        const product = new Product({ ...input, slug: catalogSlugCandidate(base, attempt), restaurantId: auth.restaurantId });
+        await product.validate();
+        await product.save({ session });
+        return product;
+      });
+    } catch (error) {
+      if (generated && isSlugConflict(error) && attempt < 99) continue;
+      mapWriteError(error);
+    }
+  }
+  throw new ProductConflict('Could not allocate product slug');
 }
 
 export async function patchOwnerProduct(connection, auth, id, body) {

@@ -1,0 +1,10 @@
+# MVP fixes 01–05: Firefox QA
+
+Run only on an isolated local/test environment with test-owned fixtures; do not change Savora Demo or staging data. Sign into any protected Preview normally and never create bypass links. Record the commit, language, theme, viewport and result. Do not submit orders unless separately authorized with an exact fixture and cleanup plan.
+
+1. At 1440, 768, 390 and 375 px, inspect Classic, Aqua, Café and Luxury in Arabic and English. Open About: the restaurant information should start below the navigation without the oversized About hero. Confirm the home hero is unchanged.
+2. Check restaurant navigation, menu, product details, cart and checkout: Arabic menu copy says «المنيو», English says “Menu”, and digits in prices, quantities and references are 0–9.
+3. Sign into an isolated Owner account. Check Overview, Products, Categories, Orders and Settings in Arabic and English. Check desktop sidebar edge, mobile drawer edge, labels, alignment, focus, dialogs, filters, tables and horizontal overflow. Record every untranslated string.
+4. Navigate Overview → Products → Categories → Orders → Settings → Overview. Confirm header/sidebar remain visible and no full-screen session check flashes. Separately reload, expire a session, and sign out; verify protected pages are blocked and login is required.
+5. On the test database, create English and Arabic categories and products without entering a slug; repeat names concurrently and check unique stored slugs within each tenant. Rename records and verify their slugs do not change. Confirm another tenant cannot modify them. Delete only recorded fixture IDs and independently check cleanup.
+6. Confirm managed upload controls remain unavailable without persistent storage, existing external images still render, and existing checkout functions are unaffected. Any real Direct/WhatsApp checkout requires separately approved fixtures; never send the WhatsApp message. Verify persistence, server totals and idempotency and audit exact cleanup.

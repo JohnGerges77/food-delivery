@@ -69,7 +69,7 @@ export function CartOrderingPage({ deliveryFee, currency, slug }: { deliveryFee:
                 className="mt-8 inline-flex min-h-13 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 text-sm font-bold text-[color:var(--background)] shadow-[0_20px_56px_rgba(255,122,0,0.34)] transition-transform hover:-translate-y-0.5"
                 href={href("/menu")}
               >
-                {isArabic ? "تصفح القائمة" : "Browse Menu"}
+                {isArabic ? "تصفح المنيو" : "Browse Menu"}
               </Link>
             </motion.div>
           ) : (

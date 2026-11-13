@@ -1,5 +1,6 @@
 import { createOwnerTenantScope, ownerListFilter, OwnerResourceNotFound } from './ownerTenant.js';
 import { touchOwnedCategory, withCategoryReferenceTransaction } from './categoryReference.js';
+import { catalogSlugBase, catalogSlugCandidate, isSlugConflict } from './catalogSlug.js';
 
 export class InvalidCategoryInput extends Error {
   constructor() { super('Invalid category input'); }
@@ -34,7 +35,7 @@ export function validOwnerImageUrl(value) {
 export function parseCategoryInput(body, { create = false } = {}) {
   if (body === null || typeof body !== 'object' || Array.isArray(body) ||
       Object.getPrototypeOf(body) !== Object.prototype || !Object.keys(body).length) invalid();
-  if (create && (!Object.hasOwn(body, 'name') || !Object.hasOwn(body, 'slug'))) invalid();
+  if (create && !Object.hasOwn(body, 'name')) invalid();
   const input = Object.create(null);
   for (const [key, value] of Object.entries(body)) {
     if (!EDITABLE_FIELDS.has(key)) invalid();
@@ -121,12 +122,20 @@ export async function getOwnerCategory(connection, auth, id) {
 export async function createOwnerCategory(connection, auth, body) {
   const input = parseCategoryInput(body, { create: true });
   const { Category } = modelsFor(connection, auth);
-  const category = new Category({ ...input, restaurantId: auth.restaurantId });
-  try {
-    await category.validate();
-    await category.save();
-  } catch (error) { mapWriteError(error); }
-  return category;
+  const generated = !Object.hasOwn(input, 'slug');
+  const base = generated ? catalogSlugBase(input.name) : input.slug;
+  for (let attempt = 0; attempt < (generated ? 100 : 1); attempt++) {
+    const category = new Category({ ...input, slug: catalogSlugCandidate(base, attempt), restaurantId: auth.restaurantId });
+    try {
+      await category.validate();
+      await category.save();
+      return category;
+    } catch (error) {
+      if (generated && isSlugConflict(error) && attempt < 99) continue;
+      mapWriteError(error);
+    }
+  }
+  throw new CategoryConflict('Could not allocate category slug');
 }
 
 export async function patchOwnerCategory(connection, auth, id, body) {

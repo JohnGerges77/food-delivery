@@ -96,6 +96,28 @@ test('owner Category CRUD on savora_test', async (t) => {
       return category;
     }
 
+    await t.test('automatic slugs handle Arabic and concurrent duplicate names per tenant', async () => {
+      const owner = tenants[0];
+      const sameName = `قسم ${suffix}`;
+      const [a, b] = await Promise.all([
+        createCategory(owner.session, { name: sameName }),
+        createCategory(owner.session, { name: sameName }),
+      ]);
+      assert.notEqual(a.slug, b.slug);
+      assert.match(a.slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+      const english = await createCategory(owner.session, { name: `English ${suffix}` });
+      assert.match(english.slug, /^english-/);
+      const otherTenant = await createCategory(tenants[1].session, { name: sameName });
+      assert.ok([a.slug, b.slug].includes(otherTenant.slug));
+      const renamed = await request(owner.session, 'PATCH', `/${a.id}`, { name: 'اسم جديد' });
+      assert.equal(renamed.status, 200);
+      assert.equal((await renamed.json()).category.slug, a.slug);
+      for (const [session, category] of [[owner.session, a], [owner.session, b],
+        [owner.session, english], [tenants[1].session, otherTenant]]) {
+        assert.equal((await request(session, 'DELETE', `/${category.id}`)).status, 204);
+      }
+    });
+
     await t.test('missing, invalid, and expired sessions return 401', async () => {
       assert.equal((await request(null, 'GET')).status, 401);
       assert.equal((await request(null, 'POST', '', { name: 'A', slug: 'a' })).status, 401);
@@ -208,7 +230,7 @@ test('owner Category CRUD on savora_test', async (t) => {
       const own = await createCategory(owner.session,
         { name: 'Validation', slug: `validation-${suffix}` });
       for (const body of [
-        {}, { name: 'Only name' }, { name: '   ', slug: `bad-${suffix}` },
+        {}, { name: '   ', slug: `bad-${suffix}` },
         { name: 'Bad', slug: 'bad slug' }, { _id: own.id },
         { restaurantId: String(tenants[1].restaurant._id) },
         { createdAt: new Date().toISOString() }, { $set: { name: 'Bad' } },
@@ -299,7 +321,10 @@ test('owner Category CRUD on savora_test', async (t) => {
     if (connection.readyState === 1) {
       for (const name of ['OwnerSession', 'Product', 'Category', 'User', 'Restaurant']) {
         const Model = connection.models[name];
-        for (const _id of created.get(name) ?? []) await Model.deleteOne({ _id });
+        for (const _id of created.get(name) ?? []) {
+          await Model.deleteOne({ _id });
+          assert.equal(await Model.countDocuments({ _id }), 0, `${name} fixture cleanup`);
+        }
       }
     }
     await connection.close();
