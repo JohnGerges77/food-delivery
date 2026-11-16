@@ -50,7 +50,7 @@ export function HeroSection({ restaurant }: { restaurant: PublicRestaurant }) {
 
       <div className="mx-auto grid w-full max-w-7xl items-center gap-8 sm:gap-12 lg:grid-cols-[0.92fr_1.08fr]">
         <motion.div
-          className="order-2 max-w-3xl text-center lg:order-1 lg:pt-0 lg:text-left"
+          className={`order-2 max-w-3xl lg:order-1 lg:pt-0 ${isArabic ? "text-start" : "text-center lg:text-start"}`}
           initial={{ opacity: 0, x: -34 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.75, ease: sectionEase }}
@@ -119,7 +119,7 @@ export function HeroSection({ restaurant }: { restaurant: PublicRestaurant }) {
           >
             {stats.map((stat) => (
               <div
-                className="border-r border-[color:var(--border)] px-2 py-3 text-center last:border-r-0 sm:px-5 sm:py-4 lg:text-left"
+                className="border-e border-[color:var(--border)] px-2 py-3 text-center last:border-e-0 sm:px-5 sm:py-4 lg:text-start"
                 key={stat.label}
               >
                 <div className="line-clamp-2 text-base font-semibold text-[color:var(--text)] sm:text-xl">

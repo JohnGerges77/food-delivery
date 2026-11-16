@@ -63,6 +63,7 @@ const restaurantSchema = new mongoose.Schema(
     },
     description: { type: String, trim: true },
     logoUrl: { type: String, trim: true },
+    aboutImageUrl: optionalWebUrl(),
     phone: { type: String, trim: true },
     contactEmail: {
       type: String,

@@ -9,6 +9,7 @@ export interface OwnerRestaurant {
   heroProductId: string | null;
   description: string | null;
   logoUrl: string | null;
+  aboutImageUrl?: string | null;
   phone: string | null;
   contactEmail: string | null;
   address: string | null;
@@ -28,6 +29,7 @@ export interface RestaurantSettingsForm {
   heroProductId: string;
   description: string;
   logoUrl: string;
+  aboutImageUrl: string;
   phone: string;
   contactEmail: string;
   address: string;
@@ -44,7 +46,7 @@ export interface RestaurantSettingsForm {
 }
 
 export type RestaurantSettingsPatch = Partial<Pick<OwnerRestaurant,
-  "name" | "heroProductId" | "description" | "logoUrl" | "phone" | "contactEmail" | "address" | "openingHours">> & {
+  "name" | "heroProductId" | "description" | "logoUrl" | "aboutImageUrl" | "phone" | "contactEmail" | "address" | "openingHours">> & {
   deliverySettings?: Partial<OwnerRestaurant["deliverySettings"]>;
   socialLinks?: Partial<OwnerRestaurant["socialLinks"]>;
   branding?: Partial<OwnerRestaurant["branding"]>;
@@ -114,6 +116,7 @@ export function restaurantToForm(restaurant: OwnerRestaurant): RestaurantSetting
     heroProductId: restaurant.heroProductId ?? "",
     description: restaurant.description ?? "",
     logoUrl: restaurant.logoUrl ?? "",
+    aboutImageUrl: restaurant.aboutImageUrl ?? "",
     phone: restaurant.phone ?? "",
     contactEmail: restaurant.contactEmail ?? "",
     address: restaurant.address ?? "",
@@ -142,7 +145,7 @@ export function validateSettingsForm(form: RestaurantSettingsForm, original: Own
     errors.contactEmail = "Enter a valid email address.";
   }
   if (normalizeWhatsAppSetting(form.whatsapp) === null) errors.whatsapp = "Enter a valid WhatsApp phone or wa.me URL.";
-  for (const key of ["logoUrl", "facebook", "instagram"] as const) {
+  for (const key of ["logoUrl", "aboutImageUrl", "facebook", "instagram"] as const) {
     const value = form[key].trim();
     if (!value) continue;
     if (key === "logoUrl" && /^\/api\/public\/restaurants\/[a-z0-9-]+\/media\/[0-9a-f]{24}\/large$/.test(value)) continue;
@@ -174,7 +177,7 @@ export function settingsPatch(form: RestaurantSettingsForm, original: OwnerResta
   if (Object.keys(errors).length) throw new Error("Invalid settings form");
   const patch: RestaurantSettingsPatch = {};
   if (form.heroProductId !== (original.heroProductId ?? "")) patch.heroProductId = form.heroProductId || null;
-  for (const key of ["name", "description", "logoUrl", "phone", "contactEmail", "address", "openingHours"] as const) {
+  for (const key of ["name", "description", "logoUrl", "aboutImageUrl", "phone", "contactEmail", "address", "openingHours"] as const) {
     const value = form[key].trim();
     if (value !== (original[key] ?? "")) patch[key] = value;
   }

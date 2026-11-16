@@ -113,6 +113,28 @@ test('owner tenant isolation on savora_test', async (t) => {
       body: typeof body === 'string' ? body : JSON.stringify(body),
     });
 
+    await t.test('About image persists, stays tenant-scoped, rejects unsafe URLs and clears', async () => {
+      const [a, b] = tenants;
+      for (const image of ['https://example.test/first.jpg', 'https://example.test/second.jpg']) {
+        assert.equal((await patchRestaurant(a.session, { aboutImageUrl: image })).status, 200);
+        assert.equal((await (await getRestaurant(a.session.cookie)).json()).restaurant.aboutImageUrl, image);
+        const publicResponse = await fetch(`http://127.0.0.1:${server.address().port}/api/public/restaurants/${a.restaurant.slug}`);
+        assert.equal((await publicResponse.json()).restaurant.aboutImageUrl, image);
+      }
+      assert.equal((await patchRestaurant(b.session, { aboutImageUrl: 'https://example.test/b.jpg' },
+        { query: `?restaurantId=${a.restaurant._id}` })).status, 200);
+      assert.equal((await (await getRestaurant(a.session.cookie)).json()).restaurant.aboutImageUrl, 'https://example.test/second.jpg');
+      assert.equal((await (await getRestaurant(b.session.cookie)).json()).restaurant.aboutImageUrl, 'https://example.test/b.jpg');
+      for (const image of ['javascript:alert(1)', 'data:image/png;base64,AA', 'https://user:pass@example.test/a']) {
+        assert.equal((await patchRestaurant(a.session, { aboutImageUrl: image })).status, 400);
+      }
+      assert.equal((await patchRestaurant(a.session, { aboutImageUrl: '' })).status, 200);
+      const result = (await (await getRestaurant(a.session.cookie)).json()).restaurant;
+      assert.equal(result.aboutImageUrl, '');
+      assert.equal(result.description, 'Description a');
+      assert.equal(result.deliverySettings.minimumOrder, 12);
+    });
+
     await t.test('missing, expired, and revoked sessions return 401', async () => {
       assert.equal((await fetch(url)).status, 401);
       const expired = await sessionFor(tenants[0].user, new Date(Date.now() - 1000));
@@ -299,6 +321,15 @@ test('owner tenant isolation on savora_test', async (t) => {
         const Model = connection.models[name];
         for (const _id of created.get(name) ?? []) await Model.deleteOne({ _id });
       }
+      const audit = mongoose.createConnection(validatedTestUri(), { autoIndex: false, autoCreate: false, serverSelectionTimeoutMS: 10000 });
+      try {
+        await audit.asPromise();
+        assert.equal(audit.db.databaseName, 'savora_test');
+        for (const [name, ids] of created) {
+          assert.equal(await audit.collection(connection.models[name].collection.name).countDocuments({ _id: { $in: ids } }), 0, `${name} exact-ID audit`);
+        }
+        console.log('Owner independent exact-ID audit:', JSON.stringify(Object.fromEntries([...created].map(([name, ids]) => [name, ids.length]))));
+      } finally { await audit.close(); }
     }
     await connection.close();
   }

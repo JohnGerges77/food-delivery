@@ -23,6 +23,14 @@ function json(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 }
 
+test("About image changes are isolated, clearable, and reject unsafe URLs", () => {
+  const initial = dto({ aboutImageUrl: "https://example.test/old.jpg" });
+  const form = restaurantToForm(initial);
+  assert.deepEqual(settingsPatch({ ...form, aboutImageUrl: "https://example.test/new.jpg" }, initial), { aboutImageUrl: "https://example.test/new.jpg" });
+  assert.deepEqual(settingsPatch({ ...form, aboutImageUrl: "" }, initial), { aboutImageUrl: "" });
+  assert.ok(validateSettingsForm({ ...form, aboutImageUrl: "javascript:alert(1)" }, initial).aboutImageUrl);
+});
+
 test("Hero patch is isolated from branding and Egyptian WhatsApp phone normalizes per restaurant", () => {
   const selected = "507f1f77bcf86cd799439012";
   const initial = dto();

@@ -95,7 +95,7 @@ export function CartOrderingPage({ deliveryFee, currency, slug }: { deliveryFee:
                 <AnimatePresence initial={false}>
                   {items.map((item) => (
                     <motion.article
-                      className="group grid gap-4 rounded-[1.35rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.078),rgba(255,255,255,0.028)_58%,rgba(255,122,0,0.04))] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.065)] backdrop-blur-xl transition-colors hover:border-[color:var(--primary)]/35 sm:grid-cols-[8rem_1fr_auto] sm:items-center sm:p-5"
+                      className="group grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-3 gap-y-1 rounded-[1.35rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.078),rgba(255,255,255,0.028)_58%,rgba(255,122,0,0.04))] p-3 shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.065)] backdrop-blur-xl transition-colors hover:border-[color:var(--primary)]/35 sm:grid-cols-[8rem_1fr_auto] sm:items-center sm:gap-4 sm:p-5"
                       key={item.productId}
                       layout
                       initial={{ opacity: 0, y: 24, scale: 0.98 }}
@@ -103,7 +103,7 @@ export function CartOrderingPage({ deliveryFee, currency, slug }: { deliveryFee:
                       exit={{ opacity: 0, x: -24, scale: 0.96 }}
                       transition={{ duration: 0.35, ease: sectionEase }}
                     >
-                      <div className="relative aspect-[1.25] overflow-hidden rounded-[1rem] sm:aspect-square">
+                      <div className="relative row-span-2 aspect-square overflow-hidden rounded-[1rem] sm:row-span-1">
                         <PublicProductImage
                           alt={item.name}
                           className="object-cover transition-transform duration-500 group-hover:scale-[1.06]"
@@ -112,12 +112,12 @@ export function CartOrderingPage({ deliveryFee, currency, slug }: { deliveryFee:
                         />
                       </div>
                       <div className="min-w-0">
-                        <h2 className="text-xl font-semibold leading-tight">{item.name}</h2>
-                        <p className="mt-2 text-sm text-[color:var(--text-muted)]">
+                        <h2 className="break-words text-base font-semibold leading-tight sm:text-xl">{item.name}</h2>
+                        <p className="mt-1 text-sm text-[color:var(--text-muted)] sm:mt-2">
                           {publicMoney(item.price, currency, locale)} {isArabic ? "للقطعة" : "each"}
                         </p>
-                        <div className="mt-4 flex flex-wrap items-center gap-3">
-                          <div className="inline-grid h-11 grid-cols-[2.5rem_3rem_2.5rem] overflow-hidden rounded-full border border-white/12 bg-white/[0.04]">
+                        <div className="mt-2 flex flex-wrap items-center gap-3 sm:mt-4">
+                          <div className="inline-grid h-11 grid-cols-[2.75rem_2.25rem_2.75rem] overflow-hidden rounded-full border border-white/12 bg-white/[0.04] sm:grid-cols-[2.5rem_3rem_2.5rem]">
                           <button
                             aria-label={`Decrease ${item.name}`}
                             className="flex items-center justify-center text-[color:var(--text-muted)] transition-colors hover:bg-white/[0.08] hover:text-[color:var(--primary-light)]"
@@ -140,8 +140,8 @@ export function CartOrderingPage({ deliveryFee, currency, slug }: { deliveryFee:
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end">
-                        <div className="text-2xl font-semibold text-[color:var(--primary-light)]">
+                      <div className="col-start-2 flex min-w-0 items-center justify-between gap-2 sm:col-auto sm:flex-col sm:items-end sm:gap-4">
+                        <div className="break-words text-base font-semibold text-[color:var(--primary-light)] sm:text-2xl">
                           {publicMoney(item.price * item.quantity, currency, locale)}
                         </div>
                         <button

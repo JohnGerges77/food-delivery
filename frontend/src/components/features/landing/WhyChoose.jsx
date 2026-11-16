@@ -1,9 +1,14 @@
 import Image from "next/image";
 import { useLocale } from "next-intl";
 import { Clock, MapPin, Phone, UtensilsCrossed } from "lucide-react";
+import { useState } from "react";
+import { safePublicImage } from "@/lib/public-menu-presentation";
 
 export default function WhyChoose({ restaurant }) {
   const isArabic = useLocale() === "ar";
+  const [failedImage, setFailedImage] = useState(null);
+  const image = safePublicImage(restaurant.aboutImageUrl);
+  const showImage = image && image !== failedImage;
   const features = [
     { title: isArabic ? "المنيو" : "Menu", description: isArabic ? "استكشف الأطباق المتاحة في المنيو." : "Explore the currently available dishes.", icon: UtensilsCrossed },
     { title: isArabic ? "ساعات العمل" : "Opening Hours", description: restaurant.openingHours || (isArabic ? "لم تُذكر ساعات العمل." : "Hours have not been listed."), icon: Clock },
@@ -21,7 +26,7 @@ export default function WhyChoose({ restaurant }) {
       <div className="absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[color:var(--primary)]/30 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 -z-10 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-      <div className="mx-auto grid max-w-7xl items-center gap-16 lg:grid-cols-[0.96fr_1.04fr] lg:gap-20">
+      <div className={`mx-auto grid max-w-7xl items-center gap-16 ${showImage ? "lg:grid-cols-[0.96fr_1.04fr] lg:gap-20" : ""}`}>
         <div>
           <div
             className="mb-7 inline-flex items-center gap-4 rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 px-4 py-2 text-xs font-semibold tracking-[0.26em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_rgba(255,122,0,0.14)] backdrop-blur"
@@ -77,7 +82,7 @@ export default function WhyChoose({ restaurant }) {
           </div>
         </div>
 
-        <div
+        {showImage && <div
           className="relative lg:pl-2"
         >
           <div
@@ -95,7 +100,9 @@ export default function WhyChoose({ restaurant }) {
                 className="object-cover transition-transform duration-700 group-hover:scale-106"
                 fill
                 sizes="(min-width: 1024px) 48vw, 100vw"
-                src="/whyChooseUs.webp"
+                src={image}
+                unoptimized
+                onError={() => setFailedImage(image)}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[color:var(--background)]/54 via-transparent to-black/10" />
               <div className="absolute inset-x-6 bottom-6 rounded-2xl border border-white/10 bg-[color:var(--background)]/58 px-5 py-4 shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-md">
@@ -113,7 +120,7 @@ export default function WhyChoose({ restaurant }) {
             {isArabic ? "قائمة المطعم" : "Restaurant Menu"}
             <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[color:var(--primary)]/50 to-transparent" />
           </div>
-        </div>
+        </div>}
       </div>
     </section>
   );

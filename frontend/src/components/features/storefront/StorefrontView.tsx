@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { PublicMenuError, findPublicProduct, getAllPublicCategories, getPublicProducts,
+import { PublicMenuError, findPublicProduct, getAllPublicCategories, getPublicProducts, selectOffers,
   getPublicRestaurant, localPreviewSlug, validateStorefrontSlug } from "@/services/public-menu";
 import { StorefrontClient } from "./StorefrontClient";
 
@@ -20,13 +20,15 @@ export async function StorefrontView({ slug, page, productId }: {
   let categories;
   let listing;
   let product;
+  let offers;
   try {
     restaurant = await getPublicRestaurant(resolvedSlug);
     const needsMenu = page === "home" || page === "menu" || page === "product";
-    [categories, listing, product] = await Promise.all([
+    [categories, listing, product, offers] = await Promise.all([
       needsMenu ? getAllPublicCategories(resolvedSlug) : Promise.resolve([]),
       page === "home" || page === "menu" ? getPublicProducts(resolvedSlug) : Promise.resolve(null),
       page === "product" && productId ? findPublicProduct(resolvedSlug, productId) : Promise.resolve(null),
+      page === "home" ? getPublicProducts(resolvedSlug, 1, { isFeatured: true }) : Promise.resolve(null),
     ]);
   } catch (error) {
     if (error instanceof PublicMenuError && error.status === 404) notFound();
@@ -34,6 +36,6 @@ export async function StorefrontView({ slug, page, productId }: {
   }
   if (page === "product" && !product) notFound();
   return <StorefrontClient key={resolvedSlug} basePath={basePath} restaurant={restaurant} page={page}
-    categories={categories} initialProducts={listing?.products ?? []}
+    categories={categories} initialProducts={listing?.products ?? []} offers={selectOffers(offers?.products ?? [])}
     initialPagination={listing?.pagination ?? null} product={product} />;
 }

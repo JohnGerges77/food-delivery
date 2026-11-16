@@ -23,6 +23,7 @@ export function serializeOwnerRestaurant(restaurant) {
     heroProductId: restaurant.heroProductId ? String(restaurant.heroProductId) : null,
     description: restaurant.description ?? null,
     logoUrl: restaurant.logoUrl ?? null,
+    aboutImageUrl: restaurant.aboutImageUrl ?? null,
     phone: restaurant.phone ?? null,
     contactEmail: restaurant.contactEmail ?? null,
     address: restaurant.address ?? null,

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { getAllPublicCategories, getPublicProducts, getPublicRestaurant, findPublicProduct,
-  localPreviewSlug, validateStorefrontSlug, PublicMenuError } from "../src/services/public-menu.ts";
+  localPreviewSlug, validateStorefrontSlug, PublicMenuError, selectOffers } from "../src/services/public-menu.ts";
 import { publicMoney, safePublicImage } from "../src/lib/public-menu-presentation.ts";
 import { westernDigits } from "../src/lib/western-digits.ts";
 import { resolveStorefrontTheme } from "../src/lib/storefront-theme.ts";
@@ -14,6 +14,28 @@ const categoryId = "507f1f77bcf86cd799439011";
 const product = { id, categoryId, name: "Dish", slug: "dish", description: null,
   price: 0, oldPrice: 4.5, imageUrl: null, images: [], isFeatured: false,
   preparationTime: null, calories: null };
+
+test("offers filter before limiting and preserve menu order", () => {
+  const featured = Array.from({ length: 8 }, (_, index) => ({ ...product, id: String(index), isFeatured: true }));
+  assert.deepEqual(selectOffers([{ ...product, id: "ordinary" }, ...featured]).map((item) => item.id), ["0", "1", "2", "3", "4"]);
+  assert.equal(selectOffers(featured.slice(0, 2)).length, 2);
+  assert.deepEqual(selectOffers([product]), []);
+});
+
+test("cart quantity controls preserve subtotal and clear items", () => {
+  const store = useCartStore.getState();
+  store.clearCart();
+  store.addPublicItem("cafe", { ...product, price: 12.5 }, 2);
+  store.increaseQuantity(product.id);
+  assert.equal(useCartStore.getState().getSubtotal(), 37.5);
+  store.decreaseQuantity(product.id);
+  assert.equal(useCartStore.getState().getTotal(5), 30);
+  store.removeItem(product.id);
+  assert.equal(useCartStore.getState().items.length, 0);
+  store.addPublicItem("cafe", product);
+  store.clearCart();
+  assert.equal(useCartStore.getState().items.length, 0);
+});
 const restaurant = { name: "Cafe", slug: "cafe", description: null, logoUrl: null,
   currency: "EGP", phone: null, contactEmail: null, address: null, openingHours: null,
   deliverySettings: { deliveryFee: 0, minimumOrder: 0, estimatedDeliveryTime: null, deliveryAvailable: false },

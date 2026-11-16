@@ -11,7 +11,7 @@ export class InvalidRestaurantSettings extends Error {
 }
 
 const fields = Object.freeze({
-  name: 'requiredText', description: 'text', logoUrl: 'webUrl',
+  name: 'requiredText', description: 'text', logoUrl: 'webUrl', aboutImageUrl: 'externalUrl',
   heroProductId: 'heroProduct',
   phone: 'text', contactEmail: 'text', address: 'text', openingHours: 'text',
   deliverySettings: Object.freeze({
@@ -52,6 +52,8 @@ function validValue(value, kind) {
   if (typeof value !== 'string' || value.length > 2048) return false;
   if (kind === 'requiredText' && !value.trim()) return false;
   if (kind === 'webUrl' && !validWebUrl(value.trim())) return false;
+  if (kind === 'externalUrl' && value.trim() &&
+      (!validWebUrl(value.trim()) || value.trim().startsWith('/'))) return false;
   return true;
 }
 

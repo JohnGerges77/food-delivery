@@ -17,6 +17,8 @@ import { MenuOrderingPage } from "@/components/features/menu/MenuOrderingPage";
 import { CartOrderingPage } from "@/components/features/cart/CartOrderingPage";
 import { CheckoutOrderingPage } from "@/components/features/checkout/CheckoutOrderingPage";
 import { ProductImageGallery } from "./ProductImageGallery";
+import { ProductMetadata } from "./ProductMetadata";
+import { AboutImage } from "./AboutImage";
 import { StorefrontProvider, useStorefront } from "./StorefrontContext";
 import type { StorefrontPage } from "./StorefrontView";
 import { resolveStorefrontTheme, type StorefrontThemeId } from "@/lib/storefront-theme";
@@ -33,6 +35,7 @@ type Props = {
   page: StorefrontPage;
   categories: PublicCategory[];
   initialProducts: PublicProduct[];
+  offers: PublicProduct[];
   initialPagination: PublicPage | null;
   product: PublicProduct | null;
 };
@@ -51,9 +54,9 @@ function ProductPage({ product }: { product: PublicProduct }) {
         <div className="flex flex-col justify-center p-7 sm:p-10 lg:p-12">
           {category && <p className="text-xs font-semibold uppercase tracking-[.22em] text-[color:var(--gold)]">{category.name}</p>}
           <h1 className="mt-4 text-4xl font-semibold sm:text-6xl">{product.name}</h1>
-          {product.description && <p className="mt-6 text-base leading-8 text-[color:var(--text-muted)]">{product.description}</p>}
+          {product.description && <p className="mt-6 whitespace-pre-line text-base leading-8 text-[color:var(--text-muted)]">{product.description}</p>}
           <div className="mt-8 flex flex-wrap items-center gap-4"><strong className="text-3xl text-[color:var(--primary-light)]">{publicMoney(product.price, restaurant.currency, locale)}</strong>{product.oldPrice !== null && product.oldPrice > product.price && <span className="text-[color:var(--text-muted)] line-through">{publicMoney(product.oldPrice, restaurant.currency, locale)}</span>}</div>
-          {product.preparationTime !== null && <p className="mt-5 text-sm text-[color:var(--text-muted)]">{isArabic ? "وقت التحضير" : "Preparation time"}: {product.preparationTime} {isArabic ? "دقيقة" : "min"}</p>}
+          <ProductMetadata product={product} locale={locale} />
           <button className="mt-9 min-h-13 self-start rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 font-bold text-[color:var(--background)] shadow-[0_20px_56px_rgba(255,122,0,.3)] transition-transform hover:-translate-y-0.5" onClick={() => addItem(restaurant.slug, product)} type="button">{isArabic ? "أضف إلى السلة" : "Add to cart"}</button>
         </div>
       </article>
@@ -69,8 +72,8 @@ function AboutPage() {
   </main>;
 }
 
-function ClassicHome({ restaurant, initialProducts }: Pick<Props, "restaurant" | "initialProducts">) {
-  return <main><HeroSection restaurant={restaurant} /><BestItems products={initialProducts} /><FeaturedProducts products={initialProducts} /><WhyChoose restaurant={restaurant} /><ContactSection /></main>;
+function ClassicHome({ restaurant, initialProducts, offers }: Pick<Props, "restaurant" | "initialProducts" | "offers">) {
+  return <main><HeroSection restaurant={restaurant} /><BestItems products={offers} /><FeaturedProducts products={initialProducts} /><WhyChoose restaurant={restaurant} /><ContactSection /></main>;
 }
 
 // Each shipped theme supplies public presentation slots. Ordering state and API services
@@ -78,7 +81,7 @@ function ClassicHome({ restaurant, initialProducts }: Pick<Props, "restaurant" |
 type StorefrontTheme = {
   Navbar: ComponentType;
   Footer: ComponentType;
-  Home: ComponentType<Pick<Props, "restaurant" | "initialProducts">>;
+  Home: ComponentType<Pick<Props, "restaurant" | "initialProducts" | "offers">>;
   Menu: ComponentType<Pick<Props, "initialProducts" | "initialPagination">>;
   Product: ComponentType<{ product: PublicProduct }>;
   About: ComponentType;
@@ -119,7 +122,7 @@ const storefrontThemes: Record<StorefrontThemeId, StorefrontTheme> = {
   },
 };
 
-export function StorefrontClient({ basePath, restaurant, page, categories, initialProducts, initialPagination, product }: Props) {
+export function StorefrontClient({ basePath, restaurant, page, categories, initialProducts, offers, initialPagination, product }: Props) {
   const setTenant = useCartStore((state) => state.setTenant);
   useEffect(() => { setTenant(restaurant.slug); }, [restaurant.slug, setTenant]);
   const themeId = resolveStorefrontTheme(restaurant);
@@ -127,12 +130,13 @@ export function StorefrontClient({ basePath, restaurant, page, categories, initi
   return <StorefrontProvider restaurant={restaurant} categories={categories} basePath={basePath}>
     <div data-storefront-theme={themeId} data-storefront-page={page} className={`min-h-screen bg-[color:var(--sf-background)] text-[color:var(--sf-text)] ${themeId === "savora-aqua" ? aquaStyles.root : themeId === "savora-cafe" ? cafeStyles.root : themeId === "savora-luxury" ? luxuryStyles.root : ""}`}>
       <theme.Navbar />
-      {page === "home" && <theme.Home restaurant={restaurant} initialProducts={initialProducts} />}
+      {page === "home" && <theme.Home restaurant={restaurant} initialProducts={initialProducts} offers={offers} />}
       {page === "menu" && <theme.Menu initialProducts={initialProducts} initialPagination={initialPagination} />}
       {page === "product" && product && <theme.Product product={product} />}
       {page === "cart" && <CartOrderingPage deliveryFee={restaurant.deliverySettings.deliveryFee} currency={restaurant.currency} slug={restaurant.slug} />}
       {page === "checkout" && <CheckoutOrderingPage key={restaurant.slug} deliveryFee={restaurant.deliverySettings.deliveryFee} currency={restaurant.currency} slug={restaurant.slug} />}
       {page === "about" && <theme.About />}
+      {page === "about" && themeId !== "savora-classic" && <AboutImage src={restaurant.aboutImageUrl} name={restaurant.name} />}
       <theme.Footer />
     </div>
   </StorefrontProvider>;

@@ -10,6 +10,7 @@ import { CartAttention } from "../CartAttention";
 import type { PublicPage, PublicProduct, PublicRestaurant } from "@/services/public-menu";
 import { PublicProductImage } from "../PublicProductImage";
 import { ProductImageGallery } from "../ProductImageGallery";
+import { ProductMetadata } from "../ProductMetadata";
 import { useStorefront } from "../StorefrontContext";
 import styles from "./CafeStorefront.module.css";
 
@@ -39,7 +40,7 @@ export function CafeNavbar() {
   </header>;
 }
 
-export function CafeHome({ restaurant, initialProducts }: { restaurant: PublicRestaurant; initialProducts: PublicProduct[] }) {
+export function CafeHome({ restaurant, initialProducts, offers }: { restaurant: PublicRestaurant; initialProducts: PublicProduct[]; offers: PublicProduct[] }) {
   const locale = useLocale();
   const ar = locale === "ar";
   const reduced = useReducedMotion();
@@ -47,7 +48,7 @@ export function CafeHome({ restaurant, initialProducts }: { restaurant: PublicRe
   const ordered = [...initialProducts.filter((product) => product.isFeatured), ...initialProducts.filter((product) => !product.isFeatured)];
   const heroProduct = restaurant.heroProductSelected ? restaurant.heroProduct ?? undefined : ordered[0];
   const heroImage = heroProduct && safePublicImage(heroProduct.imageUrl || heroProduct.images[0]);
-  const menuPreview = ordered.filter((product) => product.id !== heroProduct?.id).slice(0, 4);
+  const menuPreview = offers.filter((product) => product.isFeatured).slice(0, 5);
   const heroCategory = categories.find((category) => category.id === heroProduct?.categoryId);
   return <main className={styles.home}>
     <div className={styles.stage}>
@@ -70,11 +71,11 @@ export function CafeHome({ restaurant, initialProducts }: { restaurant: PublicRe
       </div>
       <div className={styles.stageContent}>
         {categories.length > 0 && <section className={styles.categories}><div className={styles.sectionHeading}><h2>{ar ? "أقسام المنيو" : "Explore the menu"}</h2><Link href={href("/menu")}>{ar ? "المنيو كاملة" : "Full menu"}</Link></div><div className={styles.categoryList}>{categories.map((category) => <Link href={href("/menu")} key={category.id}>{category.name}<span aria-hidden="true">↗</span></Link>)}</div></section>}
-        {menuPreview.length > 0 && <section className={styles.menuPreview}><div className={styles.sectionHeading}><h2>{ar ? "من قائمتنا" : "From the menu"}</h2><Link href={href("/menu")}>{ar ? "تصفح كل المنتجات" : "Browse all products"}</Link></div>
+        {menuPreview.length > 0 && <section className={styles.menuPreview}><div className={styles.sectionHeading}><h2>{ar ? "العروض" : "Offers"}</h2><Link href={href("/menu")}>{ar ? "تصفح كل المنتجات" : "Browse all products"}</Link></div>
           <div className={styles.previewList}>{menuPreview.map((product) => <article className={`${styles.previewItem} relative`} key={product.id}>
             <Link href={href(`/menu/${product.id}`)} className="absolute inset-0 z-10" aria-label={ar ? `تفاصيل ${product.name}` : `Details for ${product.name}`} />
             {safePublicImage(product.imageUrl || product.images[0]) && <div className={styles.previewPhoto}><ProductPhoto product={product} sizes="(min-width: 900px) 8vw, 22vw" /></div>}
-            <div className={styles.previewText}><h3>{product.name}</h3>{product.description && <p>{product.description}</p>}</div><strong>{publicMoney(product.price, restaurant.currency, locale)}</strong>
+            <div className={styles.previewText}><h3>{product.name}</h3><p>{categories.find((category) => category.id === product.categoryId)?.name}</p>{product.description && <p>{product.description}</p>}</div><strong>{publicMoney(product.price, restaurant.currency, locale)}</strong>
           </article>)}</div>
         </section>}
       </div>
@@ -106,7 +107,7 @@ export function CafeProduct({ product }: { product: PublicProduct }) {
   const { restaurant, categories, href } = useStorefront();
   const add = useCartStore((state) => state.addPublicItem);
   const category = categories.find((entry) => entry.id === product.categoryId);
-  return <main className={styles.product}><Link href={href("/menu")} className={styles.back}>{ar ? "العودة للمنيو" : "Back to menu"}</Link><article className={styles.productLayout}><div className={styles.productPhoto}>{safePublicImage(product.imageUrl || product.images[0]) ? <ProductImageGallery product={product} sizes="(min-width: 800px) 50vw, 100vw" className={styles.photo} /> : <div className={styles.productWithoutPhoto}><span>{category?.name || (ar ? "المنيو" : "Menu")}</span><strong>{product.name}</strong><span>{restaurant.name}</span></div>}</div><div className={styles.productCopy}>{category && <p className={styles.categoryName}>{category.name}</p>}<h1>{product.name}</h1>{product.description && <p>{product.description}</p>}<strong>{publicMoney(product.price, restaurant.currency, locale)}</strong>{product.oldPrice !== null && product.oldPrice > product.price && <del>{publicMoney(product.oldPrice, restaurant.currency, locale)}</del>}{product.preparationTime !== null && <span>{ar ? "وقت التحضير" : "Preparation time"}: {product.preparationTime} {ar ? "دقيقة" : "min"}</span>}<button type="button" onClick={() => add(restaurant.slug, product)} className={styles.action}>{ar ? "أضف إلى السلة" : "Add to cart"}</button></div></article></main>;
+  return <main className={styles.product}><Link href={href("/menu")} className={styles.back}>{ar ? "العودة للمنيو" : "Back to menu"}</Link><article className={styles.productLayout}><div className={styles.productPhoto}>{safePublicImage(product.imageUrl || product.images[0]) ? <ProductImageGallery product={product} sizes="(min-width: 800px) 50vw, 100vw" className={styles.photo} /> : <div className={styles.productWithoutPhoto}><span>{category?.name || (ar ? "المنيو" : "Menu")}</span><strong>{product.name}</strong><span>{restaurant.name}</span></div>}</div><div className={styles.productCopy}>{category && <p className={styles.categoryName}>{category.name}</p>}<h1>{product.name}</h1>{product.description && <p className="whitespace-pre-line">{product.description}</p>}<strong>{publicMoney(product.price, restaurant.currency, locale)}</strong>{product.oldPrice != null && product.oldPrice > product.price && <del>{publicMoney(product.oldPrice, restaurant.currency, locale)}</del>}<ProductMetadata product={product} locale={locale} /><button type="button" onClick={() => add(restaurant.slug, product)} className={styles.action}>{ar ? "أضف إلى السلة" : "Add to cart"}</button></div></article></main>;
 }
 
 export function CafeAbout() {

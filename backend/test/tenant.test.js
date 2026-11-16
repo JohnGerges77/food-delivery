@@ -27,11 +27,20 @@ test('owner restaurant serializer uses an explicit safe field list', () => {
   };
   const result = serializeOwnerRestaurant(restaurant);
   assert.deepEqual(Object.keys(result), [
-    'id', 'name', 'slug', 'currency', 'status', 'heroProductId', 'description', 'logoUrl',
+    'id', 'name', 'slug', 'currency', 'status', 'heroProductId', 'description', 'logoUrl', 'aboutImageUrl',
     'phone', 'contactEmail', 'address', 'openingHours', 'deliverySettings',
     'socialLinks', 'branding',
   ]);
   assert.doesNotMatch(JSON.stringify(result), /secret|passwordHash|tokenHash|credentials/);
+});
+
+test('About image accepts external web URLs and clearing, but rejects unsafe values', () => {
+  for (const aboutImageUrl of ['', 'https://example.test/about.jpg', 'http://example.test/about.jpg']) {
+    assert.equal(parseRestaurantSettingsPatch({ aboutImageUrl }).aboutImageUrl, aboutImageUrl);
+  }
+  for (const aboutImageUrl of ['javascript:alert(1)', 'data:image/png;base64,AA', '/api/public/restaurants/a/media/000000000000000000000000/large', 'https://user:pass@example.test/a']) {
+    assert.throws(() => parseRestaurantSettingsPatch({ aboutImageUrl }), InvalidRestaurantSettings);
+  }
 });
 
 test('Hero selection is a nullable ObjectId and checks tenant, availability and active category', async () => {

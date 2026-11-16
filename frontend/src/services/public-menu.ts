@@ -1,7 +1,7 @@
 import { westernDigits } from "../lib/western-digits.ts";
 
 export type PublicRestaurant = {
-  name: string; slug: string; description: string | null; logoUrl: string | null;
+  name: string; slug: string; description: string | null; logoUrl: string | null; aboutImageUrl?: string | null;
   storefrontTheme?: string;
   heroProduct?: PublicProduct | null;
   heroProductSelected?: boolean;
@@ -21,6 +21,10 @@ export type PublicProduct = { id: string; categoryId: string; name: string; slug
 export type PublicPage = { page: number; limit: number; total: number; hasNext: boolean };
 export type PublicCategoriesResponse = { categories: PublicCategory[]; pagination: PublicPage };
 export type PublicProductsResponse = { currency: string; products: PublicProduct[]; pagination: PublicPage };
+
+export function selectOffers(products: PublicProduct[]): PublicProduct[] {
+  return products.filter((product) => product.isFeatured).slice(0, 5);
+}
 
 export class PublicMenuError extends Error {
   readonly status: number | null;

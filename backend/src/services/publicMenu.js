@@ -64,6 +64,7 @@ export function serializePublicRestaurant(restaurant) {
     heroProduct: restaurant.heroProduct ?? null,
     heroProductSelected: Boolean(restaurant.heroProductId),
     description: restaurant.description ?? null, logoUrl: restaurant.logoUrl ?? null,
+    aboutImageUrl: restaurant.aboutImageUrl ?? null,
     currency: restaurant.currency, phone: restaurant.phone ?? null,
     contactEmail: restaurant.contactEmail ?? null, address: restaurant.address ?? null,
     openingHours: restaurant.openingHours ?? null,
@@ -117,7 +118,7 @@ export async function resolvePublicRestaurant(connection, slug) {
   const normalized = normalizePublicSlug(slug);
   const { Restaurant, Product, Category } = modelsFor(connection);
   const restaurant = await Restaurant.findOne({ slug: normalized, status: { $ne: 'suspended' } })
-    .select('_id name slug storefrontTheme heroProductId description logoUrl currency phone contactEmail address openingHours deliverySettings socialLinks branding')
+    .select('_id name slug storefrontTheme heroProductId description logoUrl aboutImageUrl currency phone contactEmail address openingHours deliverySettings socialLinks branding')
     .lean();
   if (!restaurant) throw new PublicRestaurantNotFound();
   if (restaurant.heroProductId) {

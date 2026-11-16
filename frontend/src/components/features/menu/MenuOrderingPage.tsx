@@ -12,6 +12,7 @@ import { publicMoney } from "@/lib/public-menu-presentation";
 import { useCartStore } from "@/store/cart-store";
 import { getPublicProducts, type PublicPage, type PublicProduct } from "@/services/public-menu";
 import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";
+import { ProductMetadata } from "@/components/features/storefront/ProductMetadata";
 import { useStorefront } from "@/components/features/storefront/StorefrontContext";
 
 export function MenuOrderingPage({ initialProducts, initialPagination }: {
@@ -222,22 +223,8 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
                     </h3>
                     {product.oldPrice !== null && product.oldPrice > product.price && <span className="hidden shrink-0 text-sm text-[color:var(--text-muted)] line-through sm:block">{publicMoney(product.oldPrice, restaurant.currency, locale)}</span>}
                   </div>
-                  <p className="mt-1 line-clamp-1 text-xs leading-5 text-[color:var(--text-muted)] sm:mt-2 sm:line-clamp-2 sm:text-sm sm:leading-6">
-                    {product.description}
-                  </p>
-                  <div className="mt-3 hidden items-center gap-2 text-xs font-semibold tracking-[0.16em] text-[color:var(--gold)] uppercase sm:flex">
-                    {product.preparationTime !== null && <span>{product.preparationTime} {isArabic ? "دقيقة" : "min"}</span>}
-                    {product.preparationTime !== null && product.calories !== null && <span className="size-1 rounded-full bg-white/20" />}
-                    {product.calories !== null && <span>{product.calories} {isArabic ? "سعرة" : "cal"}</span>}
-                    {productCartQuantity > 0 ? (
-                      <>
-                        <span className="size-1 rounded-full bg-white/20" />
-                        <span className="text-[color:var(--primary-light)]">
-                          {isArabic ? `${productCartQuantity} في السلة` : `${productCartQuantity} in cart`}
-                        </span>
-                      </>
-                    ) : null}
-                  </div>
+                  <ProductMetadata product={product} locale={locale} compact />
+                  {productCartQuantity > 0 && <div className="mt-2 hidden text-xs font-semibold text-[color:var(--primary-light)] sm:block">{isArabic ? `${productCartQuantity} في السلة` : `${productCartQuantity} in cart`}</div>}
                   <div className="mt-1 flex items-end justify-between gap-2 sm:mt-4 sm:items-center">
                     <div>
                       <div className="hidden text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase sm:block">

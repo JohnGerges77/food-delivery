@@ -10,6 +10,7 @@ import { CartAttention } from "../CartAttention";
 import type { PublicPage, PublicProduct, PublicRestaurant } from "@/services/public-menu";
 import { PublicProductImage } from "../PublicProductImage";
 import { ProductImageGallery } from "../ProductImageGallery";
+import { ProductMetadata } from "../ProductMetadata";
 import { useStorefront } from "../StorefrontContext";
 import styles from "./LuxuryStorefront.module.css";
 
@@ -51,31 +52,31 @@ export function LuxuryNavbar() {
 }
 
 function FeaturedCard({ product, restaurant, locale }: { product: PublicProduct; restaurant: PublicRestaurant; locale: string }) {
-  const { href } = useStorefront();
+  const { href, categories } = useStorefront();
   const add = useCartStore((state) => state.addPublicItem);
   const ar = locale === "ar";
   return <article className={`${styles.featuredCard} relative`}>
     <Link href={href(`/menu/${product.id}`)} className="absolute inset-0 z-10" aria-label={ar ? `تفاصيل ${product.name}` : `Details for ${product.name}`} />
     <div className={styles.cardVisual}>{hasImage(product) ? <ProductImage product={product} sizes="(min-width: 900px) 28vw, 100vw" /> : <span className={styles.cardNoImage}>{product.name}</span>}</div>
-    <div className={styles.cardDetails}><div><h3>{product.name}</h3>{product.description && <p>{product.description}</p>}</div><strong>{publicMoney(product.price, restaurant.currency, locale)}</strong></div>
+    <div className={styles.cardDetails}><div><h3>{product.name}</h3><p>{categories.find((category) => category.id === product.categoryId)?.name}</p>{product.description && <p>{product.description}</p>}</div><strong>{publicMoney(product.price, restaurant.currency, locale)}</strong></div>
     <button type="button" onClick={() => add(restaurant.slug, product)} className={`${styles.cardAdd} relative z-20`}><Plus size={17} aria-hidden="true" />{ar ? "أضف إلى السلة" : "Add to cart"}</button>
   </article>;
 }
 
-export function LuxuryHome({ restaurant, initialProducts }: { restaurant: PublicRestaurant; initialProducts: PublicProduct[] }) {
+export function LuxuryHome({ restaurant, initialProducts, offers }: { restaurant: PublicRestaurant; initialProducts: PublicProduct[]; offers: PublicProduct[] }) {
   const locale = useLocale();
   const ar = locale === "ar";
   const { categories, href } = useStorefront();
   const ordered = [...initialProducts.filter((item) => item.isFeatured), ...initialProducts.filter((item) => !item.isFeatured)];
   const heroProduct = restaurant.heroProductSelected ? restaurant.heroProduct ?? undefined : ordered.find(hasImage) || ordered[0];
-  const featured = ordered.filter((item) => item.id !== heroProduct?.id).slice(0, 3);
+  const featured = offers.filter((item) => item.isFeatured).slice(0, 5);
   return <main className={styles.home}>
     <section className={styles.hero}>
       <div className={styles.heroCopy}><h1>{restaurant.name}</h1><p>{restaurant.description || (ar ? "اكتشف أطباق المطعم واطلب ما يعجبك." : "Discover the menu and choose a dish to enjoy.")}</p><Link href={href("/menu")} className={styles.mainAction}>{ar ? "تصفح المنيو" : "Explore the menu"}<ArrowUpRight size={19} aria-hidden="true" /></Link></div>
       <div className={styles.heroVisual}>{heroProduct && hasImage(heroProduct) ? <Link href={href(`/menu/${heroProduct.id}`)} className={styles.heroPhoto}><ProductImage product={heroProduct} sizes="(min-width: 900px) 50vw, 100vw" /><span><strong>{heroProduct.name}</strong><small>{publicMoney(heroProduct.price, restaurant.currency, locale)}</small></span></Link> : <div className={styles.heroNoPhoto}><span>{restaurant.name}</span>{heroProduct && <strong>{heroProduct.name}</strong>}<Link href={href("/menu")}>{ar ? "المنيو كاملة" : "See the menu"}<ArrowUpRight size={18} aria-hidden="true" /></Link></div>}</div>
     </section>
     <section className={styles.story}><div className={styles.storyCopy}><h2>{ar ? "عن المطعم" : "At the table"}</h2><p>{restaurant.description || (ar ? "تعرّف على المطعم واستكشف قائمته." : "Get to know the restaurant and explore its menu.")}</p><Link href={href("/about")}>{ar ? "معلومات المطعم" : "About the restaurant"}<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className={styles.storyVisual}>{ordered.find((item) => item.id !== heroProduct?.id && hasImage(item)) ? <ProductImage product={ordered.find((item) => item.id !== heroProduct?.id && hasImage(item))!} sizes="(min-width: 900px) 40vw, 100vw" /> : <div className={styles.storyText}><span>{restaurant.name}</span><span>{ar ? "المنيو" : "The menu"}</span></div>}</div></section>
-    {featured.length > 0 && <section className={styles.featured}><div className={styles.sectionHeading}><h2>{ar ? "من قائمتنا" : "From the menu"}</h2><Link href={href("/menu")}>{ar ? "جميع الأطباق" : "View all dishes"}<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className={styles.featuredGrid}>{featured.map((item) => <FeaturedCard key={item.id} product={item} restaurant={restaurant} locale={locale} />)}</div></section>}
+    {featured.length > 0 && <section className={styles.featured}><div className={styles.sectionHeading}><h2>{ar ? "العروض" : "Offers"}</h2><Link href={href("/menu")}>{ar ? "جميع الأطباق" : "View all dishes"}<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className={styles.featuredGrid}>{featured.map((item) => <FeaturedCard key={item.id} product={item} restaurant={restaurant} locale={locale} />)}</div></section>}
     {categories.length > 0 && <section className={styles.categories}><div className={styles.sectionHeading}><h2>{ar ? "استكشف المنيو" : "Find your course"}</h2><Link href={href("/menu")}>{ar ? "المنيو كاملة" : "Full menu"}<ArrowUpRight size={18} aria-hidden="true" /></Link></div><div className={styles.categoryList}>{categories.map((item) => <Link key={item.id} href={href("/menu")}>{item.name}<ArrowUpRight size={22} aria-hidden="true" /></Link>)}</div></section>}
     <LuxuryContact restaurant={restaurant} />
   </main>;
@@ -98,7 +99,7 @@ export function LuxuryProduct({ product }: { product: PublicProduct }) {
   const { restaurant, categories, href } = useStorefront();
   const add = useCartStore((state) => state.addPublicItem);
   const category = categories.find((item) => item.id === product.categoryId);
-  return <main className={styles.product}><Link href={href("/menu")} className={styles.back}>{ar ? "العودة للمنيو" : "Back to menu"}</Link><article className={styles.productLayout}><div className={styles.productVisual}>{hasImage(product) ? <ProductImageGallery product={product} sizes="(min-width: 900px) 50vw, 100vw" className={styles.image} /> : <div className={styles.productNoImage}><span>{restaurant.name}</span><strong>{product.name}</strong></div>}</div><div className={styles.productCopy}>{category && <span>{category.name}</span>}<h1>{product.name}</h1>{product.description && <p>{product.description}</p>}<strong>{publicMoney(product.price, restaurant.currency, locale)}</strong>{product.oldPrice !== null && product.oldPrice > product.price && <del>{publicMoney(product.oldPrice, restaurant.currency, locale)}</del>}{product.preparationTime !== null && <small>{ar ? "وقت التحضير" : "Preparation time"}: {product.preparationTime} {ar ? "دقيقة" : "min"}</small>}<button type="button" className={styles.mainAction} onClick={() => add(restaurant.slug, product)}>{ar ? "أضف إلى السلة" : "Add to cart"}<Plus size={18} aria-hidden="true" /></button></div></article></main>;
+  return <main className={styles.product}><Link href={href("/menu")} className={styles.back}>{ar ? "العودة للمنيو" : "Back to menu"}</Link><article className={styles.productLayout}><div className={styles.productVisual}>{hasImage(product) ? <ProductImageGallery product={product} sizes="(min-width: 900px) 50vw, 100vw" className={styles.image} /> : <div className={styles.productNoImage}><span>{restaurant.name}</span><strong>{product.name}</strong></div>}</div><div className={styles.productCopy}>{category && <span>{category.name}</span>}<h1>{product.name}</h1>{product.description && <p className="whitespace-pre-line">{product.description}</p>}<strong>{publicMoney(product.price, restaurant.currency, locale)}</strong>{product.oldPrice != null && product.oldPrice > product.price && <del>{publicMoney(product.oldPrice, restaurant.currency, locale)}</del>}<ProductMetadata product={product} locale={locale} /><button type="button" className={styles.mainAction} onClick={() => add(restaurant.slug, product)}>{ar ? "أضف إلى السلة" : "Add to cart"}<Plus size={18} aria-hidden="true" /></button></div></article></main>;
 }
 
 export function LuxuryAbout() {

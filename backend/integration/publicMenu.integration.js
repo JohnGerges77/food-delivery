@@ -108,7 +108,7 @@ test('public restaurant and menu API on savora_test', async (t) => {
       assert.equal(response.headers.get('set-cookie'), null);
       const { restaurant } = await response.json();
       assert.deepEqual(Object.keys(restaurant), ['name', 'slug', 'storefrontTheme', 'heroProduct',
-        'heroProductSelected', 'description', 'logoUrl',
+        'heroProductSelected', 'description', 'logoUrl', 'aboutImageUrl',
         'currency', 'phone', 'contactEmail', 'address', 'openingHours',
         'deliverySettings', 'socialLinks', 'branding']);
       assert.equal(restaurant.slug, a.slug);
@@ -208,6 +208,28 @@ test('public restaurant and menu API on savora_test', async (t) => {
       assert.equal(ownerPreflight.status, 403);
       assert.equal(ownerPreflight.headers.get('access-control-allow-origin'), null);
     });
+    await t.test('featured listing is tenant-scoped, visible and deterministically ordered', async () => {
+      assert.deepEqual((await (await get(empty.slug, '/products?isFeatured=true')).json()).products, []);
+      const added = [];
+      await Product.updateOne({ _id: visible1._id }, { $set: { isFeatured: false } });
+      for (let i = 0; i < 2; i++) added.push(await fixture(Product, { restaurantId: a._id,
+        categoryId: aCategory._id, name: `Offer ${i}`, slug: `offer-${i}-${suffix}`, price: 10, isFeatured: true }));
+      const two = await (await get(a.slug, '/products?isFeatured=true')).json();
+      assert.deepEqual(two.products.map((p) => p.id), added.map((p) => String(p._id)));
+      assert.ok(two.products.every((p) => p.oldPrice === null));
+      for (let i = 2; i < 8; i++) added.push(await fixture(Product, { restaurantId: a._id,
+        categoryId: aCategory._id, name: `Offer ${i}`, slug: `offer-${i}-${suffix}`, price: 10, isFeatured: true }));
+      await fixture(Product, { restaurantId: a._id, categoryId: inactive._id,
+        name: 'Hidden offer', slug: `hidden-offer-${suffix}`, price: 10, isFeatured: true });
+      await fixture(Product, { restaurantId: a._id, categoryId: aCategory._id,
+        name: 'Unavailable offer', slug: `unavailable-offer-${suffix}`, price: 10, isFeatured: true, isAvailable: false });
+      const first = await (await get(a.slug, '/products?isFeatured=true')).json();
+      const second = await (await get(a.slug, '/products?isFeatured=true')).json();
+      assert.deepEqual(first.products.map((p) => p.id), added.map((p) => String(p._id)));
+      assert.deepEqual(second.products.map((p) => p.id), first.products.map((p) => p.id));
+      assert.equal(first.products.slice(0, 5).length, 5);
+      assert.deepEqual((await (await get(b.slug, '/products?isFeatured=true')).json()).products, []);
+    });
   } finally {
     if (server) await new Promise((resolve) => server.close(resolve));
     if (connection.readyState === 1) {
@@ -216,6 +238,15 @@ test('public restaurant and menu API on savora_test', async (t) => {
           await connection.models[name].deleteOne({ _id });
         }
       }
+      const audit = mongoose.createConnection(validatedTestUri(), { autoIndex: false, autoCreate: false, serverSelectionTimeoutMS: 10000 });
+      try {
+        await audit.asPromise();
+        assert.equal(audit.db.databaseName, 'savora_test');
+        for (const [name, ids] of created) {
+          assert.equal(await audit.collection(connection.models[name].collection.name).countDocuments({ _id: { $in: ids } }), 0, `${name} exact-ID audit`);
+        }
+        console.log('Public menu independent exact-ID audit:', JSON.stringify(Object.fromEntries([...created].map(([name, ids]) => [name, ids.length]))));
+      } finally { await audit.close(); }
     }
     await connection.close();
   }

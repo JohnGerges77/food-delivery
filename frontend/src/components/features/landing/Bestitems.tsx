@@ -33,16 +33,16 @@ function BestItemCard({ item, prominent }: { item: PublicProduct; prominent: boo
 
 export default function BestItems({ products }: { products: PublicProduct[] }) {
   const isArabic = useLocale() === "ar";
-  const visible = [...products].sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured)).slice(0, 5);
+  const visible = products.filter((product) => product.isFeatured).slice(0, 5);
+  if (!visible.length) return null;
   return <section className="relative isolate overflow-hidden bg-[color:var(--background)] px-4 py-20 text-[color:var(--text)] sm:px-6 lg:px-8">
     <div className="absolute left-1/2 top-10 -z-10 size-[34rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,122,0,0.16),transparent_66%)] blur-3xl" />
     <div className="absolute bottom-0 right-[-12rem] -z-10 size-[28rem] rounded-full bg-[color:var(--primary)]/10 blur-3xl" />
     <div className="mx-auto max-w-7xl">
       <div className="mx-auto max-w-3xl text-center"><div className="mb-5 flex items-center justify-center gap-4 text-xs font-semibold tracking-[0.24em] text-[color:var(--primary-light)] uppercase"><span className="h-px w-10 bg-[color:var(--primary)]/60" />{isArabic ? "من المنيو" : "From the Menu"}<span className="h-px w-10 bg-[color:var(--primary)]/60" /></div>
-        <h2 className="text-4xl font-semibold text-balance text-[color:var(--text)] sm:text-5xl lg:text-6xl">{isArabic ? "استكشف الأطباق" : "Explore the Dishes"}</h2>
+        <h2 className="text-4xl font-semibold text-balance text-[color:var(--text)] sm:text-5xl lg:text-6xl">{isArabic ? "العروض" : "Offers"}</h2>
       </div>
-      {visible.length ? <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-[1.08fr_0.92fr_0.92fr] lg:grid-rows-2">{visible.map((item, index) => <BestItemCard item={item} key={item.id} prominent={index === 0} />)}</div> :
-        <div className="relative mt-14 flex min-h-80 items-center justify-center overflow-hidden rounded-[1.75rem] border border-white/10 bg-[color:var(--card)]/70 p-8 text-center shadow-[0_30px_80px_rgba(0,0,0,0.32)]"><div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(255,122,0,.18),transparent_55%)]" /><p className="relative max-w-lg text-xl text-[color:var(--text-muted)]">{isArabic ? "لا توجد أطباق متاحة حاليًا. يمكنك العودة للمنيو لاحقًا." : "No dishes are available yet. Please check the menu again later."}</p></div>}
+      <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{visible.map((item) => <BestItemCard item={item} key={item.id} prominent={false} />)}</div>
     </div>
   </section>;
 }
