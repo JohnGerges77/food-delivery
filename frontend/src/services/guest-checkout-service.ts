@@ -1,4 +1,5 @@
 import type { CartItem } from "@/types";
+import { cartItemKey } from "../lib/cart-identity.ts";
 import type { CheckoutDetails } from "@/components/features/checkout/checkout-details";
 
 export type SubmissionMethod = "direct" | "whatsapp";
@@ -10,7 +11,7 @@ export type GuestCheckoutPayload = {
   city: string;
   notes?: string;
   submissionMethod: SubmissionMethod;
-  items: { productId: string; quantity: number; notes?: string }[];
+  items: { productId: string; variantId?: string; quantity: number; notes?: string }[];
 };
 export type GuestCheckoutResult = {
   order: { orderNumber: string; status: "pending"; submissionMethod: SubmissionMethod;
@@ -54,10 +55,11 @@ export function checkoutValidation(details: CheckoutDetails, items: CartItem[]):
   if (!items.length || items.length > 10) errors.cart = "cart";
   for (const item of items) {
     const id = item.productId.toLowerCase();
-    if (!objectId.test(id) || ids.has(id) || !Number.isSafeInteger(item.quantity) ||
+    const identity = cartItemKey(item).toLowerCase();
+    if (!objectId.test(id) || (item.variantId !== undefined && !objectId.test(item.variantId)) || ids.has(identity) || !Number.isSafeInteger(item.quantity) ||
       item.quantity < 1 || item.quantity > 99 ||
       (item.notes !== undefined && (item.notes.length > 200 || invalidText(item.notes)))) errors.cart = "cart";
-    ids.add(id);
+    ids.add(identity);
     quantity += item.quantity;
   }
   if (quantity > 100) errors.cart = "cart";
@@ -72,6 +74,7 @@ export function buildCheckoutPayload(details: CheckoutDetails, items: CartItem[]
     ...(details.notes.trim() ? { notes: details.notes.trim() } : {}),
     submissionMethod: method,
     items: items.map((item) => ({ productId: item.productId.toLowerCase(), quantity: item.quantity,
+      ...(item.variantId ? { variantId: item.variantId.toLowerCase() } : {}),
       ...(item.notes?.trim() ? { notes: item.notes.trim() } : {}) })),
   };
 }

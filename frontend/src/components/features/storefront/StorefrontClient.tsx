@@ -1,11 +1,13 @@
 "use client";
+import { ProductPurchase } from "./ProductPurchase";
+import { useCartStore } from "@/store/cart-store";
+
 
 import { useEffect, type ComponentType } from "react";
 import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { publicMoney } from "@/lib/public-menu-presentation";
+import { productDisplayPrice, publicMoney } from "@/lib/public-menu-presentation";
 import type { PublicCategory, PublicPage, PublicProduct, PublicRestaurant } from "@/services/public-menu";
-import { useCartStore } from "@/store/cart-store";
 import { PublicNavbar } from "@/components/layout/PublicNavbar";
 import Footer from "@/components/layout/Footer";
 import { HeroSection } from "@/components/features/landing/HeroSection";
@@ -44,7 +46,6 @@ function ProductPage({ product }: { product: PublicProduct }) {
   const locale = useLocale();
   const isArabic = locale === "ar";
   const { restaurant, categories, href } = useStorefront();
-  const addItem = useCartStore((state) => state.addPublicItem);
   const category = categories.find((entry) => entry.id === product.categoryId);
   return <main className="min-h-screen overflow-hidden bg-[color:var(--background)] px-4 py-16 text-[color:var(--text)] sm:px-6 lg:px-8">
     <div className="mx-auto max-w-7xl">
@@ -55,9 +56,9 @@ function ProductPage({ product }: { product: PublicProduct }) {
           {category && <p className="text-xs font-semibold uppercase tracking-[.22em] text-[color:var(--gold)]">{category.name}</p>}
           <h1 className="mt-4 text-4xl font-semibold sm:text-6xl">{product.name}</h1>
           {product.description && <p className="mt-6 whitespace-pre-line text-base leading-8 text-[color:var(--text-muted)]">{product.description}</p>}
-          <div className="mt-8 flex flex-wrap items-center gap-4"><strong className="text-3xl text-[color:var(--primary-light)]">{publicMoney(product.price, restaurant.currency, locale)}</strong>{product.oldPrice !== null && product.oldPrice > product.price && <span className="text-[color:var(--text-muted)] line-through">{publicMoney(product.oldPrice, restaurant.currency, locale)}</span>}</div>
+          <div className="mt-8 flex flex-wrap items-center gap-4"><strong className="text-3xl text-[color:var(--primary-light)]">{productDisplayPrice(product, restaurant.currency, locale)}</strong>{!product.variants?.length && product.oldPrice !== null && product.oldPrice > product.price && <span className="text-[color:var(--text-muted)] line-through">{publicMoney(product.oldPrice, restaurant.currency, locale)}</span>}</div>
           <ProductMetadata product={product} locale={locale} />
-          <button className="mt-9 min-h-13 self-start rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 font-bold text-[color:var(--background)] shadow-[0_20px_56px_rgba(255,122,0,.3)] transition-transform hover:-translate-y-0.5" onClick={() => addItem(restaurant.slug, product)} type="button">{isArabic ? "أضف إلى السلة" : "Add to cart"}</button>
+          <ProductPurchase product={product} buttonClassName={"mt-9 min-h-13 rounded-full bg-[color:var(--primary)] px-8 font-bold text-[color:var(--background)]"} />
         </div>
       </article>
     </div>
@@ -124,7 +125,7 @@ const storefrontThemes: Record<StorefrontThemeId, StorefrontTheme> = {
 
 export function StorefrontClient({ basePath, restaurant, page, categories, initialProducts, offers, initialPagination, product }: Props) {
   const setTenant = useCartStore((state) => state.setTenant);
-  useEffect(() => { setTenant(restaurant.slug); }, [restaurant.slug, setTenant]);
+  useEffect(() => { void useCartStore.persist.rehydrate(); setTenant(restaurant.slug); }, [restaurant.slug, setTenant]);
   const themeId = resolveStorefrontTheme(restaurant);
   const theme = storefrontThemes[themeId];
   return <StorefrontProvider restaurant={restaurant} categories={categories} basePath={basePath}>

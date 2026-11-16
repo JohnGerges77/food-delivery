@@ -7,8 +7,8 @@ import {
 } from "lucide-react";
 import { useLocale } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "@/i18n/navigation";
-import { publicMoney } from "@/lib/public-menu-presentation";
+import { Link, useRouter } from "@/i18n/navigation";
+import { productDisplayPrice, publicMoney } from "@/lib/public-menu-presentation";
 import { useCartStore } from "@/store/cart-store";
 import { getPublicProducts, type PublicPage, type PublicProduct } from "@/services/public-menu";
 import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";
@@ -18,6 +18,7 @@ import { useStorefront } from "@/components/features/storefront/StorefrontContex
 export function MenuOrderingPage({ initialProducts, initialPagination }: {
   initialProducts: PublicProduct[]; initialPagination: PublicPage | null;
 }) {
+  const router = useRouter();
   const locale = useLocale();
   const isArabic = locale === "ar";
   const { restaurant, categories, href } = useStorefront();
@@ -87,11 +88,12 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
   }
 
   function addProduct(product: PublicProduct) {
+    if (product.variants?.length) { router.push(href(`/menu/${product.id}`)); return; }
     addItem(restaurant.slug, product, 1);
   }
 
   function getCartQuantity(productId: string) {
-    return cartTenant === restaurant.slug ? cartItems.find((item) => item.productId === productId)?.quantity ?? 0 : 0;
+    return cartTenant === restaurant.slug ? cartItems.reduce((sum, item) => sum + (item.productId === productId ? item.quantity : 0), 0) : 0;
   }
 
   return (
@@ -221,7 +223,7 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
                     <h3 className="line-clamp-2 text-sm font-semibold leading-tight text-[color:var(--text)] sm:text-lg">
                       {product.name}
                     </h3>
-                    {product.oldPrice !== null && product.oldPrice > product.price && <span className="hidden shrink-0 text-sm text-[color:var(--text-muted)] line-through sm:block">{publicMoney(product.oldPrice, restaurant.currency, locale)}</span>}
+                    {!product.variants?.length && product.oldPrice !== null && product.oldPrice > product.price && <span className="hidden shrink-0 text-sm text-[color:var(--text-muted)] line-through sm:block">{publicMoney(product.oldPrice, restaurant.currency, locale)}</span>}
                   </div>
                   <ProductMetadata product={product} locale={locale} compact />
                   {productCartQuantity > 0 && <div className="mt-2 hidden text-xs font-semibold text-[color:var(--primary-light)] sm:block">{isArabic ? `${productCartQuantity} في السلة` : `${productCartQuantity} in cart`}</div>}
@@ -231,7 +233,7 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
                         {isArabic ? "السعر" : "Price"}
                       </div>
                       <div className="text-sm font-semibold text-[color:var(--primary-light)] sm:mt-1 sm:text-xl">
-                        {publicMoney(product.price, restaurant.currency, locale)}
+                        {productDisplayPrice(product, restaurant.currency, locale)}
                       </div>
                     </div>
                     <button

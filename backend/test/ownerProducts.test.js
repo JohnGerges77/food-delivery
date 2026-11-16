@@ -86,7 +86,7 @@ test('Product DTO excludes tenant and internal fields', () => {
     restaurantId: id, trackingTokenHash: 'secret', passwordHash: 'secret' });
   assert.deepEqual(Object.keys(dto), ['id', 'name', 'slug', 'categoryId',
     'description', 'price', 'oldPrice', 'imageUrl', 'images', 'isAvailable',
-    'isFeatured', 'preparationTime', 'calories']);
+    'isFeatured', 'preparationTime', 'calories', 'variants']);
   assert.doesNotMatch(JSON.stringify(dto), /secret|restaurantId|passwordHash/);
   assert.equal(Category.schema.path('referenceRevision').options.select, false);
 });

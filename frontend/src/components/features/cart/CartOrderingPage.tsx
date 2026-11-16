@@ -1,4 +1,5 @@
 "use client";
+import { cartItemKey } from "@/lib/cart-identity";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
@@ -96,7 +97,7 @@ export function CartOrderingPage({ deliveryFee, currency, slug }: { deliveryFee:
                   {items.map((item) => (
                     <motion.article
                       className="group grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-3 gap-y-1 rounded-[1.35rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.078),rgba(255,255,255,0.028)_58%,rgba(255,122,0,0.04))] p-3 shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.065)] backdrop-blur-xl transition-colors hover:border-[color:var(--primary)]/35 sm:grid-cols-[8rem_1fr_auto] sm:items-center sm:gap-4 sm:p-5"
-                      key={item.productId}
+                      key={cartItemKey(item)}
                       layout
                       initial={{ opacity: 0, y: 24, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -112,16 +113,16 @@ export function CartOrderingPage({ deliveryFee, currency, slug }: { deliveryFee:
                         />
                       </div>
                       <div className="min-w-0">
-                        <h2 className="break-words text-base font-semibold leading-tight sm:text-xl">{item.name}</h2>
+                        <h2 className="break-words text-base font-semibold leading-tight sm:text-xl">{item.name}{item.variantName ? ` (${item.variantName})` : ""}</h2>
                         <p className="mt-1 text-sm text-[color:var(--text-muted)] sm:mt-2">
                           {publicMoney(item.price, currency, locale)} {isArabic ? "للقطعة" : "each"}
                         </p>
                         <div className="mt-2 flex flex-wrap items-center gap-3 sm:mt-4">
                           <div className="inline-grid h-11 grid-cols-[2.75rem_2.25rem_2.75rem] overflow-hidden rounded-full border border-white/12 bg-white/[0.04] sm:grid-cols-[2.5rem_3rem_2.5rem]">
                           <button
-                            aria-label={`Decrease ${item.name}`}
+                            aria-label={`${isArabic ? 'تقليل' : 'Decrease'} ${item.name}${item.variantName ? ` (${item.variantName})` : ''}`}
                             className="flex items-center justify-center text-[color:var(--text-muted)] transition-colors hover:bg-white/[0.08] hover:text-[color:var(--primary-light)]"
-                            onClick={() => decreaseQuantity(item.productId)}
+                            onClick={() => decreaseQuantity(cartItemKey(item))}
                             type="button"
                           >
                             <Minus aria-hidden="true" size={15} />
@@ -130,9 +131,9 @@ export function CartOrderingPage({ deliveryFee, currency, slug }: { deliveryFee:
                             {item.quantity}
                           </span>
                           <button
-                            aria-label={`Increase ${item.name}`}
+                            aria-label={`${isArabic ? 'زيادة' : 'Increase'} ${item.name}${item.variantName ? ` (${item.variantName})` : ''}`}
                             className="flex items-center justify-center text-[color:var(--text-muted)] transition-colors hover:bg-white/[0.08] hover:text-[color:var(--primary-light)]"
-                            onClick={() => increaseQuantity(item.productId)}
+                            onClick={() => increaseQuantity(cartItemKey(item))}
                             type="button"
                           >
                             <Plus aria-hidden="true" size={15} />
@@ -146,9 +147,9 @@ export function CartOrderingPage({ deliveryFee, currency, slug }: { deliveryFee:
                         </div>
                         <button
                           className="inline-flex size-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[color:var(--text-muted)] transition-all hover:border-red-400/40 hover:bg-red-500/10 hover:text-red-200"
-                          onClick={() => removeItem(item.productId)}
+                          onClick={() => removeItem(cartItemKey(item))}
                           type="button"
-                          aria-label={`Remove ${item.name}`}
+                          aria-label={`${isArabic ? 'إزالة' : 'Remove'} ${item.name}${item.variantName ? ` (${item.variantName})` : ''}`}
                         >
                           <Trash2 aria-hidden="true" size={17} />
                         </button>

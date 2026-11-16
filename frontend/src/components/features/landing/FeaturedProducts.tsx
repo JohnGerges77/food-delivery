@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { routes } from "@/lib/routes";
-import { publicMoney } from "@/lib/public-menu-presentation";
+import { productDisplayPrice } from "@/lib/public-menu-presentation";
 import type { PublicProduct } from "@/services/public-menu";
 import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";
 import { useStorefront } from "@/components/features/storefront/StorefrontContext";
@@ -43,7 +43,7 @@ export function FeaturedProducts({ products }: { products: PublicProduct[] }) {
           <div className="pointer-events-none absolute -right-12 top-1/2 size-28 -translate-y-1/2 rounded-full bg-[color:var(--primary)]/0 blur-2xl transition-colors duration-500 group-hover:bg-[color:var(--primary)]/18" />
           <div className="relative size-[4.75rem] overflow-hidden rounded-2xl border border-white/10 bg-[color:var(--background)] transition-all duration-300 group-hover:border-[color:var(--primary)]/35 group-hover:shadow-[0_0_28px_rgba(255,122,0,0.14)] sm:size-[5.5rem]"><PublicProductImage alt={item.name} className="object-cover transition-transform duration-500 group-hover:scale-110" sizes="5.5rem" src={item.imageUrl || item.images[0]} /></div>
           <div className="min-w-0"><div className="text-[0.65rem] font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">{categoryNames.get(item.categoryId)}</div><h3 className="mt-1 truncate text-base font-semibold text-[color:var(--text)] transition-colors duration-300 group-hover:text-[color:var(--primary-light)] sm:text-lg">{item.name}</h3>{item.description && <p className="mt-1 line-clamp-2 text-sm leading-6 text-[color:var(--text-muted)]">{item.description}</p>}</div>
-          <div className="self-start rounded-full border border-[color:var(--primary)]/10 bg-[color:var(--primary)]/10 px-3 py-1 text-sm font-bold text-[color:var(--primary-light)] transition-all duration-300 group-hover:border-[color:var(--primary)]/35 group-hover:bg-[color:var(--primary)]/15">{publicMoney(item.price, restaurant.currency, locale)}</div>
+          <div className="self-start rounded-full border border-[color:var(--primary)]/10 bg-[color:var(--primary)]/10 px-3 py-1 text-sm font-bold text-[color:var(--primary-light)] transition-all duration-300 group-hover:border-[color:var(--primary)]/35 group-hover:bg-[color:var(--primary)]/15">{productDisplayPrice(item, restaurant.currency, locale)}</div>
         </Link>)}</div> : <div className="flex min-h-48 items-center justify-center text-center text-[color:var(--text-muted)]">{isArabic ? "لا توجد أطباق متاحة في هذا القسم الآن." : "No dishes are available in this category yet."}</div>}
       </div>
       <div className="mt-10 flex justify-center"><Link className="rounded-full bg-[color:var(--primary)] px-8 py-3 text-sm font-bold text-[color:var(--background)] shadow-[0_18px_48px_rgba(255,122,0,0.28)] transition-all duration-300 hover:-translate-y-1 hover:bg-[color:var(--primary-light)]" href={href(routes.menu)}>{isArabic ? "عرض المنيو الكاملة" : "View Full Menu"}</Link></div>

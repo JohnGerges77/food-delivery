@@ -1,15 +1,17 @@
 "use client";
+import { ProductPurchase } from "../ProductPurchase";
+import { useCartStore } from "@/store/cart-store";
+
 
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowUpRight, Languages, ShoppingBag, Plus } from "lucide-react";
+import { ArrowUpRight, Languages, ShoppingBag } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { MenuOrderingPage } from "@/components/features/menu/MenuOrderingPage";
 import { PublicProductImage } from "../PublicProductImage";
 import { ProductImageGallery } from "../ProductImageGallery";
 import { ProductMetadata } from "../ProductMetadata";
 import { useStorefront } from "../StorefrontContext";
-import { publicMoney, safePublicImage } from "@/lib/public-menu-presentation";
-import { useCartStore } from "@/store/cart-store";
+import { productDisplayPrice, publicMoney, safePublicImage } from "@/lib/public-menu-presentation";
 import { CartAttention } from "../CartAttention";
 import type { PublicPage, PublicProduct, PublicRestaurant } from "@/services/public-menu";
 import styles from "./AquaStorefront.module.css";
@@ -64,7 +66,7 @@ export function AquaHome({ restaurant, initialProducts, offers }: { restaurant: 
             <Link className={styles.primaryAction} href={href("/menu")}>{ar ? "تصفح المنيو" : "Explore the menu"}<ArrowUpRight aria-hidden="true" size={20} /></Link>
           </div>
           <div className={styles.heroGallery}>
-            {heroProduct && heroImage ? <Link href={href(`/menu/${heroProduct.id}`)} className={styles.heroTile} aria-label={heroProduct.name}><FoodImage product={heroProduct} sizes="(min-width: 900px) 58vw, 100vw" /><span><strong>{heroProduct.name}</strong><small>{publicMoney(heroProduct.price, restaurant.currency, locale)}</small></span></Link> : <div className={styles.heroEmpty}><span>{ar ? "اكتشف المنيو" : "Explore the menu"}</span><Link href={href("/menu")}>{ar ? "اذهب إلى المنيو" : "Go to the menu"}<ArrowUpRight size={17} aria-hidden="true" /></Link></div>}
+            {heroProduct && heroImage ? <Link href={href(`/menu/${heroProduct.id}`)} className={styles.heroTile} aria-label={heroProduct.name}><FoodImage product={heroProduct} sizes="(min-width: 900px) 58vw, 100vw" /><span><strong>{heroProduct.name}</strong><small>{productDisplayPrice(heroProduct, restaurant.currency, locale)}</small></span></Link> : <div className={styles.heroEmpty}><span>{ar ? "اكتشف المنيو" : "Explore the menu"}</span><Link href={href("/menu")}>{ar ? "اذهب إلى المنيو" : "Go to the menu"}<ArrowUpRight size={17} aria-hidden="true" /></Link></div>}
             {secondProduct && <Link href={href(`/menu/${secondProduct.id}`)} className={styles.heroSecondary} aria-label={secondProduct.name}><FoodImage product={secondProduct} sizes="(min-width: 900px) 18vw, 36vw" /><span>{secondProduct.name}</span></Link>}
           </div>
         </div>
@@ -79,7 +81,7 @@ export function AquaHome({ restaurant, initialProducts, offers }: { restaurant: 
       <div className={styles.showcaseGrid}>{showcase.map((product) => <article key={product.id} className={`${styles.showcaseItem} relative`}>
         <Link href={href(`/menu/${product.id}`)} className="absolute inset-0 z-10" aria-label={ar ? `تفاصيل ${product.name}` : `Details for ${product.name}`} />
         <div className={styles.showcasePhoto}><FoodImage product={product} sizes="(min-width: 768px) 50vw, 100vw" /></div>
-        <div className={styles.showcaseCaption}><div><h3>{product.name}</h3><p>{categories.find((category) => category.id === product.categoryId)?.name}</p>{product.description && <p>{product.description}</p>}</div><strong>{publicMoney(product.price, restaurant.currency, locale)}</strong></div>
+        <div className={styles.showcaseCaption}><div><h3>{product.name}</h3><p>{categories.find((category) => category.id === product.categoryId)?.name}</p>{product.description && <p>{product.description}</p>}</div><strong>{productDisplayPrice(product, restaurant.currency, locale)}</strong></div>
       </article>)}</div>
     </section>}
     <section className={styles.information} id="contact">
@@ -99,9 +101,8 @@ export function AquaMenu({ initialProducts, initialPagination }: { initialProduc
 export function AquaProduct({ product }: { product: PublicProduct }) {
   const locale = useLocale(); const ar = locale === "ar";
   const { restaurant, categories, href } = useStorefront();
-  const add = useCartStore((state) => state.addPublicItem);
   const category = categories.find((item) => item.id === product.categoryId);
-  return <main className={styles.productPage}><Link className={styles.backLink} href={href("/menu")}>{ar ? "العودة للمنيو" : "Back to menu"}</Link><article className={styles.productLayout}><div className={styles.productPhoto}><ProductImageGallery product={product} sizes="(min-width: 800px) 50vw, 100vw" className={styles.foodImage} /></div><div className={styles.productCopy}>{category && <p className={styles.categoryName}>{category.name}</p>}<h1>{product.name}</h1>{product.description && <p className="whitespace-pre-line">{product.description}</p>}<strong>{publicMoney(product.price, restaurant.currency, locale)}</strong>{product.oldPrice != null && product.oldPrice > product.price && <del className="mt-2 text-[color:var(--sf-text-muted)]">{publicMoney(product.oldPrice, restaurant.currency, locale)}</del>}<ProductMetadata product={product} locale={locale} /><button type="button" className={styles.primaryAction} onClick={() => add(restaurant.slug, product)}>{ar ? "أضف إلى السلة" : "Add to cart"}<Plus size={19} aria-hidden="true" /></button></div></article></main>;
+  return <main className={styles.productPage}><Link className={styles.backLink} href={href("/menu")}>{ar ? "العودة للمنيو" : "Back to menu"}</Link><article className={styles.productLayout}><div className={styles.productPhoto}><ProductImageGallery product={product} sizes="(min-width: 800px) 50vw, 100vw" className={styles.foodImage} /></div><div className={styles.productCopy}>{category && <p className={styles.categoryName}>{category.name}</p>}<h1>{product.name}</h1>{product.description && <p className="whitespace-pre-line">{product.description}</p>}<strong>{productDisplayPrice(product, restaurant.currency, locale)}</strong>{!product.variants?.length && product.oldPrice != null && product.oldPrice > product.price && <del className="mt-2 text-[color:var(--sf-text-muted)]">{publicMoney(product.oldPrice, restaurant.currency, locale)}</del>}<ProductMetadata product={product} locale={locale} /><ProductPurchase product={product} buttonClassName={styles.primaryAction} /></div></article></main>;
 }
 
 export function AquaAbout() {

@@ -17,6 +17,7 @@ export class ProductConflict extends Error {
 const EDITABLE_FIELDS = new Set([
   'name', 'slug', 'categoryId', 'description', 'price', 'oldPrice', 'imageUrl',
   'images', 'isAvailable', 'isFeatured', 'preparationTime', 'calories',
+  'variants',
 ]);
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const OBJECT_ID = /^[0-9a-fA-F]{24}$/;
@@ -47,7 +48,22 @@ export function parseProductInput(body, { create = false, currency = 'EGP' } = {
   const input = Object.create(null);
   for (const [key, value] of Object.entries(body)) {
     if (!EDITABLE_FIELDS.has(key)) invalid();
-    if (key === 'name') {
+    if (key === 'variants') {
+      if (!Array.isArray(value) || value.length > 20) invalid();
+      const seen = new Set();
+      input.variants = value.map((variant, index) => {
+        if (!variant || typeof variant !== 'object' || Array.isArray(variant) ||
+          Object.keys(variant).some((key) => !['id', 'name', 'price', 'isAvailable', 'sortOrder'].includes(key)) ||
+          typeof variant.name !== 'string' || !variant.name.trim() || variant.name.length > 120 ||
+          !validMoney(variant.price, fractionDigits) || typeof variant.isAvailable !== 'boolean' ||
+          !Number.isSafeInteger(variant.sortOrder) || variant.sortOrder < 0 || variant.sortOrder > 1000) invalid();
+        if (variant.id !== undefined && (typeof variant.id !== 'string' || !OBJECT_ID.test(variant.id) || seen.has(variant.id.toLowerCase()) || create)) invalid();
+        if (variant.id) seen.add(variant.id.toLowerCase());
+        return { ...(variant.id ? { _id: new mongoose.Types.ObjectId(variant.id) } : {}),
+          name: variant.name.trim(), price: variant.price, isAvailable: variant.isAvailable, sortOrder: variant.sortOrder ?? index };
+      });
+      continue;
+    } else if (key === 'name') {
       if (typeof value !== 'string' || !value.trim() || value.length > 120) invalid();
     } else if (key === 'slug') {
       if (typeof value !== 'string') invalid();
@@ -120,6 +136,7 @@ export function serializeOwnerProduct(product) {
     imageUrl: product.imageUrl ?? null, images: Array.from(product.images ?? []),
     isAvailable: product.isAvailable, isFeatured: product.isFeatured,
     preparationTime: product.preparationTime ?? null, calories: product.calories ?? null,
+    variants: Array.from(product.variants ?? []).map((v) => ({ id: String(v._id), name: v.name, price: v.price, isAvailable: v.isAvailable, sortOrder: v.sortOrder })),
   };
 }
 
@@ -185,6 +202,11 @@ export async function patchOwnerProduct(connection, auth, id, body) {
   async function update(session) {
     const current = await scope.products.findById(id).session(session);
     if (!current) throw new OwnerResourceNotFound();
+    if (Object.hasOwn(input, 'variants')) {
+      const ids = new Set((current.variants ?? []).map((v) => String(v._id)));
+      for (const variant of input.variants) if (variant._id && !ids.has(String(variant._id))) invalid();
+      if (ids.size && !input.variants.length && !Object.hasOwn(input, 'price')) invalid();
+    }
     if (Object.hasOwn(input, 'imageUrl') &&
         (managedMediaId(input.imageUrl) || managedMediaId(current.imageUrl)) &&
         input.imageUrl !== current.imageUrl) invalid();
@@ -209,7 +231,7 @@ export async function patchOwnerProduct(connection, auth, id, body) {
     return updated;
   }
   try {
-    return Object.hasOwn(input, 'categoryId')
+    return Object.hasOwn(input, 'categoryId') || Object.hasOwn(input, 'variants')
       ? await withCategoryReferenceTransaction(connection, update)
       : await update(null);
   } catch (error) { mapWriteError(error); }

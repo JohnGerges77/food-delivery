@@ -16,3 +16,10 @@ export function publicMoney(amount: number, currency: string, locale: string) {
     return `${amount} ${currency}`;
   }
 }
+
+export function productDisplayPrice(product: { price: number; variants?: { price: number; isAvailable: boolean }[] }, currency: string, locale: string) {
+  if (!product.variants?.length) return publicMoney(product.price, currency, locale);
+  const available = product.variants.filter((v) => v.isAvailable);
+  if (!available.length) return locale === 'ar' ? 'غير متاح' : 'Unavailable';
+  return `${locale === 'ar' ? 'ابتداءً من' : 'Starting from'} ${publicMoney(Math.min(...available.map((v) => v.price)), currency, locale)}`;
+}

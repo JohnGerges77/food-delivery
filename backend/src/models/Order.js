@@ -16,6 +16,8 @@ const orderItemSchema = new mongoose.Schema(
       required: true,
     },
     name: { type: String, required: true, trim: true },
+    variantId: { type: mongoose.Schema.Types.ObjectId, required: function () { return Boolean(this.variantName); } },
+    variantName: { type: String, trim: true, required: function () { return Boolean(this.variantId); } },
     unitPrice: {
       type: Number,
       required: true,

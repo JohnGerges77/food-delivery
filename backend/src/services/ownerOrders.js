@@ -95,6 +95,7 @@ export function serializeOwnerOrder(order) {
     deliveryAddress: order.deliveryAddress, city: order.city,
     items: order.items.map((item) => ({
       productId: String(item.productId), name: item.name,
+      ...(item.variantId ? { variantId: String(item.variantId), variantName: item.variantName } : {}),
       unitPrice: item.unitPrice, quantity: item.quantity,
       imageUrl: item.imageUrl ?? null, notes: item.notes ?? null,
     })),

@@ -14,7 +14,8 @@ export type PublicRestaurant = {
 };
 export type PublicCategory = { id: string; name: string; slug: string;
   description: string | null; imageUrl: string | null; sortOrder: number };
-export type PublicProduct = { id: string; categoryId: string; name: string; slug: string;
+export type ProductVariant = { id: string; name: string; price: number; isAvailable: boolean; sortOrder: number };
+export type PublicProduct = { id: string; categoryId: string; name: string; slug: string; variants?: ProductVariant[]; startingPrice?: number | null;
   description: string | null; price: number; oldPrice: number | null;
   imageUrl: string | null; images: string[]; isFeatured: boolean;
   preparationTime: number | null; calories: number | null };

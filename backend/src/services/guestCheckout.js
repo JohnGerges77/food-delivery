@@ -20,7 +20,7 @@ const MAX_QUANTITY = 99;
 const MAX_TOTAL_QUANTITY = 100;
 const FIELDS = new Set(['customerName', 'customerPhone', 'customerEmail',
   'deliveryAddress', 'city', 'notes', 'submissionMethod', 'items']);
-const ITEM_FIELDS = new Set(['productId', 'quantity', 'notes']);
+const ITEM_FIELDS = new Set(['productId', 'variantId', 'quantity', 'notes']);
 
 function invalid() { throw new InvalidCheckout(); }
 function plain(value) {
@@ -64,11 +64,14 @@ export function parseCheckout(body, key) {
         !Number.isSafeInteger(item.quantity) || item.quantity < 1 ||
         item.quantity > MAX_QUANTITY) invalid();
     const productId = item.productId.toLowerCase();
-    if (seen.has(productId)) invalid();
-    seen.add(productId);
+    if (item.variantId !== undefined && (typeof item.variantId !== 'string' || !OBJECT_ID.test(item.variantId))) invalid();
+    const identity = `${productId}:${item.variantId?.toLowerCase() ?? ''}`;
+    if (seen.has(identity)) invalid();
+    seen.add(identity);
     quantityCount += item.quantity;
     if (quantityCount > MAX_TOTAL_QUANTITY) invalid();
     return { productId, quantity: item.quantity,
+      ...(item.variantId === undefined ? {} : { variantId: item.variantId.toLowerCase() }),
       ...(item.notes === undefined ? {} : { notes: cleanText(item.notes, 200, false) }) };
   });
   return { customerName, customerPhone, deliveryAddress, city,
@@ -135,7 +138,7 @@ export function buildWhatsAppUrl(order, target, currency, restaurantName = '') {
     `Total: ${money(order.total)}`];
   let message = essential.join('\n');
   const lines = order.items.map((item) =>
-    `${item.quantity} x ${safe(item.name).slice(0, 70)} @ ${money(item.unitPrice)} = ${money(item.quantity * item.unitPrice)}${item.notes ? ` (${safe(item.notes)})` : ''}`);
+    `${item.quantity} x ${safe(item.name).slice(0, 70)}${item.variantName ? ` (${safe(item.variantName).slice(0, 70)})` : ''} @ ${money(item.unitPrice)} = ${money(item.quantity * item.unitPrice)}${item.notes ? ` (${safe(item.notes)})` : ''}`);
   for (const line of lines) {
     const candidate = `${message}\n${line}`;
     if (encodeURIComponent(candidate).length > 3500) break;
@@ -208,10 +211,13 @@ export async function createGuestOrder(connection, slug, body, idempotencyKey) {
         { $inc: { referenceRevision: 1 } },
         { session, returnDocument: 'after', timestamps: false, projection: { _id: 1 } });
         if (!category) throw new CheckoutUnavailable();
-        const priceMinor = moneyToMinor(product.price, digits);
+        const variant = product.variants?.length ? product.variants.find((v) => String(v._id) === item.variantId && v.isAvailable) : null;
+        if (product.variants?.length ? !variant : item.variantId !== undefined) throw new CheckoutUnavailable();
+        const priceMinor = moneyToMinor(variant ? variant.price : product.price, digits);
         subtotalMinor += priceMinor * item.quantity;
         snapshots.push({ productId: product._id, name: product.name,
           unitPrice: priceMinor / scale, quantity: item.quantity,
+          ...(variant ? { variantId: variant._id, variantName: variant.name } : {}),
           ...(product.imageUrl ? { imageUrl: product.imageUrl } : {}),
           ...(item.notes ? { notes: item.notes } : {}) });
       }

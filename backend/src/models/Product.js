@@ -1,5 +1,12 @@
 import mongoose from 'mongoose';
 
+const variantSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true, maxlength: 120 },
+  price: { type: Number, required: true, min: 0, max: 1_000_000, validate: Number.isFinite },
+  isAvailable: { type: Boolean, default: true },
+  sortOrder: { type: Number, default: 0, min: 0, validate: Number.isSafeInteger },
+});
+
 const productSchema = new mongoose.Schema(
   {
     restaurantId: {
@@ -23,6 +30,10 @@ const productSchema = new mongoose.Schema(
     description: { type: String, trim: true },
     price: { type: Number, required: true, min: 0 },
     oldPrice: { type: Number, min: 0 },
+    variants: { type: [variantSchema], default: [], validate: {
+      validator: (items) => items.length <= 20 && new Set(items.map((item) => String(item._id))).size === items.length,
+      message: 'Invalid variants',
+    } },
     imageUrl: { type: String, trim: true },
     images: { type: [{ type: String, trim: true }], default: [] },
     isAvailable: { type: Boolean, default: true },

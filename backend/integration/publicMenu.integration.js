@@ -171,7 +171,7 @@ test('public restaurant and menu API on savora_test', async (t) => {
       assert.equal(first.products[1].price, 12.34);
       assert.deepEqual(Object.keys(first.products[0]), ['id', 'categoryId', 'name', 'slug',
         'description', 'price', 'oldPrice', 'imageUrl', 'images', 'isFeatured',
-        'preparationTime', 'calories']);
+        'preparationTime', 'calories', 'variants', 'startingPrice']);
       assert.doesNotMatch(JSON.stringify({ first, second }),
         /restaurantId|visibleCategory|isAvailable|passwordHash|tokenHash|__v/);
       const featured = await (await get(a.slug, '/products?isFeatured=true')).json();
@@ -229,6 +229,16 @@ test('public restaurant and menu API on savora_test', async (t) => {
       assert.deepEqual(second.products.map((p) => p.id), first.products.map((p) => p.id));
       assert.equal(first.products.slice(0, 5).length, 5);
       assert.deepEqual((await (await get(b.slug, '/products?isFeatured=true')).json()).products, []);
+    });
+    await t.test('variant public prices and sorting use available variants only', async () => {
+      const variant = await fixture(Product, {restaurantId:a._id,categoryId:aCategory._id,name:'Variant price',slug:`variant-${suffix}`,price:999,isFeatured:true,
+        variants:[{name:'Disabled',price:0.1,isAvailable:false,sortOrder:0},{name:'Small',price:0.5,isAvailable:true,sortOrder:1},{name:'Large',price:30,isAvailable:true,sortOrder:2}]});
+      await fixture(Product,{restaurantId:a._id,categoryId:aCategory._id,name:'No available variants',slug:`none-${suffix}`,price:0,isFeatured:true,variants:[{name:'Hidden',price:0,isAvailable:false,sortOrder:0}]});
+      const result = await (await get(a.slug,'/products?isFeatured=true&sort=price')).json();
+      assert.equal(result.products[0].id,String(variant._id));
+      assert.equal(result.products[0].startingPrice,0.5);
+      assert.equal(result.products[0].variants.length,3);
+      assert.ok(!result.products.some((p)=>p.name==='No available variants'));
     });
   } finally {
     if (server) await new Promise((resolve) => server.close(resolve));

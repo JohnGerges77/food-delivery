@@ -46,7 +46,6 @@ test('secure guest checkout on savora_test', async (t) => {
     for (const model of [Restaurant, User, OwnerSession, Category, Product, Order]) {
       ids.set(model.modelName, []);
     }
-    await Order.createIndexes();
     assert.ok((await Order.collection.listIndexes().toArray()).some((index) =>
       index.unique && index.key.restaurantId === 1 && index.key.idempotencyKeyHash === 1));
     async function fixture(Model, data) {
@@ -101,13 +100,64 @@ test('secure guest checkout on savora_test', async (t) => {
       city: 'Cairo', notes: 'Ring bell', submissionMethod: method,
       items: [{ productId: String(productId), quantity: 2, notes: 'No onions' }],
     });
-    const post = (slug, payload, key = randomUUID()) => fetch(
+    const post = async (slug, payload, key = randomUUID()) => {
+      const response = await fetch(
       `${base}/api/public/restaurants/${slug}/orders`, { method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key },
         body: typeof payload === 'string' ? payload : JSON.stringify(payload) });
+      if (response.ok) {
+        const result = await response.clone().json();
+        const saved = await Order.findOne({ restaurantId: { $in: ids.get('Restaurant') }, orderNumber: result.order.orderNumber }).select('_id').lean();
+        assert.ok(saved);
+        if (!ids.get('Order').some((id) => String(id) === String(saved._id))) ids.get('Order').push(saved._id);
+      }
+      return response;
+    };
     const ownerDelete = (id) => fetch(`${base}/api/owner/products/${id}`, {
       method: 'DELETE', headers: { Cookie: `savora_owner_session=${raw}; savora_owner_csrf=${csrf}`,
         Origin: 'https://dashboard.example.test', 'X-Savora-CSRF': csrf },
+    });
+
+    await t.test('Owner variant CRUD preserves IDs and rejects foreign IDs and unsafe conversion', async () => {
+      const headers = { Cookie: `savora_owner_session=${raw}; savora_owner_csrf=${csrf}`, Origin:'https://dashboard.example.test', 'X-Savora-CSRF':csrf, 'Content-Type':'application/json' };
+      const created = await fetch(`${base}/api/owner/products`, { method:'POST', headers, body:JSON.stringify({name:'Variant CRUD',categoryId:String(category._id),price:12,variants:[{name:'Small',price:20,isAvailable:true,sortOrder:0},{name:'Large',price:30,isAvailable:true,sortOrder:1}]}) });
+      assert.equal(created.status,201);
+      const dto = (await created.json()).product;
+      ids.get('Product').push(new mongoose.Types.ObjectId(dto.id));
+      const patch = (id, value) => fetch(`${base}/api/owner/products/${id}`,{method:'PATCH',headers,body:JSON.stringify(value)});
+      const changed = await patch(dto.id,{variants:dto.variants.map((v,index)=>({...v,name:`Renamed ${index}`,price:v.price+1,sortOrder:1-index}))});
+      assert.equal(changed.status,200);
+      assert.deepEqual((await changed.json()).product.variants.map((v)=>v.id),dto.variants.map((v)=>v.id));
+      assert.equal((await patch(dto.id,{variants:[{...dto.variants[0],id:String(new mongoose.Types.ObjectId())}]})).status,400);
+      assert.equal((await patch(foreign._id,{variants:[]})).status,404);
+      assert.equal((await patch(dto.id,{variants:[]})).status,400);
+      assert.equal((await patch(dto.id,{variants:[],price:45})).status,200);
+      assert.equal((await Product.findById(dto.id)).price,45);
+    });
+
+    await t.test('variants use authoritative prices, immutable snapshots and idempotent WhatsApp', async () => {
+      const item = await product({ price: 1, variants: [{ name: 'Small', price: 20, isAvailable: true, sortOrder: 0 }, { name: 'Large', price: 35, isAvailable: true, sortOrder: 1 }, { name: 'Disabled', price: 5, isAvailable: false, sortOrder: 2 }] });
+      for (const method of ['direct', 'whatsapp']) {
+        const payload = { ...body(item._id, method), items: item.variants.slice(0,2).map((v) => ({ productId: String(item._id), variantId: String(v._id), quantity: 1 })) };
+        const key = randomUUID();
+        const response = await post(a.slug, payload, key);
+        assert.equal(response.status, 201);
+        const result = await response.json();
+        assert.equal(result.order.subtotal, 55);
+        assert.equal((await post(a.slug, payload, key)).status, 200);
+        const saved = await Order.findOne({ restaurantId: a._id, orderNumber: result.order.orderNumber });
+        assert.deepEqual(saved.items.map((v) => v.variantName), ['Small','Large']);
+        assert.deepEqual(saved.items.map((v) => v.unitPrice), [20,35]);
+        if (method === 'whatsapp') assert.match(decodeURIComponent(result.whatsapp.url), /Burger \(Large\)/);
+      }
+      for (const variantId of [undefined, String(item.variants[2]._id), String(new mongoose.Types.ObjectId())]) {
+        const payload = { ...body(item._id), items: [{ productId: String(item._id), ...(variantId ? { variantId } : {}), quantity: 2 }] };
+        assert.equal((await post(a.slug, payload)).status, 409);
+      }
+      assert.equal((await post(b.slug, { ...body(item._id), items: [{productId:String(item._id),variantId:String(item.variants[0]._id),quantity:2}] })).status, 409);
+      await Product.updateOne({ _id: item._id }, { $set: { variants: [], price: 99 } });
+      assert.equal((await post(a.slug, { ...body(item._id), items: [{productId:String(item._id),variantId:String(item.variants[0]._id),quantity:2}] })).status, 409);
+      assert.equal((await Order.findOne({ restaurantId: a._id, 'items.variantName':'Small' })).items[0].unitPrice, 20);
     });
 
     await t.test('direct checkout saves trusted snapshots and survives product repricing', async () => {
@@ -223,12 +273,16 @@ test('secure guest checkout on savora_test', async (t) => {
   } finally {
     if (server) await new Promise((resolve) => server.close(resolve));
     if (connection.readyState === 1) {
-      await connection.models.Order.deleteMany({ restaurantId: { $in: ids.get('Restaurant') } });
-      for (const name of ['OwnerSession', 'Product', 'Category', 'User', 'Restaurant']) {
+      for (const name of ['Order', 'OwnerSession', 'Product', 'Category', 'User', 'Restaurant']) {
         for (const _id of ids.get(name) ?? []) {
           await connection.models[name].deleteOne({ _id });
         }
       }
+      const audit = mongoose.createConnection(validatedTestUri(), { autoIndex:false, autoCreate:false, serverSelectionTimeoutMS:10000 });
+      try { await audit.asPromise(); assert.equal(audit.db.databaseName, 'savora_test');
+        for (const [name, values] of ids) assert.equal(await audit.collection(connection.models[name].collection.name).countDocuments({_id:{$in:values}}),0,`${name} cleanup`);
+        console.log('Independent exact-ID checkout cleanup passed');
+      } finally { await audit.close(); }
     }
     await connection.close();
   }

@@ -1,4 +1,5 @@
 ﻿"use client";
+import { cartItemKey } from "@/lib/cart-identity";
 
 import { motion } from "framer-motion";
 import {
@@ -86,8 +87,8 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
         } catch { setHandoffBlocked(true); }
       }
       const currentCart = useCartStore.getState();
-      if (currentCart.tenantSlug === slug && JSON.stringify(currentCart.items.map((item) => [item.productId, item.quantity, item.notes])) ===
-        JSON.stringify(items.map((item) => [item.productId, item.quantity, item.notes]))) currentCart.clearCart();
+      if (currentCart.tenantSlug === slug && JSON.stringify(currentCart.items.map((item) => [item.productId, item.variantId, item.quantity, item.notes])) ===
+        JSON.stringify(items.map((item) => [item.productId, item.variantId, item.quantity, item.notes]))) currentCart.clearCart();
     } catch (error) {
       const checkoutError = error instanceof GuestCheckoutError ? error :
         new GuestCheckoutError(null, "The result is unknown. Retry with the same details to recover your order.", true);
@@ -323,7 +324,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
                   <>
                     <div className="mt-6 grid gap-3">
                       {items.map((item) => (
-                        <div className="grid grid-cols-[4rem_1fr_auto] items-center gap-3 rounded-lg border border-white/10 bg-white/[0.035] p-3" key={item.productId}>
+                        <div className="grid grid-cols-[4rem_1fr_auto] items-center gap-3 rounded-lg border border-white/10 bg-white/[0.035] p-3" key={cartItemKey(item)}>
                           <div className="relative aspect-square overflow-hidden rounded-md">
                             <PublicProductImage
                               alt={item.name}
@@ -333,7 +334,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
                             />
                           </div>
                           <div className="min-w-0">
-                            <div className="truncate text-sm font-semibold">{item.name}</div>
+                            <div className="truncate text-sm font-semibold">{item.name}{item.variantName ? ` (${item.variantName})` : ""}</div>
                             <div className="mt-1 text-xs text-[color:var(--text-muted)]">
                               {isArabic ? "الكمية" : "Qty"} {item.quantity}
                             </div>

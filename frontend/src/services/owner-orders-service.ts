@@ -5,6 +5,8 @@ export type OwnerOrderStatus = "pending" | "preparing" | "ready" | "out-for-deli
 export type OwnerOrderStatusGroup = "pending" | "delivered" | "cancelled";
 export type OwnerOrderMethod = "direct" | "whatsapp";
 export interface OwnerOrderItem {
+  variantId?: string;
+  variantName?: string;
   productId: string;
   name: string;
   unitPrice: number;
@@ -116,6 +118,7 @@ export function parseOwnerOrder(value: unknown): OwnerOrder {
     !timestamp(value.createdAt) || !timestamp(value.updatedAt) ||
     !(value.deliveredAt === null || timestamp(value.deliveredAt))) serverError();
   for (const item of value.items) {
+    if (isRecord(item) && item.variantId !== undefined && (typeof item.variantId !== 'string' || !isObjectId(item.variantId) || !text(item.variantName))) serverError();
     if (!isRecord(item) || !text(item.productId) || !isObjectId(item.productId) || !text(item.name) ||
       !money(item.unitPrice) || !Number.isSafeInteger(item.quantity) || (item.quantity as number) < 1 ||
       !nullableText(item.imageUrl) || !nullableText(item.notes)) serverError();
@@ -126,6 +129,7 @@ export function parseOwnerOrder(value: unknown): OwnerOrder {
     customerPhone: order.customerPhone, customerEmail: order.customerEmail,
     deliveryAddress: order.deliveryAddress, city: order.city,
     items: order.items.map((item) => ({ productId: item.productId, name: item.name,
+      ...(item.variantId ? { variantId: item.variantId, variantName: item.variantName } : {}),
       unitPrice: item.unitPrice, quantity: item.quantity, imageUrl: item.imageUrl, notes: item.notes })),
     subtotal: order.subtotal, deliveryFee: order.deliveryFee, total: order.total,
     status: order.status, source: order.source, submissionMethod: order.submissionMethod,

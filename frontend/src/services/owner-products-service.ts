@@ -3,6 +3,7 @@ import { isObjectId, isRecord, parsePagination, validOwnerImageUrl, type OwnerPa
 import type { OwnerCategory } from "./owner-categories-service.ts";
 
 export interface OwnerProduct {
+  variants?: { id: string; name: string; price: number; isAvailable: boolean; sortOrder: number }[];
   id: string;
   name: string;
   slug: string;
@@ -19,6 +20,7 @@ export interface OwnerProduct {
 }
 
 export interface ProductFormValues {
+  variants: { id?: string; name: string; price: string; isAvailable: boolean }[];
   name: string;
   slug: string;
   categoryId: string;
@@ -33,7 +35,7 @@ export interface ProductFormValues {
   calories: string;
 }
 
-export type ProductWrite = Pick<OwnerProduct, "name" | "categoryId" | "description" | "price" | "oldPrice" | "imageUrl" | "images" | "isAvailable" | "isFeatured" | "preparationTime" | "calories">;
+export type ProductWrite = Pick<OwnerProduct, "name" | "categoryId" | "description" | "price" | "oldPrice" | "imageUrl" | "images" | "isAvailable" | "isFeatured" | "preparationTime" | "calories" | "variants">;
 export type ProductPatch = Partial<ProductWrite>;
 export type ProductSort = "name" | "-name" | "price" | "-price" | "createdAt" | "-createdAt";
 export interface ProductListOptions {
@@ -49,6 +51,7 @@ function nullableNumber(value: unknown) { return value === null || (typeof value
 function nullableString(value: unknown) { return value === null || typeof value === "string"; }
 
 export function parseOwnerProduct(value: unknown): OwnerProduct {
+  if (isRecord(value) && value.variants !== undefined && (!Array.isArray(value.variants) || value.variants.some((v) => !isRecord(v) || typeof v.id !== 'string' || !isObjectId(v.id) || typeof v.name !== 'string' || !v.name.trim() || typeof v.price !== 'number' || !Number.isFinite(v.price) || v.price < 0 || typeof v.isAvailable !== 'boolean' || !Number.isSafeInteger(v.sortOrder)))) throw new ApiError(null, 'Invalid server response');
   if (!isRecord(value) || ![value.id, value.name, value.slug, value.categoryId].every((item) => typeof item === "string" && item.length > 0) ||
       !nullableString(value.description) || !nullableString(value.imageUrl) || !nullableNumber(value.price) ||
       value.price === null || !nullableNumber(value.oldPrice) || !nullableNumber(value.preparationTime) || !nullableNumber(value.calories) ||
@@ -92,7 +95,7 @@ export async function deleteOwnerProduct(id: string): Promise<void> {
 }
 
 export function productToForm(product?: OwnerProduct): ProductFormValues {
-  return { name: product?.name ?? "", slug: product?.slug ?? "", categoryId: product?.categoryId ?? "",
+  return { variants: (product?.variants ?? []).slice().sort((a,b) => a.sortOrder-b.sortOrder || a.id.localeCompare(b.id)).map((v) => ({ id: v.id, name: v.name, price: String(v.price), isAvailable: v.isAvailable })), name: product?.name ?? "", slug: product?.slug ?? "", categoryId: product?.categoryId ?? "",
     description: product?.description ?? "", price: product?.price.toString() ?? "",
     oldPrice: product?.oldPrice?.toString() ?? "", imageUrl: product?.imageUrl ?? "",
     images: product?.images.join("\n") ?? "", isAvailable: product?.isAvailable ?? true,
@@ -122,7 +125,8 @@ export function validateProductForm(form: ProductFormValues, categories: OwnerCa
   if (!isObjectId(form.categoryId) || !categories.some((item) => item.id === form.categoryId)) errors.categoryId = "Select a current category.";
   if (form.description.length > 2048) errors.description = "Use 2048 characters or fewer.";
   const digits = currencyDigits(currency);
-  if (!validMoneyText(form.price.trim(), digits)) errors.price = `Enter 0–1,000,000 with up to ${digits} decimal places.`;
+  if (form.variants.length > 20 || form.variants.some((v) => !v.name.trim() || v.name.length > 120 || !validMoneyText(v.price.trim(), digits))) errors.variants = "Review variant names and prices.";
+  if (!form.variants.length && !validMoneyText(form.price.trim(), digits)) errors.price = `Enter 0–1,000,000 with up to ${digits} decimal places.`;
   if (form.oldPrice.trim() && !validMoneyText(form.oldPrice.trim(), digits)) errors.oldPrice = `Enter 0–1,000,000 with up to ${digits} decimal places.`;
   if (form.imageUrl.length > 2048 || !validOwnerImageUrl(form.imageUrl.trim())) errors.imageUrl = "Enter a root-relative path or HTTP(S) URL.";
   const images = form.images.split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
@@ -134,8 +138,8 @@ export function validateProductForm(form: ProductFormValues, categories: OwnerCa
 
 export function productWrite(form: ProductFormValues, categories: OwnerCategory[], currency: string): ProductWrite {
   if (Object.keys(validateProductForm(form, categories, currency)).length) throw new Error("Invalid product form");
-  return { name: form.name.trim(), categoryId: form.categoryId,
-    description: form.description.trim(), price: Number(form.price.trim()),
+  return { variants: form.variants.map((v, sortOrder) => ({ ...(v.id ? { id: v.id } : {}), name: v.name.trim(), price: Number(v.price), isAvailable: v.isAvailable, sortOrder })) as OwnerProduct['variants'], name: form.name.trim(), categoryId: form.categoryId,
+    description: form.description.trim(), price: form.variants.length && !form.price.trim() ? Math.min(...form.variants.map((v) => Number(v.price))) : Number(form.price.trim()),
     oldPrice: form.oldPrice.trim() ? Number(form.oldPrice.trim()) : null,
     imageUrl: form.imageUrl.trim(), images: form.images.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
     isAvailable: form.isAvailable, isFeatured: form.isFeatured,
@@ -147,9 +151,10 @@ export function productPatch(form: ProductFormValues, original: OwnerProduct, ca
   const next = productWrite(form, categories, currency);
   const patch: ProductPatch = {};
   for (const key of Object.keys(next) as (keyof ProductWrite)[]) {
-    if (key === "images" ? JSON.stringify(next.images) !== JSON.stringify(original.images) : next[key] !== (original[key] ?? (typeof next[key] === "string" ? "" : null))) {
+    if (key === "images" || key === "variants" ? JSON.stringify(next[key]) !== JSON.stringify(original[key] ?? []) : next[key] !== (original[key] ?? (typeof next[key] === "string" ? "" : null))) {
       Object.assign(patch, { [key]: next[key] });
     }
   }
+  if (original.variants?.length && !form.variants.length) patch.price = next.price;
   return patch;
 }

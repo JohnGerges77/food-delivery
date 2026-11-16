@@ -241,6 +241,7 @@ function OwnerOrdersView({ currency }: { currency: string }) {
               <div className="flex items-center gap-2 text-sm">
                 <ShoppingBag className="text-[color:var(--primary-light)]" size={16} />
                 <span>{itemCount(order)} {isArabic ? "عنصر" : "items"}</span>
+                <span className="text-xs">{order.items.filter((item) => item.variantName).map((item) => `${item.name} (${item.variantName}) × ${item.quantity}`).join('، ')}</span>
               </div>
 
               <div className="text-xl font-semibold text-[color:var(--primary-light)]">
@@ -303,13 +304,13 @@ function OwnerOrdersView({ currency }: { currency: string }) {
                 {selectedOrder.items.map((item) => (
                   <div
                     className="grid grid-cols-[4rem_1fr_auto] items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3"
-                    key={`${selectedOrder.id}-${item.productId}`}
+                    key={`${selectedOrder.id}-${item.productId}-${item.variantId ?? ""}`}
                   >
                     <div className="relative aspect-square overflow-hidden rounded-xl">
                       <CatalogImage alt={item.name} src={item.imageUrl} sizes="4rem" />
                     </div>
                     <div className="min-w-0">
-                      <div className="truncate font-semibold">{item.name}</div>
+                      <div className="truncate font-semibold">{item.name}{item.variantName ? ` (${item.variantName})` : ""}</div>
                       <div className="mt-1 text-sm text-[color:var(--text-muted)]">
                         {isArabic ? "الكمية" : "Qty"} {item.quantity} × {price(item.unitPrice)}
                       </div>

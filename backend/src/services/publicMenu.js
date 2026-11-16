@@ -95,13 +95,17 @@ export function serializePublicCategory(category) {
 }
 
 export function serializePublicProduct(product) {
+  const variants = Array.from(product.variants ?? []).map((v) => ({ id: String(v._id), name: v.name, price: v.price, isAvailable: v.isAvailable, sortOrder: v.sortOrder }))
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id));
+  const available = variants.filter((v) => v.isAvailable);
   return {
     id: String(product._id), categoryId: String(product.categoryId),
     name: product.name, slug: product.slug,
     description: product.description ?? null, price: product.price,
-    oldPrice: product.oldPrice ?? null, imageUrl: product.imageUrl ?? null,
+    oldPrice: variants.length ? null : product.oldPrice ?? null, imageUrl: product.imageUrl ?? null,
     images: Array.from(product.images ?? []), isFeatured: product.isFeatured,
     preparationTime: product.preparationTime ?? null, calories: product.calories ?? null,
+    variants, startingPrice: variants.length ? (available.length ? Math.min(...available.map((v) => v.price)) : null) : product.price,
   };
 }
 
@@ -124,7 +128,7 @@ export async function resolvePublicRestaurant(connection, slug) {
   if (restaurant.heroProductId) {
     const product = await Product.findOne({ _id: restaurant.heroProductId,
       restaurantId: restaurant._id, isAvailable: true }).lean();
-    if (product && await Category.exists({ _id: product.categoryId,
+    if (product && (!product.variants?.length || product.variants.some((v) => v.isAvailable)) && await Category.exists({ _id: product.categoryId,
       restaurantId: restaurant._id, isActive: true })) {
       restaurant.heroProduct = serializePublicProduct(product);
     }
@@ -152,6 +156,7 @@ export async function listPublicProducts(connection, restaurant, query) {
   const field = descending ? sort.slice(1) : sort;
   const [result] = await Product.aggregate([
     { $match: { restaurantId: restaurant._id, isAvailable: true, ...filters } },
+    { $match: { $or: [{ 'variants.0': { $exists: false } }, { variants: { $elemMatch: { isAvailable: true } } }] } },
     { $lookup: { from: Category.collection.name, localField: 'categoryId',
       foreignField: '_id', as: 'visibleCategory' } },
     { $match: { visibleCategory: { $elemMatch: {
@@ -159,10 +164,12 @@ export async function listPublicProducts(connection, restaurant, query) {
     } } } },
     { $project: { categoryId: 1, name: 1, slug: 1, description: 1,
       price: 1, oldPrice: 1, imageUrl: 1, images: 1, isFeatured: 1,
-      preparationTime: 1, calories: 1, createdAt: 1 } },
+      preparationTime: 1, calories: 1, createdAt: 1, variants: 1,
+      effectivePrice: { $cond: [{ $gt: [{ $size: { $ifNull: ['$variants', []] } }, 0] },
+        { $min: { $map: { input: { $filter: { input: '$variants', as: 'v', cond: '$$v.isAvailable' } }, as: 'v', in: '$$v.price' } } }, '$price'] } } },
     { $facet: {
       products: [
-        { $sort: { [field]: descending ? -1 : 1, _id: 1 } },
+        { $sort: { [field === 'price' ? 'effectivePrice' : field]: descending ? -1 : 1, _id: 1 } },
         { $skip: (page - 1) * limit }, { $limit: limit },
       ],
       count: [{ $count: 'value' }],

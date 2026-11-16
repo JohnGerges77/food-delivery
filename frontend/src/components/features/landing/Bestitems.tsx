@@ -2,7 +2,7 @@
 
 import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { publicMoney } from "@/lib/public-menu-presentation";
+import { productDisplayPrice } from "@/lib/public-menu-presentation";
 import type { PublicProduct } from "@/services/public-menu";
 import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";
 import { useStorefront } from "@/components/features/storefront/StorefrontContext";
@@ -24,7 +24,7 @@ function BestItemCard({ item, prominent }: { item: PublicProduct; prominent: boo
     </div>
     <div className={prominent ? "p-6 sm:p-7 lg:p-8" : "p-5"}>
       <div className="mb-3 flex items-center gap-3 text-[0.68rem] font-semibold tracking-[0.2em] text-[color:var(--gold)] uppercase"><span className="h-px w-8 bg-[color:var(--primary)]/70" />{category?.name}</div>
-      <div className="flex items-start justify-between gap-5"><h3 className={prominent ? "text-3xl font-semibold text-[color:var(--text)] sm:text-4xl" : "text-xl font-semibold text-[color:var(--text)]"}>{item.name}</h3><span className="rounded-full bg-[color:var(--primary)]/10 px-3 py-1 text-sm font-bold text-[color:var(--primary-light)]">{publicMoney(item.price, restaurant.currency, locale)}</span></div>
+      <div className="flex items-start justify-between gap-5"><h3 className={prominent ? "text-3xl font-semibold text-[color:var(--text)] sm:text-4xl" : "text-xl font-semibold text-[color:var(--text)]"}>{item.name}</h3><span className="rounded-full bg-[color:var(--primary)]/10 px-3 py-1 text-sm font-bold text-[color:var(--primary-light)]">{productDisplayPrice(item, restaurant.currency, locale)}</span></div>
       {item.description && <p className={prominent ? "mt-4 max-w-xl text-base leading-8 text-[color:var(--text-muted)]" : "mt-3 text-sm leading-6 text-[color:var(--text-muted)]"}>{item.description}</p>}
       <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--primary-light)] transition-colors duration-300 hover:text-[color:var(--text)]">{isArabic ? "عرض الطبق" : "View Item"}<span className="transition-transform duration-300 group-hover:translate-x-1">-&gt;</span></span>
     </div>
