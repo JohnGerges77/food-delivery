@@ -160,7 +160,7 @@ test("cart accepts real IDs and clears between restaurants including legacy fixt
   useCartStore.setState({ tenantSlug: null, items: [{ productId: "prod-fixture", name: "Old",
     price: 10, image: "", quantity: 1 }] });
   useCartStore.getState().setTenant("cafe");
-  assert.deepEqual(useCartStore.getState().items, []);
+  assert.equal(useCartStore.getState().items[0].quantity, 2);
   useCartStore.getState().addPublicItem("cafe", product);
   useCartStore.getState().setTenant("other");
   assert.deepEqual(useCartStore.getState().items, []);

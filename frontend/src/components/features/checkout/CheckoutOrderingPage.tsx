@@ -86,9 +86,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
           }
         } catch { setHandoffBlocked(true); }
       }
-      const currentCart = useCartStore.getState();
-      if (currentCart.tenantSlug === slug && JSON.stringify(currentCart.items.map((item) => [item.productId, item.variantId, item.quantity, item.notes])) ===
-        JSON.stringify(items.map((item) => [item.productId, item.variantId, item.quantity, item.notes]))) currentCart.clearCart();
+      useCartStore.getState().clearSubmittedCart(slug, items);
     } catch (error) {
       const checkoutError = error instanceof GuestCheckoutError ? error :
         new GuestCheckoutError(null, "The result is unknown. Retry with the same details to recover your order.", true);

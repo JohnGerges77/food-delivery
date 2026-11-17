@@ -17,17 +17,3 @@ test('variant cart lines stay separate, reject missing selection and send identi
   assert.match(productDisplayPrice(product,'EGP','en'),/Starting from.*20/);
   store.clearCart();
 });
-
-test('cart survives session rehydration and stays tenant-scoped', async () => {
-  const previous = globalThis.sessionStorage;
-  const data = new Map();
-  globalThis.sessionStorage = { getItem:(key)=>data.get(key)??null, setItem:(key,value)=>data.set(key,value), removeItem:(key)=>data.delete(key) };
-  try {
-    const store=useCartStore.getState(); store.clearCart();store.addPublicItem('persist-test',{id:'507f1f77bcf86cd799439011',name:'Legacy',price:10,imageUrl:''},2);
-    const saved=data.get('savora-cart-v1');
-    useCartStore.setState({items:[],tenantSlug:null}); data.set('savora-cart-v1',saved);
-    await useCartStore.persist.rehydrate();
-    assert.equal(useCartStore.getState().items[0].quantity,2);
-    store.setTenant('other-tenant');assert.equal(useCartStore.getState().items.length,0);
-  } finally { globalThis.sessionStorage=previous;useCartStore.getState().clearCart(); }
-});

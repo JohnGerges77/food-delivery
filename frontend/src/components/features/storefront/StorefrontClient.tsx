@@ -125,7 +125,7 @@ const storefrontThemes: Record<StorefrontThemeId, StorefrontTheme> = {
 
 export function StorefrontClient({ basePath, restaurant, page, categories, initialProducts, offers, initialPagination, product }: Props) {
   const setTenant = useCartStore((state) => state.setTenant);
-  useEffect(() => { void useCartStore.persist.rehydrate(); setTenant(restaurant.slug); }, [restaurant.slug, setTenant]);
+  useEffect(() => { setTenant(restaurant.slug); }, [restaurant.slug, setTenant]);
   const themeId = resolveStorefrontTheme(restaurant);
   const theme = storefrontThemes[themeId];
   return <StorefrontProvider restaurant={restaurant} categories={categories} basePath={basePath}>
