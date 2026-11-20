@@ -21,6 +21,8 @@ const MAX_TOTAL_QUANTITY = 100;
 const FIELDS = new Set(['customerName', 'customerPhone', 'customerEmail',
   'deliveryAddress', 'city', 'notes', 'submissionMethod', 'items']);
 const ITEM_FIELDS = new Set(['productId', 'variantId', 'quantity', 'notes']);
+const BETA_FIELDS = new Set(['submissionMethod', 'items']);
+const BETA_ITEM_FIELDS = new Set(['productId', 'variantId', 'quantity']);
 
 function invalid() { throw new InvalidCheckout(); }
 function plain(value) {
@@ -39,6 +41,15 @@ function cleanText(value, limit, required = true) {
   const cleaned = value.trim();
   if (required && !cleaned) invalid();
   return cleaned;
+}
+
+export function betaCheckoutBody(body) {
+  onlyKeys(body, BETA_FIELDS);
+  if (body.submissionMethod !== 'direct' || !Array.isArray(body.items) ||
+      !body.items.length || body.items.length > MAX_ITEMS) invalid();
+  for (const item of body.items) onlyKeys(item, BETA_ITEM_FIELDS);
+  return { submissionMethod: 'direct', items: body.items, customerName: 'Savora Beta Test Guest',
+    customerPhone: '+12025550100', deliveryAddress: 'Synthetic order, no fulfillment', city: 'Beta Test City' };
 }
 
 export function parseCheckout(body, key) {

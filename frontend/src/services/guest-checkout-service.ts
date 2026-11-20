@@ -13,6 +13,27 @@ export type GuestCheckoutPayload = {
   submissionMethod: SubmissionMethod;
   items: { productId: string; variantId?: string; quantity: number; notes?: string }[];
 };
+type BetaCheckoutPayload = { submissionMethod: "direct"; items: Omit<GuestCheckoutPayload["items"][number], "notes">[] };
+type CheckoutSubmission = GuestCheckoutPayload | BetaCheckoutPayload;
+export type CheckoutAvailability = "available" | "checkout-disabled" | "delivery-unavailable";
+
+export function storefrontCheckoutAvailability(beta: boolean, checkoutEnabled: boolean, deliveryAvailable: boolean): CheckoutAvailability {
+  if (!beta) return "available";
+  if (!checkoutEnabled) return "checkout-disabled";
+  return deliveryAvailable ? "available" : "delivery-unavailable";
+}
+
+export function checkoutUnavailableMessage(availability: CheckoutAvailability, arabic: boolean) {
+  if (availability === "checkout-disabled") {
+    return arabic ? "إرسال الطلبات متوقف حاليًا. يمكنك متابعة تصفح القائمة والاحتفاظ بسلتك."
+      : "Ordering is paused. You can keep browsing and save your cart for later.";
+  }
+  if (availability === "delivery-unavailable") {
+    return arabic ? "التوصيل غير متاح حاليًا، لذلك لا يمكن إرسال طلب. يمكنك الاحتفاظ بسلتك."
+      : "Delivery is currently unavailable, so orders are paused. You can keep your cart for later.";
+  }
+  return "";
+}
 export type GuestCheckoutResult = {
   order: { orderNumber: string; status: "pending"; submissionMethod: SubmissionMethod;
     currency: string; subtotal: number; deliveryFee: number; total: number; savedInSavora: true };
@@ -24,11 +45,13 @@ export type CheckoutErrors = Partial<Record<CheckoutField, string>>;
 export class GuestCheckoutError extends Error {
   readonly status: number | null;
   readonly uncertain: boolean;
-  constructor(status: number | null, message: string, uncertain = false) {
+  readonly paused: boolean;
+  constructor(status: number | null, message: string, uncertain = false, paused = false) {
     super(message);
     this.name = "GuestCheckoutError";
     this.status = status;
     this.uncertain = uncertain;
+    this.paused = paused;
   }
 }
 
@@ -50,20 +73,31 @@ export function checkoutValidation(details: CheckoutDetails, items: CartItem[]):
   }
   if (!errors.phone && !phonePattern.test(details.phone.trim())) errors.phone = "phone";
   if (details.notes.length > 500 || invalidText(details.notes)) errors.notes = "notes";
+  if (invalidCart(items)) errors.cart = "cart";
+  return errors;
+}
+
+export function invalidCart(items: CartItem[]) {
+  if (!items.length || items.length > 10) return true;
   const ids = new Set<string>();
   let quantity = 0;
-  if (!items.length || items.length > 10) errors.cart = "cart";
   for (const item of items) {
     const id = item.productId.toLowerCase();
     const identity = cartItemKey(item).toLowerCase();
     if (!objectId.test(id) || (item.variantId !== undefined && !objectId.test(item.variantId)) || ids.has(identity) || !Number.isSafeInteger(item.quantity) ||
       item.quantity < 1 || item.quantity > 99 ||
-      (item.notes !== undefined && (item.notes.length > 200 || invalidText(item.notes)))) errors.cart = "cart";
+      (item.notes !== undefined && (item.notes.length > 200 || invalidText(item.notes)))) return true;
     ids.add(identity);
     quantity += item.quantity;
   }
-  if (quantity > 100) errors.cart = "cart";
-  return errors;
+  return quantity > 100;
+}
+
+export function buildBetaCheckoutPayload(items: CartItem[]): BetaCheckoutPayload {
+  if (invalidCart(items)) throw new GuestCheckoutError(400, "Please check your cart.");
+  return { submissionMethod: "direct", items: items.map(({ productId, quantity, variantId }) => ({
+    productId: productId.toLowerCase(), quantity, ...(variantId ? { variantId: variantId.toLowerCase() } : {}),
+  })) };
 }
 
 export function buildCheckoutPayload(details: CheckoutDetails, items: CartItem[], method: SubmissionMethod): GuestCheckoutPayload {
@@ -113,7 +147,7 @@ function validateResult(value: unknown, method: SubmissionMethod): GuestCheckout
   return result;
 }
 
-export async function submitGuestCheckout(slug: string, payload: GuestCheckoutPayload, key: string,
+export async function submitGuestCheckout(slug: string, payload: CheckoutSubmission, key: string,
   fetcher: typeof fetch = fetch): Promise<GuestCheckoutResult> {
   const url = `${apiBaseUrl()}/api/public/restaurants/${encodeURIComponent(validateSlug(slug))}/orders`;
   let response: Response;
@@ -124,10 +158,20 @@ export async function submitGuestCheckout(slug: string, payload: GuestCheckoutPa
   } catch { throw new GuestCheckoutError(null, "The result is unknown. Retry with the same details to recover your order.", true); }
   if (!response.ok) {
     const body = await response.json().catch(() => null) as { error?: string } | null;
+    const beta = !("customerName" in payload);
+    const gateClosed = response.status === 503 && body?.error === "Checkout unavailable";
+    const betaRequestBlocked = response.status === 403 && beta &&
+      body?.error !== "Untrusted checkout origin";
+    if (gateClosed || betaRequestBlocked) {
+      throw new GuestCheckoutError(response.status, checkoutUnavailableMessage("checkout-disabled", false), false, true);
+    }
+    const unavailable = beta
+      ? "Checkout is unavailable. Refresh the menu and check delivery, item availability, and the minimum order before trying again."
+      : "Checkout is unavailable. Check delivery, minimum order, products, or WhatsApp availability.";
     const message = response.status === 401 || response.status === 403 ? "Checkout access was denied. Check preview access and retry." :
       response.status === 404 ? "This restaurant is unavailable." :
       response.status === 409 && body?.error === "Idempotency key conflict" ? "This retry conflicts with an earlier order. Review your details before trying again." :
-      response.status === 409 ? "Checkout is unavailable. Check delivery, minimum order, products, or WhatsApp availability." :
+      response.status === 409 ? unavailable :
       response.status === 400 ? "The server rejected these checkout details. Please review them." :
       response.status === 413 ? "The order details are too large." :
       response.status === 429 ? "Too many attempts. Please wait before retrying." :
@@ -143,7 +187,7 @@ export async function submitGuestCheckout(slug: string, payload: GuestCheckoutPa
 type SavedAttempt = { slug: string; fingerprint: string; key: string };
 const storagePrefix = "savora-checkout-attempt:";
 
-async function fingerprint(payload: GuestCheckoutPayload) {
+async function fingerprint(payload: CheckoutSubmission) {
   const bytes = new TextEncoder().encode(JSON.stringify(payload));
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -151,9 +195,9 @@ async function fingerprint(payload: GuestCheckoutPayload) {
 
 export class GuestCheckoutCoordinator {
   private active: Promise<GuestCheckoutResult> | null = null;
-  private attempts = new Map<string, SavedAttempt & { payload: GuestCheckoutPayload }>();
+  private attempts = new Map<string, SavedAttempt & { payload: CheckoutSubmission }>();
 
-  async submit(slug: string, payload: GuestCheckoutPayload, fetcher: typeof fetch = fetch,
+  async submit(slug: string, payload: CheckoutSubmission, fetcher: typeof fetch = fetch,
     storage: Pick<Storage, "getItem" | "setItem" | "removeItem"> | null = typeof sessionStorage === "undefined" ? null : sessionStorage) {
     if (this.active) return this.active;
     const run = async () => {

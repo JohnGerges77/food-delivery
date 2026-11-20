@@ -9,10 +9,13 @@ import { publicMoney } from "@/lib/public-menu-presentation";
 import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";
 import { useStorefront } from "@/components/features/storefront/StorefrontContext";
 import { useCartStore } from "@/store/cart-store";
+import { checkoutUnavailableMessage, type CheckoutAvailability } from "@/services/guest-checkout-service";
 
 const sectionEase = [0.16, 1, 0.3, 1] as const;
 
-export function CartOrderingPage({ deliveryFee, currency, slug }: { deliveryFee: number | null; currency: string; slug: string }) {
+export function CartOrderingPage({ deliveryFee, currency, slug, checkoutAvailability }: {
+  deliveryFee: number | null; currency: string; slug: string; checkoutAvailability: CheckoutAvailability;
+}) {
   const locale = useLocale();
   const isArabic = locale === "ar";
   const { href } = useStorefront();
@@ -64,7 +67,7 @@ export function CartOrderingPage({ deliveryFee, currency, slug }: { deliveryFee:
               </div>
               <h2 className="mt-7 text-3xl font-semibold">{isArabic ? "سلتك فارغة" : "Your Cart Is Empty"}</h2>
               <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-[color:var(--text-muted)]">
-                Looks like you haven&apos;t added anything yet.
+                {isArabic ? "تصفح القائمة وأضف الأطباق التي تفضلها إلى سلتك." : "Browse the menu and add your favorite dishes."}
               </p>
               <Link
                 className="mt-8 inline-flex min-h-13 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 text-sm font-bold text-[color:var(--background)] shadow-[0_20px_56px_rgba(255,122,0,0.34)] transition-transform hover:-translate-y-0.5"
@@ -89,7 +92,7 @@ export function CartOrderingPage({ deliveryFee, currency, slug }: { deliveryFee:
                     className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/12 bg-white/[0.04] px-5 text-sm font-semibold text-[color:var(--text-muted)] transition-colors hover:border-[color:var(--primary)]/45 hover:text-[color:var(--primary-light)]"
                     href={href("/menu")}
                   >
-                    Add More Dishes
+                    {isArabic ? "أضف أطباقًا أخرى" : "Add More Dishes"}
                   </Link>
                 </div>
                 <div className="grid gap-4">
@@ -184,12 +187,14 @@ export function CartOrderingPage({ deliveryFee, currency, slug }: { deliveryFee:
                     <div className="mt-2 rounded-lg border border-[color:var(--gold)]/20 bg-[color:var(--gold)]/8 px-4 py-3 text-xs leading-6 text-[color:var(--text-muted)]">
                       {isArabic ? "السعر النهائي يحدده الخادم عند إرسال الطلب. لم يتم حفظ أي طلب." : "The server determines final prices when orders can be submitted. No order has been saved."}
                     </div>
-                    <Link
+                    {checkoutAvailability === "available" ? <Link
                       className="mt-4 inline-flex min-h-13 w-full items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-7 text-sm font-bold text-[color:var(--background)] shadow-[0_20px_56px_rgba(255,122,0,0.36)] transition-transform hover:-translate-y-0.5"
                       href={href("/checkout")}
                     >
-                      {isArabic ? "المتابعة إلى الدفع" : "Proceed To Checkout"}
-                    </Link>
+                      {isArabic ? "المتابعة لإتمام الطلب" : "Proceed To Checkout"}
+                    </Link> : <p className="mt-4 rounded-lg border border-[color:var(--gold)]/30 px-4 py-3 text-sm leading-6" role="status">
+                      {checkoutUnavailableMessage(checkoutAvailability, isArabic)}
+                    </p>}
                     <button
                       className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-white/12 bg-white/[0.04] px-6 text-sm font-semibold text-[color:var(--text-muted)] transition-colors hover:border-[color:var(--primary)]/45 hover:text-[color:var(--primary-light)]"
                       onClick={clearCart}

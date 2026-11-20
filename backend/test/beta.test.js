@@ -90,6 +90,7 @@ test('Production startup shares one connect; constructs app only after beta iden
   }, makeApp: options => {
     constructions++; assert.equal(options.secureCookies, true); assert.equal(options.checkoutEnabled, false);
     assert.equal(options.mediaStorage, null); assert.equal(options.checkoutLimit, 10);
+    assert.equal(options.betaCheckout, true);
     return createApp(options);
   } });
   await serve(app, async base => {
@@ -141,18 +142,41 @@ test('missing or conflicting beta indexes block all app routes without creating 
 
 
 test('beta public browsing works while both order submission methods are gated off', async () => {
-  const restaurant = { _id: '507f1f77bcf86cd799439011', name: 'Synthetic Beta', slug: 'demo', currency: 'EGP' };
+  const restaurant = { _id: '507f1f77bcf86cd799439011', name: 'Synthetic Beta', slug: 'demo', currency: 'EGP',
+    socialLinks: { whatsapp: 'https://wa.me/12025550100' } };
   const connection = { readyState: 1, db: { databaseName: 'savora_beta' }, models: {
     Restaurant: { findOne: () => ({ select: () => ({ lean: async () => restaurant }) }) }, Product: {}, Category: {},
   } };
   await serve(createVercelEntry({ env: valid, connection, checkIndexes: async () => [] }), async base => {
     const result = await fetch(base + '/api/public/restaurants/demo');
-    assert.equal(result.status, 200); assert.equal((await result.json()).restaurant.slug, 'demo');
+    assert.equal(result.status, 200);
+    const dto = (await result.json()).restaurant;
+    assert.equal(dto.slug, 'demo');
+    assert.equal(dto.socialLinks.whatsapp, null);
     for (const submissionMethod of ['direct', 'whatsapp']) {
       const response = await fetch(base + '/api/public/restaurants/demo/orders', { method: 'POST',
         headers: { Origin: valid.AUTH_TRUSTED_ORIGINS, 'Content-Type': 'application/json' },
         body: JSON.stringify({ submissionMethod }) });
       assert.equal(response.status, 503);
+    }
+  });
+});
+
+test('enabled beta rejects WhatsApp and supplied personal data before reaching the database', async () => {
+  await serve(createApp({ connection: { readyState: 0 }, betaCheckout: true }), async base => {
+    const items = [{ productId: '507f1f77bcf86cd799439012', quantity: 1 }];
+    for (const body of [
+      { submissionMethod: 'whatsapp', items },
+      { submissionMethod: 'direct', items, customerName: 'Untrusted' },
+      { submissionMethod: 'direct', items: [{ ...items[0], notes: 'Untrusted' }] },
+    ]) {
+      const response = await fetch(base + '/api/public/restaurants/demo/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': 'beta-qa-synthetic-request' },
+        body: JSON.stringify(body),
+      });
+      assert.equal(response.status, 400);
+      assert.deepEqual(await response.json(), { error: 'Invalid checkout' });
     }
   });
 });

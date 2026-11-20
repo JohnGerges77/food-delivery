@@ -5,7 +5,7 @@ import Order from '../src/models/Order.js';
 import Product from '../src/models/Product.js';
 import { createApp } from '../src/app.js';
 import { checkoutRateLimit } from '../src/routes/public.js';
-import { buildWhatsAppUrl, InvalidCheckout, CheckoutUnavailable, moneyToMinor,
+import { betaCheckoutBody, buildWhatsAppUrl, InvalidCheckout, CheckoutUnavailable, moneyToMinor,
   parseCheckout, whatsappTarget } from '../src/services/guestCheckout.js';
 
 const key = 'checkout-test-key-0001';
@@ -22,6 +22,17 @@ test('checkout parses a strict, normalized guest payload', () => {
   });
   assert.equal(parseCheckout({ ...payload(), customerEmail: '' }, key).customerEmail,
     undefined);
+});
+
+test('beta input adds fixed synthetic details and preserves a validated variant without accepting prices', () => {
+  const variantId = String(new mongoose.Types.ObjectId());
+  const items = [{ productId: id, variantId, quantity: 1 }];
+  const parsed = parseCheckout(betaCheckoutBody({ submissionMethod: 'direct', items }), key);
+  assert.deepEqual(parsed.items, items);
+  assert.equal(parsed.customerName, 'Savora Beta Test Guest');
+  assert.equal(parsed.deliveryAddress, 'Synthetic order, no fulfillment');
+  assert.throws(() => betaCheckoutBody({ submissionMethod: 'direct',
+    items: [{ ...items[0], unitPrice: 1 }] }), InvalidCheckout);
 });
 
 test('checkout rejects untrusted amounts, operators, nested keys and malformed input', () => {

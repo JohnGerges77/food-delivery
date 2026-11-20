@@ -126,7 +126,8 @@ export function createVercelEntry({ env = process.env, connection = mongoose.con
         secureCookies: true, trustProxyHops: 0, mediaStorage: null,
         checkoutEnabled: config.checkoutEnabled,
         ...(config.databaseName === 'savora_beta' ? {
-          checkoutAllowedOrigins: config.allowedOrigins.split(','), checkoutLimit: 10 } : {}) });
+          checkoutAllowedOrigins: config.allowedOrigins.split(','), checkoutLimit: 10,
+          betaCheckout: true } : {}) });
       app(req, res);
     } catch {
       res.status(503).json({ error: 'Service unavailable' });

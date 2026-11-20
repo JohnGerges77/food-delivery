@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildCheckoutPayload, checkoutValidation, GuestCheckoutCoordinator, GuestCheckoutError,
-  submitGuestCheckout } from "../src/services/guest-checkout-service.ts";
+import { buildBetaCheckoutPayload, buildCheckoutPayload, checkoutValidation, GuestCheckoutCoordinator, GuestCheckoutError,
+  storefrontCheckoutAvailability, submitGuestCheckout } from "../src/services/guest-checkout-service.ts";
 
 process.env.NEXT_PUBLIC_SAVORA_API_BASE_URL = "http://localhost:5000";
 const productId = "507f1f77bcf86cd799439012";
@@ -37,6 +37,45 @@ test("customer and cart validation catches invalid input before POST", () => {
   assert.ok(checkoutValidation(details, [{ ...items[0], productId: "fixture-product" }]).cart);
   assert.ok(checkoutValidation(details, [{ ...items[0], quantity: 101 }]).cart);
   assert.throws(() => buildCheckoutPayload(details, [], "direct"), GuestCheckoutError);
+});
+
+test("beta checkout sends Direct and item identifiers without contact details, notes or client prices", () => {
+  const variantId = "507f1f77bcf86cd799439013";
+  const payload = buildBetaCheckoutPayload([{ ...items[0], variantId, notes: "Do not transmit" }]);
+  assert.deepEqual(payload, { submissionMethod: "direct", items: [{ productId, quantity: 2, variantId }] });
+  assert.throws(() => buildBetaCheckoutPayload([]), GuestCheckoutError);
+});
+
+test("the checkout gate rejection tells guests to keep their cart while unknown service failures preserve retries", async () => {
+  const payload = buildBetaCheckoutPayload(items);
+  const key = "12345678-1234-1234-1234-123456789012";
+  await assert.rejects(submitGuestCheckout("cafe", payload, key,
+    async () => response({ error: "Checkout unavailable" }, 503)),
+  (error) => error.status === 503 && !error.uncertain && /Ordering is paused/.test(error.message));
+  await assert.rejects(submitGuestCheckout("cafe", payload, key,
+    async () => response({ error: "Service unavailable" }, 503)),
+  (error) => error.status === 503 && error.uncertain && /same details/.test(error.message));
+});
+
+test("the early storefront pause applies only in Beta", () => {
+  assert.equal(storefrontCheckoutAvailability(false, false, false), "available");
+  assert.equal(storefrontCheckoutAvailability(false, true, false), "available");
+  assert.equal(storefrontCheckoutAvailability(true, false, true), "checkout-disabled");
+  assert.equal(storefrontCheckoutAvailability(true, true, false), "delivery-unavailable");
+  assert.equal(storefrontCheckoutAvailability(true, true, true), "available");
+});
+
+test("a Beta firewall deny keeps the cart and preserves a distinct origin failure", async () => {
+  const key = "12345678-1234-1234-1234-123456789012";
+  const deny = async () => new Response("Forbidden", { status: 403 });
+  const beta = buildBetaCheckoutPayload(items);
+  await assert.rejects(submitGuestCheckout("cafe", beta, key, deny),
+    (error) => error.status === 403 && error.paused && !error.uncertain && /Ordering is paused/.test(error.message));
+  await assert.rejects(submitGuestCheckout("cafe", beta, key,
+    async () => response({ error: "Untrusted checkout origin" }, 403)),
+    (error) => error.status === 403 && !error.paused && !error.uncertain && /access was denied/.test(error.message));
+  await assert.rejects(submitGuestCheckout("cafe", buildCheckoutPayload(details, items, "direct"), key, deny),
+    (error) => error.status === 403 && !error.uncertain && /access was denied/.test(error.message));
 });
 
 test("public request uses slug, same-origin credentials, and only confirmed backend amounts", async () => {

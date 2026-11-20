@@ -2,7 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import { listPublicCategories, listPublicProducts, resolvePublicRestaurant,
   serializePublicRestaurant } from '../services/publicMenu.js';
-import { createGuestOrder } from '../services/guestCheckout.js';
+import { createGuestOrder, betaCheckoutBody } from '../services/guestCheckout.js';
 import { publicMedia } from '../services/ownerMedia.js';
 
 export function checkoutRateLimit({ limit = 60, windowMs = 60_000 } = {}) {
@@ -28,7 +28,7 @@ export function checkoutRateLimit({ limit = 60, windowMs = 60_000 } = {}) {
 }
 
 export function createPublicRouter({ connection = mongoose.connection, mediaStorage = null,
-  checkoutEnabled = true, checkoutAllowedOrigins, checkoutLimit = 60 } = {}) {
+  checkoutEnabled = true, checkoutAllowedOrigins, checkoutLimit = 60, betaCheckout = false } = {}) {
   const router = express.Router();
 
   router.use((req, res, next) => {
@@ -45,7 +45,7 @@ export function createPublicRouter({ connection = mongoose.connection, mediaStor
 
   router.get('/restaurants/:slug', async (req, res) => {
     const restaurant = await resolvePublicRestaurant(connection, req.params.slug);
-    res.json({ restaurant: serializePublicRestaurant(restaurant) });
+    res.json({ restaurant: serializePublicRestaurant(restaurant, { hideWhatsApp: betaCheckout }) });
   });
 
   router.get('/restaurants/:slug/categories', async (req, res) => {
@@ -77,7 +77,8 @@ export function createPublicRouter({ connection = mongoose.connection, mediaStor
     next();
   }, checkoutRateLimit({ limit: checkoutLimit }),
     express.json({ limit: '12kb', strict: true }), async (req, res) => {
-      const result = await createGuestOrder(connection, req.params.slug, req.body,
+      const body = betaCheckout ? betaCheckoutBody(req.body) : req.body;
+      const result = await createGuestOrder(connection, req.params.slug, body,
         req.get('Idempotency-Key'));
       res.status(result.replayed ? 200 : 201).json({ order: result.order,
         ...(result.whatsapp ? { whatsapp: result.whatsapp } : {}) });

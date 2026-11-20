@@ -18,6 +18,7 @@ import ContactSection from "@/components/features/landing/ContactSection";
 import { MenuOrderingPage } from "@/components/features/menu/MenuOrderingPage";
 import { CartOrderingPage } from "@/components/features/cart/CartOrderingPage";
 import { CheckoutOrderingPage } from "@/components/features/checkout/CheckoutOrderingPage";
+import type { CheckoutAvailability } from "@/services/guest-checkout-service";
 import { ProductImageGallery } from "./ProductImageGallery";
 import { ProductMetadata } from "./ProductMetadata";
 import { AboutImage } from "./AboutImage";
@@ -40,6 +41,8 @@ type Props = {
   offers: PublicProduct[];
   initialPagination: PublicPage | null;
   product: PublicProduct | null;
+  beta: boolean;
+  checkoutAvailability: CheckoutAvailability;
 };
 
 function ProductPage({ product }: { product: PublicProduct }) {
@@ -123,7 +126,8 @@ const storefrontThemes: Record<StorefrontThemeId, StorefrontTheme> = {
   },
 };
 
-export function StorefrontClient({ basePath, restaurant, page, categories, initialProducts, offers, initialPagination, product }: Props) {
+export function StorefrontClient({ basePath, restaurant, page, categories, initialProducts, offers, initialPagination,
+  product, beta, checkoutAvailability }: Props) {
   const setTenant = useCartStore((state) => state.setTenant);
   useEffect(() => { setTenant(restaurant.slug); }, [restaurant.slug, setTenant]);
   const themeId = resolveStorefrontTheme(restaurant);
@@ -134,8 +138,8 @@ export function StorefrontClient({ basePath, restaurant, page, categories, initi
       {page === "home" && <theme.Home restaurant={restaurant} initialProducts={initialProducts} offers={offers} />}
       {page === "menu" && <theme.Menu initialProducts={initialProducts} initialPagination={initialPagination} />}
       {page === "product" && product && <theme.Product product={product} />}
-      {page === "cart" && <CartOrderingPage deliveryFee={restaurant.deliverySettings.deliveryFee} currency={restaurant.currency} slug={restaurant.slug} />}
-      {page === "checkout" && <CheckoutOrderingPage key={restaurant.slug} deliveryFee={restaurant.deliverySettings.deliveryFee} currency={restaurant.currency} slug={restaurant.slug} />}
+      {page === "cart" && <CartOrderingPage deliveryFee={restaurant.deliverySettings.deliveryFee} currency={restaurant.currency} slug={restaurant.slug} checkoutAvailability={checkoutAvailability} />}
+      {page === "checkout" && <CheckoutOrderingPage key={restaurant.slug} deliveryFee={restaurant.deliverySettings.deliveryFee} currency={restaurant.currency} slug={restaurant.slug} beta={beta} checkoutAvailability={checkoutAvailability} />}
       {page === "about" && <theme.About />}
       {page === "about" && themeId !== "savora-classic" && <AboutImage src={restaurant.aboutImageUrl} name={restaurant.name} />}
       <theme.Footer />

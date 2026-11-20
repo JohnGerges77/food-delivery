@@ -16,7 +16,8 @@ import { publicMoney } from "@/lib/public-menu-presentation";
 import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";
 import { useStorefront } from "@/components/features/storefront/StorefrontContext";
 import { useCartStore } from "@/store/cart-store";
-import { buildCheckoutPayload, checkoutValidation, GuestCheckoutCoordinator, GuestCheckoutError,
+import { buildBetaCheckoutPayload, buildCheckoutPayload, checkoutUnavailableMessage, checkoutValidation,
+  GuestCheckoutCoordinator, GuestCheckoutError, invalidCart, type CheckoutAvailability,
   type CheckoutErrors, type GuestCheckoutResult, type SubmissionMethod } from "@/services/guest-checkout-service";
 import { emptyCheckoutDetails, updateCheckoutDetail, type CheckoutDetails } from "./checkout-details";
 
@@ -29,8 +30,8 @@ const fields = [
   { name: "city", label: "City", type: "text", icon: MapPin },
 ] as const;
 
-export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
-  deliveryFee: number | null; currency: string; slug: string;
+export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checkoutAvailability }: {
+  deliveryFee: number | null; currency: string; slug: string; beta: boolean; checkoutAvailability: CheckoutAvailability;
 }) {
   const locale = useLocale();
   const isArabic = locale === "ar";
@@ -42,12 +43,12 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
   const total = subtotal + (deliveryFee ?? 0);
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);
   const [details, setDetails] = useState<CheckoutDetails>(emptyCheckoutDetails);
-  const [step, setStep] = useState(0);
-  const whatsappAvailable = /^https:\/\/wa\.me\/[1-9][0-9]{6,14}$/.test(restaurant.socialLinks.whatsapp ?? "");
+  const [step, setStep] = useState(beta ? 2 : 0);
+  const whatsappAvailable = !beta && /^https:\/\/wa\.me\/[1-9][0-9]{6,14}$/.test(restaurant.socialLinks.whatsapp ?? "");
   const [method, setMethod] = useState<SubmissionMethod>(whatsappAvailable ? "whatsapp" : "direct");
   const [handoffBlocked, setHandoffBlocked] = useState(false);
   const [errors, setErrors] = useState<CheckoutErrors>({});
-  const [failure, setFailure] = useState<{ status: number | null; message: string; uncertain: boolean } | null>(null);
+  const [failure, setFailure] = useState<GuestCheckoutError | null>(null);
   const [sending, setSending] = useState(false);
   const [confirmation, setConfirmation] = useState<GuestCheckoutResult | null>(null);
   const coordinator = useRef(new GuestCheckoutCoordinator());
@@ -60,12 +61,12 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting.current || confirmation) return;
-    const nextErrors = checkoutValidation(details, items);
+    if (submitting.current || confirmation || checkoutAvailability !== "available") return;
+    const nextErrors: CheckoutErrors = beta ? (invalidCart(items) ? { cart: "cart" } : {}) : checkoutValidation(details, items);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length || tenantSlug !== slug) {
       if (tenantSlug !== slug) setErrors((current) => ({ ...current, cart: "cart" }));
-      setStep(0);
+      if (!beta) setStep(0);
       return;
     }
     if (step < 2) { setStep(step + 1); return; }
@@ -73,7 +74,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
     setSending(true);
     setFailure(null);
     try {
-      const payload = buildCheckoutPayload(details, items, method);
+      const payload = beta ? buildBetaCheckoutPayload(items) : buildCheckoutPayload(details, items, method);
       const result = await coordinator.current.submit(slug, payload);
       setConfirmation(result);
       if (result.order.submissionMethod === "whatsapp" && result.whatsapp) {
@@ -90,7 +91,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
     } catch (error) {
       const checkoutError = error instanceof GuestCheckoutError ? error :
         new GuestCheckoutError(null, "The result is unknown. Retry with the same details to recover your order.", true);
-      setFailure({ status: checkoutError.status, message: checkoutError.message, uncertain: checkoutError.uncertain });
+      setFailure(checkoutError);
     } finally { submitting.current = false; setSending(false); }
   }
 
@@ -104,9 +105,12 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
     if (!failure) return "";
     if (!isArabic) return failure.message;
     if (failure.uncertain) return "نتيجة الطلب غير مؤكدة. أعد المحاولة بنفس البيانات لاستعادة التأكيد؛ ربما تم حفظه بالفعل.";
+    if (failure.paused) return checkoutUnavailableMessage("checkout-disabled", true);
     if (failure.status === 401 || failure.status === 403) return "رُفض الوصول لإتمام الطلب. تأكد من صلاحية دخولك إلى النسخة التجريبية ثم أعد المحاولة.";
     if (failure.status === 404) return "هذا المطعم غير متاح حاليًا.";
-    if (failure.status === 409) return "تعذر إتمام الطلب: قد توجد محاولة سابقة متعارضة، أو أن المنتج أو التوصيل أو WhatsApp غير متاح. راجع البيانات قبل إعادة المحاولة.";
+    if (failure.status === 409) return beta
+      ? "تعذر إتمام الطلب. راجع توفر المنتجات والتوصيل والحد الأدنى للطلب. إذا حصلت على رقم طلب، احتفظ به قبل بدء طلب جديد."
+      : "تعذر إتمام الطلب: قد توجد محاولة سابقة متعارضة، أو أن المنتج أو التوصيل أو WhatsApp غير متاح. راجع البيانات قبل إعادة المحاولة.";
     if (failure.status === 429) return "محاولات كثيرة جدًا. انتظر قليلًا ثم أعد المحاولة.";
     return "تعذر حفظ الطلب. راجع البيانات وتوفر المنتجات والتوصيل، ثم أعد المحاولة.";
   }
@@ -134,6 +138,10 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
             <p className="mt-6 max-w-2xl text-base leading-8 text-[color:var(--text-muted)] sm:text-lg">
               {isArabic ? `راجع تفاصيل طلبك من ${restaurant.name} وأكده كضيف.` : `Review and place your guest order from ${restaurant.name}.`}
             </p>
+            {beta && <p className="mt-4 max-w-2xl rounded-lg border border-[color:var(--gold)]/30 bg-[color:var(--gold)]/10 px-4 py-3 text-sm leading-7">
+              {isArabic ? "نسخة تجريبية عامة. الطلبات للاختبار فقط ولن يتم تجهيزها أو توصيلها. لن يتم تحصيل أي مبلغ، ولا تحتاج إلى إدخال بيانات شخصية."
+                : "Public beta. Test orders will not be prepared or delivered. You will not be charged. No personal details are required."}
+            </p>}
           </motion.div>
         </div>
       </section>
@@ -156,7 +164,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
                   <ClipboardList aria-hidden="true" size={22} />
                 </span>
                 <div>
-                  <h2 className="text-3xl font-semibold">{isArabic ? "بيانات العميل" : "Customer Information"}</h2>
+                  <h2 className="text-3xl font-semibold">{beta ? (isArabic ? "طلب تجريبي" : "Test order") : (isArabic ? "بيانات العميل" : "Customer Information")}</h2>
                   <p className="mt-1 text-sm text-[color:var(--text-muted)]">
                     {isArabic ? "طلب كضيف، لا حاجة إلى حساب." : "Guest checkout only. No account needed."}
                   </p>
@@ -170,7 +178,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
                 </Link>
               </div>
 
-              <div className="mt-8 grid gap-3 rounded-[1.1rem] border border-white/10 bg-[color:var(--background)]/32 p-4 sm:grid-cols-3">
+              {!beta && checkoutAvailability === "available" && <div className="mt-8 grid gap-3 rounded-[1.1rem] border border-white/10 bg-[color:var(--background)]/32 p-4 sm:grid-cols-3">
                 {(isArabic ? ["التفاصيل", "المراجعة", "الإرسال"] : ["Details", "Review", "Submit"]).map((label, index) => (
                   <div className="flex items-center gap-3" key={label}>
                     <span
@@ -187,7 +195,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
                     </span>
                   </div>
                 ))}
-              </div>
+              </div>}
 
               {confirmation ? (
                 <div className="mt-8 rounded-[1rem] border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/10 p-6" role="status" data-testid="checkout-confirmation">
@@ -197,8 +205,14 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
                   {confirmation.order.submissionMethod === "whatsapp" ? <>
                     <p className="mt-4 text-sm leading-7 text-[color:var(--text)]">{handoffBlocked ? (isArabic ? "تعذّر فتح WhatsApp تلقائيًا. افتحه من الزر بالأسفل وأرسل الرسالة بنفسك." : "WhatsApp could not open automatically. Use the button below and send the message yourself.") : (isArabic ? "فتح WhatsApp لا يعني إرسال الرسالة. راجعها وأرسلها بنفسك." : "Opening WhatsApp does not send the message. Review and send it yourself.")}</p>
                     <a className="mt-6 inline-flex min-h-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 text-sm font-bold text-[color:var(--background)]" href={confirmation.whatsapp!.url} target="_blank" rel="noopener noreferrer">{isArabic ? "فتح WhatsApp" : "Open WhatsApp"}</a>
-                  </> : <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "استلم المطعم طلبك في Savora. لم يتم تأكيد الدفع." : "Your order is saved in Savora. Payment has not been confirmed."}</p>}
+                  </> : <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">{beta
+                    ? (isArabic ? "تم حفظ الطلب التجريبي. لن يتم تحصيل أي مبلغ أو توصيل الطلب." : "Your test order is saved. You will not be charged and nothing will be delivered.")
+                    : (isArabic ? "استلم المطعم طلبك في Savora. لم يتم تأكيد الدفع." : "Your order is saved in Savora. Payment has not been confirmed.")}</p>}
                 </div>
+              ) : checkoutAvailability !== "available" ? (
+                <p className="mt-8 rounded-lg border border-[color:var(--gold)]/30 p-4 text-sm leading-7" role="status">
+                  {checkoutUnavailableMessage(checkoutAvailability, isArabic)}
+                </p>
               ) : <>
               {step === 0 && <>
               <div className="mt-8 grid gap-5 sm:grid-cols-2">
@@ -216,11 +230,11 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
                       <span className="relative mt-3 block">
                         <Icon
                           aria-hidden="true"
-                          className="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--primary-light)]"
+                          className="absolute start-4 top-1/2 -translate-y-1/2 text-[color:var(--primary-light)]"
                           size={17}
                         />
                         <input
-                          className="h-14 w-full rounded-[1rem] border border-white/10 bg-[color:var(--background)]/62 pl-12 pr-4 text-sm text-[color:var(--text)] outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] transition-all placeholder:text-[color:var(--text-muted)]/48 focus:border-[color:var(--primary)]/70 focus:shadow-[0_0_0_4px_rgba(255,122,0,0.13)]"
+                          className="h-14 w-full rounded-[1rem] border border-white/10 bg-[color:var(--background)]/62 ps-12 pe-4 text-sm text-[color:var(--text)] outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] transition-all placeholder:text-[color:var(--text-muted)]/48 focus:border-[color:var(--primary)]/70 focus:shadow-[0_0_0_4px_rgba(255,122,0,0.13)]"
                           name={field.name}
                           aria-invalid={Boolean(errors[field.name])}
                           value={details[field.name]}
@@ -261,7 +275,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
                 <button className="mt-5 text-sm font-semibold text-[color:var(--primary-light)] hover:underline" onClick={() => setStep(0)} type="button">{isArabic ? "تعديل البيانات" : "Edit details"}</button>
               </div>}
 
-              {step === 2 && <div className="mt-8 rounded-[1rem] border border-white/10 bg-[color:var(--background)]/32 p-5" data-testid="checkout-methods">
+              {!beta && step === 2 && <div className="mt-8 rounded-[1rem] border border-white/10 bg-[color:var(--background)]/32 p-5" data-testid="checkout-methods">
                 <h3 className="text-xl font-semibold">{isArabic ? "طريقة إرسال الطلب" : "Submission method"}</h3>
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   {(["whatsapp", "direct"] as const).filter((option) => option === "direct" || whatsappAvailable).map((option) => <label className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-[1rem] border px-4 text-sm font-semibold ${method === option ? "border-[color:var(--primary)]/70 bg-[color:var(--primary)]/10" : "border-white/10 bg-white/[0.04]"}`} key={option}>
@@ -270,7 +284,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
                   </label>)}
                 </div>
                 {!whatsappAvailable && <p className="mt-3 text-sm text-[color:var(--text-muted)]">{isArabic ? "WhatsApp غير مهيأ لهذا المطعم؛ يمكنك حفظ الطلب مباشرة." : "WhatsApp is not configured for this restaurant; you can place the order directly."}</p>}
-                <p className="mt-5 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "سيؤكد الخادم السعر النهائي عند حفظ الطلب. فتح WhatsApp لا يعني إرسال الرسالة." : "The server confirms the final price when saving. Opening WhatsApp does not send the message."}</p>
+                {method === "whatsapp" && whatsappAvailable && <p className="mt-5 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "فتح WhatsApp لا يعني إرسال الرسالة." : "Opening WhatsApp does not send the message."}</p>}
                 <button className="mt-4 text-sm font-semibold text-[color:var(--primary-light)] hover:underline" disabled={sending} onClick={() => setStep(1)} type="button">{isArabic ? "العودة للمراجعة" : "Back to review"}</button>
               </div>}
 
@@ -284,7 +298,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug }: {
                 disabled={sending || items.length === 0 || tenantSlug !== slug}
                 type="submit"
               >
-                {sending ? (isArabic ? "جارٍ حفظ الطلب..." : "Saving order...") : step === 0 ? (isArabic ? "مراجعة الطلب" : "Review Order") : step === 1 ? (isArabic ? "المتابعة للإرسال" : "Continue to Submit") : (isArabic ? "تأكيد وحفظ الطلب" : "Confirm and Save Order")}
+                {sending ? (isArabic ? "جارٍ حفظ الطلب..." : "Saving order...") : beta ? (isArabic ? "حفظ الطلب التجريبي" : "Save test order") : step === 0 ? (isArabic ? "مراجعة الطلب" : "Review Order") : step === 1 ? (isArabic ? "المتابعة للإرسال" : "Continue to Submit") : (isArabic ? "تأكيد وحفظ الطلب" : "Confirm and Save Order")}
               </button>
               </>}
             </div>

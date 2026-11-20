@@ -57,7 +57,7 @@ export function parsePublicProductsQuery(query) {
   return { page, limit, sort, filters };
 }
 
-export function serializePublicRestaurant(restaurant) {
+export function serializePublicRestaurant(restaurant, { hideWhatsApp = false } = {}) {
   return {
     name: restaurant.name, slug: restaurant.slug,
     storefrontTheme: restaurant.storefrontTheme ?? 'savora-classic',
@@ -77,7 +77,7 @@ export function serializePublicRestaurant(restaurant) {
     socialLinks: {
       facebook: restaurant.socialLinks?.facebook ?? null,
       instagram: restaurant.socialLinks?.instagram ?? null,
-      whatsapp: restaurant.socialLinks?.whatsapp ?? null,
+      whatsapp: hideWhatsApp ? null : restaurant.socialLinks?.whatsapp ?? null,
     },
     branding: {
       brandName: restaurant.branding?.brandName ?? null,
