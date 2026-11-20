@@ -145,7 +145,8 @@ test('owner Product CRUD on savora_test', async (t) => {
       assert.equal(product.categoryId, String(owner.category._id));
       assert.deepEqual(Object.keys(product), ['id', 'name', 'slug', 'categoryId',
         'description', 'price', 'oldPrice', 'imageUrl', 'images', 'isAvailable',
-        'isFeatured', 'preparationTime', 'calories']);
+        'isFeatured', 'preparationTime', 'calories', 'variants']);
+      assert.deepEqual(product.variants, []);
       assert.doesNotMatch(JSON.stringify(product),
         /restaurantId|passwordHash|tokenHash|trackingTokenHash|credentials/);
       const read = await request(owner.session, 'GET', `/products/${product.id}`);
@@ -319,7 +320,9 @@ test('owner Product CRUD on savora_test', async (t) => {
       assert.equal(page1.pagination.hasNext, true);
     });
 
-    await t.test('historical Order snapshots block hard deletion without cascading', async () => {
+    await t.test('historical Order snapshots block hard deletion without cascading', {
+      skip: process.env.SAVORA_TEST_NO_ORDER_WRITES === '1',
+    }, async () => {
       const owner = tenants[0];
       const product = await createProduct(owner, { name: 'Ordered', price: 10 });
       const order = await fixture(Order, { restaurantId: owner.restaurant._id,

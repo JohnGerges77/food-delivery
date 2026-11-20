@@ -1,3 +1,4 @@
+import { ensureModelIndexes } from '../cli/check-indexes.js';
 import RestaurantSchema from '../models/Restaurant.js';
 import UserSchema from '../models/User.js';
 import { hashPassword, validatePassword } from '../security/password.js';
@@ -57,8 +58,8 @@ export async function provisionRestaurantOwner(input, { connection } = {}) {
   // The uniqueness constraints must exist before the transaction begins.
   // This is idempotent and never drops or replaces an existing index.
   try {
-    await Restaurant.createIndexes();
-    await User.createIndexes();
+    await ensureModelIndexes(Restaurant);
+    await ensureModelIndexes(User);
   } catch {
     throw new ProvisioningError('INDEX_SETUP_FAILED', 'Provisioning indexes are unavailable');
   }

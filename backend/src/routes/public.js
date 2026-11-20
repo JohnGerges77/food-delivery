@@ -27,7 +27,8 @@ export function checkoutRateLimit({ limit = 60, windowMs = 60_000 } = {}) {
   };
 }
 
-export function createPublicRouter({ connection = mongoose.connection, mediaStorage = null } = {}) {
+export function createPublicRouter({ connection = mongoose.connection, mediaStorage = null,
+  checkoutEnabled = true, checkoutAllowedOrigins, checkoutLimit = 60 } = {}) {
   const router = express.Router();
 
   router.use((req, res, next) => {
@@ -68,7 +69,13 @@ export function createPublicRouter({ connection = mongoose.connection, mediaStor
     stream.pipe(res);
   });
 
-  router.post('/restaurants/:slug/orders', checkoutRateLimit(),
+  router.post('/restaurants/:slug/orders', (req, res, next) => {
+    if (!checkoutEnabled) return res.status(503).json({ error: 'Checkout unavailable' });
+    if (checkoutAllowedOrigins && !checkoutAllowedOrigins.includes(req.get('Origin'))) {
+      return res.status(403).json({ error: 'Untrusted checkout origin' });
+    }
+    next();
+  }, checkoutRateLimit({ limit: checkoutLimit }),
     express.json({ limit: '12kb', strict: true }), async (req, res) => {
       const result = await createGuestOrder(connection, req.params.slug, req.body,
         req.get('Idempotency-Key'));

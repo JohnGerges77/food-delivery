@@ -1,3 +1,4 @@
+import { ensureModelIndexes } from '../cli/check-indexes.js';
 import { randomBytes } from 'node:crypto';
 import AdminSchema from '../models/PlatformAdmin.js';
 import SessionSchema from '../models/PlatformAdminSession.js';
@@ -15,16 +16,16 @@ function models(connection) {
   };
 }
 
-export async function bootstrapPlatformAdmin(connection, email, password) {
+export async function bootstrapPlatformAdmin(connection, email, password, { session } = {}) {
   if (typeof email !== 'string' || email.length > 254 ||
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) throw new Error('Invalid email');
   validatePassword(password);
   const { Admin } = models(connection);
-  await Admin.createIndexes();
-  if (await Admin.exists({})) throw new Error('Platform Admin already exists');
+  await ensureModelIndexes(Admin);
+  if (await Admin.exists({}).session(session)) throw new Error('Platform Admin already exists');
   const passwordHash = await hashPassword(password);
   try {
-    return await Admin.create({ email: email.trim().toLowerCase(), passwordHash });
+    return await new Admin({ email: email.trim().toLowerCase(), passwordHash }).save({ session });
   } catch (error) {
     if (error.code === 11000) throw new Error('Platform Admin already exists');
     throw error;

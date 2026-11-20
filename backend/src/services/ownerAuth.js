@@ -26,9 +26,9 @@ function modelsFor(connection) {
   };
 }
 
-export async function loginOwner(connection, email, password) {
+export async function loginOwner(connection, email, password, { session } = {}) {
   const { User, Restaurant, OwnerSession } = modelsFor(connection);
-  const user = await User.findOne({ email }).select('+passwordHash');
+  const user = await User.findOne({ email }).select('+passwordHash').session(session);
   let validPassword = false;
   try {
     validPassword = await verifyPassword(password, user?.passwordHash ?? await dummyHash);
@@ -37,35 +37,36 @@ export async function loginOwner(connection, email, password) {
   }
   if (!user || !validPassword || user.role !== 'owner' || !user.isActive) return null;
 
-  const restaurant = await Restaurant.findById(user.restaurantId);
+  const restaurant = await Restaurant.findById(user.restaurantId).session(session);
   if (!restaurant || restaurant.status === 'suspended') return null;
 
   const sessionToken = randomBytes(32).toString('hex');
   const csrfToken = randomBytes(32).toString('hex');
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
-  await OwnerSession.create({
+  await new OwnerSession({
     userId: user._id,
     tokenHash: tokenHash(sessionToken),
     csrfTokenHash: tokenHash(csrfToken),
     expiresAt,
-  });
+  }).save({ session });
   return { sessionToken, csrfToken, expiresAt, user, restaurant };
 }
 
-export async function authenticateOwner(connection, sessionToken) {
+export async function authenticateOwner(connection, sessionToken, { session: transaction } = {}) {
   const { User, Restaurant, OwnerSession } = modelsFor(connection);
   const session = await OwnerSession.findOne({
     tokenHash: tokenHash(sessionToken),
     expiresAt: { $gt: new Date() },
-  }).select('+csrfTokenHash');
+  }).select('+csrfTokenHash').session(transaction);
   if (!session) return null;
 
-  const user = await User.findById(session.userId).select('_id restaurantId name email role isActive');
+  const user = await User.findById(session.userId).select('_id restaurantId name email role isActive')
+    .session(transaction);
   const restaurant = user && await Restaurant.findById(user.restaurantId)
-    .select('_id name slug currency status');
+    .select('_id name slug currency status').session(transaction);
   if (!user || user.role !== 'owner' || !user.isActive ||
       !restaurant || restaurant.status === 'suspended') {
-    await OwnerSession.deleteOne({ _id: session._id });
+    await OwnerSession.deleteOne({ _id: session._id }, { session: transaction });
     return null;
   }
   const auth = { user, restaurant, userId: user._id, restaurantId: restaurant._id };
@@ -81,7 +82,7 @@ export async function authenticateOwner(connection, sessionToken) {
   return auth;
 }
 
-export async function logoutOwner(connection, sessionId) {
+export async function logoutOwner(connection, sessionId, { session } = {}) {
   const { OwnerSession } = modelsFor(connection);
-  await OwnerSession.deleteOne({ _id: sessionId });
+  await OwnerSession.deleteOne({ _id: sessionId }, { session });
 }

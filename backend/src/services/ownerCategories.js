@@ -119,7 +119,7 @@ export async function getOwnerCategory(connection, auth, id) {
   return category;
 }
 
-export async function createOwnerCategory(connection, auth, body) {
+export async function createOwnerCategory(connection, auth, body, { session } = {}) {
   const input = parseCategoryInput(body, { create: true });
   const { Category } = modelsFor(connection, auth);
   const generated = !Object.hasOwn(input, 'slug');
@@ -128,10 +128,10 @@ export async function createOwnerCategory(connection, auth, body) {
     const category = new Category({ ...input, slug: catalogSlugCandidate(base, attempt), restaurantId: auth.restaurantId });
     try {
       await category.validate();
-      await category.save();
+      await category.save({ session });
       return category;
     } catch (error) {
-      if (generated && isSlugConflict(error) && attempt < 99) continue;
+      if (!session && generated && isSlugConflict(error) && attempt < 99) continue;
       mapWriteError(error);
     }
   }

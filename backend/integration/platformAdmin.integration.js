@@ -172,14 +172,16 @@ test('Platform Admin API journey, suspension, audit and exact fixture teardown',
     assert.equal((await ownerLogin()).status, 401);
     assert.equal((await call('/api/auth/me', { headers: { Cookie: ownerCookie } })).status, 401);
     assert.equal((await call(`/api/public/restaurants/${slug}`)).status, 404);
-    const checkoutDenied = await call(`/api/public/restaurants/${slug}/orders`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json',
-        'Idempotency-Key': `blocked-${suffix}` }, body: body({
-        customerName: 'Guest', customerPhone: '+201001234567',
-        deliveryAddress: '12 Test Street', city: 'Cairo', submissionMethod: 'direct',
-        items: [{ productId: new mongoose.Types.ObjectId().toString(), quantity: 1 }],
-      }) });
-    assert.equal(checkoutDenied.status, 404);
+    if (process.env.SAVORA_TEST_NO_ORDER_WRITES !== '1') {
+      const checkoutDenied = await call(`/api/public/restaurants/${slug}/orders`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json',
+          'Idempotency-Key': `blocked-${suffix}` }, body: body({
+          customerName: 'Guest', customerPhone: '+201001234567',
+          deliveryAddress: '12 Test Street', city: 'Cairo', submissionMethod: 'direct',
+          items: [{ productId: new mongoose.Types.ObjectId().toString(), quantity: 1 }],
+        }) });
+      assert.equal(checkoutDenied.status, 404);
+    }
     const expectedAudit = [
       { action: 'restaurant.created', details: {
         slug, ownerEmail, storefrontTheme: 'savora-luxury' } },

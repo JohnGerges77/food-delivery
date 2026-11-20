@@ -12,6 +12,13 @@ import PlatformAudit from '../models/PlatformAudit.js';
 const MODELS = [Restaurant, User, Category, Product, Order, OwnerSession,
   PlatformAdmin, PlatformAdminSession, PlatformAudit];
 
+export function declaredApplicationIndexes() {
+  return MODELS.map((model) => ({
+    collection: model.collection.collectionName,
+    indexes: model.schema.indexes().map(([key, options]) => ({ key, options })),
+  }));
+}
+
 export function compareIndexes(expected, actual) {
   const findings = [];
   for (const [key, options] of expected) {
@@ -28,6 +35,34 @@ export function compareIndexes(expected, actual) {
       if (JSON.stringify(wanted) !== JSON.stringify(present)) {
         findings.push({ name, issue: `conflicting ${option}` });
       }
+    }
+  }
+  return findings;
+}
+
+// Explicit setup remains available locally; Production services must never perform DDL.
+export async function ensureModelIndexes(model, {
+  readOnly = process.env.VERCEL_ENV === 'production' || model.db?.name === 'savora_beta',
+} = {}) {
+  if (!readOnly) return model.createIndexes();
+  const actual = await model.collection.listIndexes().toArray();
+  if (compareIndexes(model.schema.indexes(), actual).length) throw new Error('Required indexes need review');
+}
+
+// Read-only inspection of an already verified connection; never builds or drops indexes.
+export async function inspectConnectionIndexes(connection) {
+  const findings = [];
+  for (const model of MODELS) {
+    let actual;
+    try {
+      actual = await connection.db.collection(model.collection.collectionName)
+        .listIndexes().toArray();
+    } catch (error) {
+      if (error.codeName !== 'NamespaceNotFound') throw error;
+      actual = [];
+    }
+    for (const finding of compareIndexes(model.schema.indexes(), actual)) {
+      findings.push({ collection: model.collection.collectionName, ...finding });
     }
   }
   return findings;
@@ -58,21 +93,7 @@ export async function inspectIndexes(uri, expectedDatabase) {
         connection.db.databaseName !== expectedDatabase) {
       throw new Error('Connected database name mismatch');
     }
-    const findings = [];
-    for (const model of MODELS) {
-      let actual;
-      try {
-        actual = await connection.db.collection(model.collection.collectionName)
-          .listIndexes().toArray();
-      } catch (error) {
-        if (error.codeName !== 'NamespaceNotFound') throw error;
-        actual = [];
-      }
-      for (const finding of compareIndexes(model.schema.indexes(), actual)) {
-        findings.push({ collection: model.collection.collectionName, ...finding });
-      }
-    }
-    return findings;
+    return await inspectConnectionIndexes(connection);
   } finally {
     await connection.close();
   }

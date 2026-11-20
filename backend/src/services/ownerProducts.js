@@ -174,22 +174,24 @@ export async function getOwnerProduct(connection, auth, id) {
   return product;
 }
 
-export async function createOwnerProduct(connection, auth, body) {
+export async function createOwnerProduct(connection, auth, body, { session: outerSession } = {}) {
   const input = parseProductInput(body, { create: true, currency: auth.restaurant.currency });
   const { Product, Category } = modelsFor(connection, auth);
   const generated = !Object.hasOwn(input, 'slug');
   const base = generated ? catalogSlugBase(input.name) : input.slug;
   for (let attempt = 0; attempt < (generated ? 100 : 1); attempt++) {
+    async function create(session) {
+      await touchOwnedCategory(Category, auth, input.categoryId, session);
+      const product = new Product({ ...input, slug: catalogSlugCandidate(base, attempt), restaurantId: auth.restaurantId });
+      await product.validate();
+      await product.save({ session });
+      return product;
+    }
     try {
-      return await withCategoryReferenceTransaction(connection, async (session) => {
-        await touchOwnedCategory(Category, auth, input.categoryId, session);
-        const product = new Product({ ...input, slug: catalogSlugCandidate(base, attempt), restaurantId: auth.restaurantId });
-        await product.validate();
-        await product.save({ session });
-        return product;
-      });
+      return outerSession ? await create(outerSession) :
+        await withCategoryReferenceTransaction(connection, create);
     } catch (error) {
-      if (generated && isSlugConflict(error) && attempt < 99) continue;
+      if (!outerSession && generated && isSlugConflict(error) && attempt < 99) continue;
       mapWriteError(error);
     }
   }

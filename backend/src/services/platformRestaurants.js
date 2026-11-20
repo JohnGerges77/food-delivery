@@ -1,3 +1,4 @@
+import { ensureModelIndexes } from '../cli/check-indexes.js';
 import mongoose from 'mongoose';
 import RestaurantSchema from '../models/Restaurant.js';
 import UserSchema from '../models/User.js';
@@ -67,27 +68,30 @@ export function serializeAdminRestaurant(restaurant, owner = null) {
       email: owner.email, isActive: owner.isActive } : null };
 }
 
-export async function createPlatformRestaurant(connection, adminId, body) {
+export async function createPlatformRestaurant(connection, adminId, body, { session: outerSession } = {}) {
   const input = validateCreation(body);
   const { Restaurant, User, Audit } = models(connection);
   // Unique indexes are verified before writes and never dropped by this path.
-  await Restaurant.createIndexes();
-  await User.createIndexes();
-  await Audit.createIndexes();
+  await ensureModelIndexes(Restaurant);
+  await ensureModelIndexes(User);
+  await ensureModelIndexes(Audit);
   const passwordHash = await hashPassword(input.password);
   const restaurant = new Restaurant(input.restaurant);
   const owner = new User({ restaurantId: restaurant._id, ...input.owner, passwordHash });
   try { await restaurant.validate(); await owner.validate(); }
   catch { throw new InvalidAdminInput(); }
-  const session = await connection.startSession();
+  const session = outerSession ?? await connection.startSession();
+  async function create() {
+    await restaurant.save({ session });
+    await owner.save({ session });
+    await Audit.create([{ adminId, action: 'restaurant.created',
+      restaurantId: restaurant._id, details: { slug: restaurant.slug,
+        ownerEmail: owner.email, storefrontTheme: restaurant.storefrontTheme } }], { session });
+  }
   try {
-    await session.withTransaction(async () => {
-      await restaurant.save({ session });
-      await owner.save({ session });
-      await Audit.create([{ adminId, action: 'restaurant.created',
-        restaurantId: restaurant._id, details: { slug: restaurant.slug,
-          ownerEmail: owner.email, storefrontTheme: restaurant.storefrontTheme } }], { session });
-    }, { readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' } });
+    if (outerSession) await create();
+    else await session.withTransaction(create,
+      { readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' } });
   } catch (error) {
     if (error.code === 11000) {
       const key = Object.keys(error.keyPattern ?? {})[0];
@@ -95,7 +99,7 @@ export async function createPlatformRestaurant(connection, adminId, body) {
         key === 'email' ? 'Owner email already exists' : 'Unique value already exists');
     }
     throw error;
-  } finally { await session.endSession(); }
+  } finally { if (!outerSession) await session.endSession(); }
   return serializeAdminRestaurant(restaurant, owner);
 }
 
@@ -150,7 +154,7 @@ export async function changeRestaurantStatus(connection, adminId, id, status) {
   if (typeof id !== 'string' || !/^[0-9a-fA-F]{24}$/.test(id) ||
       !['active', 'suspended'].includes(status)) throw new InvalidAdminInput();
   const { Restaurant, Audit } = models(connection);
-  await Audit.createIndexes();
+  await ensureModelIndexes(Audit);
   const session = await connection.startSession();
   let restaurant;
   try {
@@ -178,7 +182,7 @@ export async function changeRestaurantTheme(connection, adminId, id, value) {
   if (typeof id !== 'string' || !/^[0-9a-fA-F]{24}$/.test(id)) throw new InvalidAdminInput();
   const next = theme(value);
   const { Restaurant, User, Audit } = models(connection);
-  await Audit.createIndexes();
+  await ensureModelIndexes(Audit);
   const session = await connection.startSession();
   let restaurant;
   try {

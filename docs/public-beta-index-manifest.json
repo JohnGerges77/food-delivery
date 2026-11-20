@@ -1,0 +1,214 @@
+{
+  "database": "savora_beta",
+  "operation": "review-only; no DDL executed",
+  "collections": [
+    {
+      "collection": "restaurants",
+      "indexes": [
+        {
+          "key": {
+            "slug": 1
+          },
+          "options": {
+            "unique": true
+          }
+        }
+      ]
+    },
+    {
+      "collection": "users",
+      "indexes": [
+        {
+          "key": {
+            "email": 1
+          },
+          "options": {
+            "unique": true
+          }
+        },
+        {
+          "key": {
+            "restaurantId": 1
+          },
+          "options": {
+            "unique": true,
+            "partialFilterExpression": {
+              "role": "owner"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "collection": "categories",
+      "indexes": [
+        {
+          "key": {
+            "restaurantId": 1,
+            "slug": 1
+          },
+          "options": {
+            "unique": true
+          }
+        },
+        {
+          "key": {
+            "restaurantId": 1,
+            "sortOrder": 1
+          },
+          "options": {}
+        }
+      ]
+    },
+    {
+      "collection": "products",
+      "indexes": [
+        {
+          "key": {
+            "restaurantId": 1,
+            "slug": 1
+          },
+          "options": {
+            "unique": true
+          }
+        },
+        {
+          "key": {
+            "restaurantId": 1,
+            "categoryId": 1
+          },
+          "options": {}
+        }
+      ]
+    },
+    {
+      "collection": "orders",
+      "indexes": [
+        {
+          "key": {
+            "restaurantId": 1,
+            "orderNumber": 1
+          },
+          "options": {
+            "unique": true
+          }
+        },
+        {
+          "key": {
+            "restaurantId": 1,
+            "idempotencyKeyHash": 1
+          },
+          "options": {
+            "unique": true,
+            "partialFilterExpression": {
+              "idempotencyKeyHash": {
+                "$type": "string"
+              }
+            }
+          }
+        },
+        {
+          "key": {
+            "restaurantId": 1,
+            "createdAt": -1
+          },
+          "options": {}
+        },
+        {
+          "key": {
+            "restaurantId": 1,
+            "status": 1,
+            "createdAt": -1
+          },
+          "options": {}
+        },
+        {
+          "key": {
+            "restaurantId": 1,
+            "deliveredAt": -1
+          },
+          "options": {
+            "partialFilterExpression": {
+              "status": "delivered"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "collection": "ownersessions",
+      "indexes": [
+        {
+          "key": {
+            "tokenHash": 1
+          },
+          "options": {
+            "unique": true
+          }
+        },
+        {
+          "key": {
+            "expiresAt": 1
+          },
+          "options": {
+            "expireAfterSeconds": 0
+          }
+        }
+      ]
+    },
+    {
+      "collection": "platformadmins",
+      "indexes": [
+        {
+          "key": {
+            "email": 1
+          },
+          "options": {
+            "unique": true
+          }
+        },
+        {
+          "key": {
+            "bootstrapSlot": 1
+          },
+          "options": {
+            "unique": true
+          }
+        }
+      ]
+    },
+    {
+      "collection": "platformadminsessions",
+      "indexes": [
+        {
+          "key": {
+            "tokenHash": 1
+          },
+          "options": {
+            "unique": true
+          }
+        },
+        {
+          "key": {
+            "expiresAt": 1
+          },
+          "options": {
+            "expireAfterSeconds": 0
+          }
+        }
+      ]
+    },
+    {
+      "collection": "platformaudits",
+      "indexes": [
+        {
+          "key": {
+            "restaurantId": 1,
+            "createdAt": -1
+          },
+          "options": {}
+        }
+      ]
+    }
+  ]
+}

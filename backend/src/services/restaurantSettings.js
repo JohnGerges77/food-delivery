@@ -87,30 +87,30 @@ function ownerRestaurantModel(connection, auth) {
   return connection.models.Restaurant ?? connection.model('Restaurant', RestaurantSchema.schema);
 }
 
-export async function getOwnerRestaurant(connection, auth) {
+export async function getOwnerRestaurant(connection, auth, { session } = {}) {
   const Restaurant = ownerRestaurantModel(connection, auth);
   const restaurant = await Restaurant.findOne({ _id: auth.restaurantId,
-    status: { $ne: 'suspended' } });
+    status: { $ne: 'suspended' } }).session(session);
   if (!restaurant) throw new OwnerResourceNotFound();
   return restaurant;
 }
 
-export async function assertHeroProductEligible(Product, Category, restaurantId, productId) {
+export async function assertHeroProductEligible(Product, Category, restaurantId, productId, { session } = {}) {
   const product = await Product.findOne({ _id: productId,
-    restaurantId, isAvailable: true }).select('categoryId').lean();
+    restaurantId, isAvailable: true }, null, { session }).select('categoryId').lean();
   if (!product || !await Category.exists({ _id: product.categoryId,
-    restaurantId, isActive: true })) throw new InvalidRestaurantSettings();
+    restaurantId, isActive: true }, { session })) throw new InvalidRestaurantSettings();
 }
 
-export async function patchOwnerRestaurant(connection, auth, body) {
+export async function patchOwnerRestaurant(connection, auth, body, { session } = {}) {
   const updates = parseRestaurantSettingsPatch(body);
   const Restaurant = ownerRestaurantModel(connection, auth);
   if (Object.hasOwn(updates, 'heroProductId') && updates.heroProductId !== null) {
     const Product = connection.models.Product ?? connection.model('Product', ProductSchema.schema);
     const Category = connection.models.Category ?? connection.model('Category', CategorySchema.schema);
-    await assertHeroProductEligible(Product, Category, auth.restaurantId, updates.heroProductId);
+    await assertHeroProductEligible(Product, Category, auth.restaurantId, updates.heroProductId, { session });
   }
-  const restaurant = await getOwnerRestaurant(connection, auth);
+  const restaurant = await getOwnerRestaurant(connection, auth, { session });
   if (Object.hasOwn(updates, 'logoUrl') &&
       (updates.logoUrl.startsWith('/api/public/restaurants/') ||
        restaurant.logoUrl?.startsWith('/api/public/restaurants/')) &&
@@ -131,7 +131,7 @@ export async function patchOwnerRestaurant(connection, auth, body) {
       { _id: auth.restaurantId, status: { $ne: 'suspended' },
         ...(Object.hasOwn(updates, 'logoUrl') ? { logoUrl: oldLogoUrl } : {}) },
       { $set: updates },
-      { returnDocument: 'after', runValidators: true },
+      { returnDocument: 'after', runValidators: true, session },
     );
   } catch (error) {
     if (error.name === 'ValidationError' || error.name === 'CastError') {

@@ -229,7 +229,9 @@ test('MongoDB model integration on the isolated test database', async (t) => {
       }
     });
 
-    await t.test('Order persists snapshots and amounts, hides tracking hash, and scopes order numbers', async () => {
+    await t.test('Order persists snapshots and amounts, hides tracking hash, and scopes order numbers', {
+      skip: process.env.SAVORA_TEST_NO_ORDER_WRITES === '1',
+    }, async () => {
       const fixtures = fixtureScope(models);
       const suffix = uniqueSuffix();
       try {
