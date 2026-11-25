@@ -71,39 +71,81 @@ const cafeProducts = [
   preparationTime: null, calories: null,
 }));
 
-createServer((request, response) => {
+const brandingFixtures = process.env.SAVORA_BRANDING_VISUAL === "1";
+const brandingOwnerId = id("99");
+const brandingCsrf = "a".repeat(64);
+const stores = [restaurant, demoRestaurant, pausedRestaurant, aquaRestaurant, cafeRestaurant, luxuryRestaurant];
+const themeFixtures = { classic: restaurant, aqua: aquaRestaurant, cafe: cafeRestaurant, luxury: luxuryRestaurant };
+const colors = { default: null, sky: "#89CFF0", dark: "#000000", light: "#FFFFFF" };
+let ownerBranding = restaurant.branding;
+let ownerHero = null;
+
+createServer(async (request, response) => {
   response.setHeader("Access-Control-Allow-Origin", "*");
   response.setHeader("Content-Type", "application/json; charset=utf-8");
+  response.setHeader("Cache-Control", "no-store");
+  const url = new URL(request.url, "http://localhost");
+  if (brandingFixtures && /^\/api\/(auth|owner)\//.test(url.pathname)) {
+    response.setHeader("Access-Control-Allow-Origin", "http://127.0.0.1:3192");
+    response.setHeader("Access-Control-Allow-Credentials", "true");
+    response.setHeader("Access-Control-Allow-Methods", "GET, PATCH, OPTIONS");
+    response.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Savora-CSRF");
+    const summary = { id: brandingOwnerId, name: restaurant.name, slug: restaurant.slug, currency: restaurant.currency };
+    if (request.method === "OPTIONS") return response.writeHead(204).end();
+    if (url.pathname === "/api/auth/me") return response.end(JSON.stringify({
+      user: { id: id("98"), name: "Fixture Owner", email: "owner@example.test" }, restaurant: summary,
+    }));
+    if (url.pathname === "/api/auth/csrf") return response.end(JSON.stringify({ csrfToken: brandingCsrf }));
+    if (["/api/owner/products", "/api/owner/categories"].includes(url.pathname)) {
+      return response.end(JSON.stringify({ products: [], categories: [], pagination: { page: 1, limit: 100, total: 0, hasNext: false } }));
+    }
+    if (url.pathname === "/api/owner/restaurant") {
+      if (request.method === "PATCH") {
+        if (request.headers["x-savora-csrf"] !== brandingCsrf) return response.writeHead(403).end();
+        let body = "";
+        for await (const chunk of request) body += chunk;
+        const patch = JSON.parse(body);
+        if (patch.branding) ownerBranding = { ...ownerBranding, ...patch.branding };
+        if (Object.hasOwn(patch, "heroImageUrl")) ownerHero = patch.heroImageUrl || null;
+      }
+      return response.end(JSON.stringify({ restaurant: {
+        ...restaurant, ...summary, status: "active", heroProductId: null, storefrontTheme: "savora-classic",
+        heroImageUrl: ownerHero, branding: ownerBranding,
+      } }));
+    }
+    return response.writeHead(404).end();
+  }
   if (request.method !== "GET") {
     response.writeHead(405).end(JSON.stringify({ error: "Read-only visual fixture" }));
     return;
   }
-  const url = new URL(request.url, "http://localhost");
-  const slug = url.pathname.startsWith("/api/public/restaurants/phase102-aqua") ? "phase102-aqua" :
-    url.pathname.startsWith("/api/public/restaurants/phase101-classic") ? "phase101-classic" :
-    url.pathname.startsWith("/api/public/restaurants/phase101-paused") ? pausedRestaurant.slug :
-    url.pathname.startsWith("/api/public/restaurants/phase103-cafe") ? "phase103-cafe" :
-    url.pathname.startsWith("/api/public/restaurants/phase104-luxury") ? "phase104-luxury" :
-    url.pathname.startsWith("/api/public/restaurants/savora-beta-demo") ? "savora-beta-demo" : null;
-  if (!slug) {
+  const match = /^\/api\/public\/restaurants\/([a-z0-9-]+)(.*)$/.exec(url.pathname);
+  const [, slug, suffix] = match ?? [];
+  let store = stores.find((item) => item.slug === slug);
+  const visual = brandingFixtures && /^theme-(classic|aqua|cafe|luxury)-(default|sky|dark|light)$/.exec(slug);
+  if (visual) {
+    const [, theme, color] = visual;
+    const preset = themeFixtures[theme];
+    store = { ...preset, slug, branding: { ...preset.branding, primaryColor: colors[color] },
+      heroImageUrl: color === "sky" ? "http://127.0.0.1:3192/best3.webp" : null };
+  }
+  if (!store) {
     response.writeHead(404).end(JSON.stringify({ error: "Not found" }));
     return;
   }
-  const suffix = url.pathname.slice(`/api/public/restaurants/${slug}`.length);
-  let listing = slug === demoRestaurant.slug ? suffix === "/categories" ? demoCategories : demoProducts :
-    slug === "phase103-cafe" ? suffix === "/categories" ? cafeCategories : cafeProducts :
-    suffix === "/categories" ? categories : products;
+  const cafe = store.storefrontTheme === "savora-cafe";
+  const demo = slug === demoRestaurant.slug;
+  const productList = demo ? demoProducts : cafe ? cafeProducts : products;
+  const categoryList = demo ? demoCategories : cafe ? cafeCategories : categories;
+  let listing = suffix === "/categories" ? categoryList : productList;
   if (suffix === "/products" && url.searchParams.has("categoryId")) {
     listing = listing.filter((item) => item.categoryId === url.searchParams.get("categoryId"));
   }
   if (suffix === "" || suffix === "/categories" || suffix === "/products") {
     response.writeHead(200).end(JSON.stringify(suffix === "" ? { restaurant: {
-      ...(slug === demoRestaurant.slug ? demoRestaurant :
-        slug === pausedRestaurant.slug ? pausedRestaurant :
-        slug === "phase102-aqua" ? aquaRestaurant : slug === "phase103-cafe" ? cafeRestaurant :
-          slug === "phase104-luxury" ? luxuryRestaurant : restaurant),
-      heroProductSelected: true, heroProduct: slug === demoRestaurant.slug ? demoProducts[1] :
-        slug === "phase103-cafe" ? cafeProducts[0] : products[1],
+      ...store,
+      ...(slug === restaurant.slug && brandingFixtures ? { branding: ownerBranding, heroImageUrl: ownerHero } : {}),
+      heroProductSelected: true, heroProduct: cafe ? productList[0] : productList[1],
       whatsappOrderingAvailable: slug === "phase101-classic",
       socialLinks: { facebook: null, instagram: null, whatsapp: "https://wa.me/201000000000" },
     } } : {

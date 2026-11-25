@@ -27,11 +27,25 @@ test('owner restaurant serializer uses an explicit safe field list', () => {
   };
   const result = serializeOwnerRestaurant(restaurant);
   assert.deepEqual(Object.keys(result), [
-    'id', 'name', 'slug', 'currency', 'status', 'heroProductId', 'description', 'logoUrl', 'aboutImageUrl',
+    'id', 'name', 'slug', 'currency', 'status', 'storefrontTheme', 'heroProductId', 'description', 'logoUrl', 'aboutImageUrl', 'heroImageUrl',
     'phone', 'contactEmail', 'address', 'openingHours', 'deliverySettings',
     'socialLinks', 'branding',
   ]);
   assert.doesNotMatch(JSON.stringify(result), /secret|passwordHash|tokenHash|credentials/);
+  assert.equal(result.heroImageUrl, null);
+  assert.equal(result.storefrontTheme, 'savora-classic');
+});
+
+test('hero image and accent are independent, clearable settings with validated inputs', () => {
+  assert.equal(parseRestaurantSettingsPatch({ heroImageUrl: 'https://example.test/hero.webp' }).heroImageUrl,
+    'https://example.test/hero.webp');
+  const reset = parseRestaurantSettingsPatch({ heroImageUrl: '', branding: { primaryColor: '' } });
+  assert.equal(reset.heroImageUrl, '');
+  assert.equal(reset['branding.primaryColor'], '');
+  for (const heroImageUrl of ['/another-tenant.webp', 'https://user:pass@example.test/a', 'data:image/webp;base64,AA']) {
+    assert.throws(() => parseRestaurantSettingsPatch({ heroImageUrl }), InvalidRestaurantSettings);
+  }
+  assert.throws(() => parseRestaurantSettingsPatch({ branding: { primaryColor: 'blue' } }), InvalidRestaurantSettings);
 });
 
 test('About image accepts external web URLs and clearing, but rejects unsafe values', () => {

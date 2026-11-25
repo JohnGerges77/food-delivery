@@ -13,14 +13,14 @@ export class InvalidRestaurantSettings extends Error {
 
 const fields = Object.freeze({
   name: 'requiredText', description: 'text', logoUrl: 'webUrl', aboutImageUrl: 'externalUrl',
-  heroProductId: 'heroProduct',
+  heroProductId: 'heroProduct', heroImageUrl: 'externalUrl',
   phone: 'text', contactEmail: 'text', address: 'text', openingHours: 'text',
   deliverySettings: Object.freeze({
     deliveryFee: 'amount', minimumOrder: 'amount',
     estimatedDeliveryTime: 'text', deliveryAvailable: 'boolean', whatsappOrderingEnabled: 'boolean',
   }),
   socialLinks: Object.freeze({ facebook: 'webUrl', instagram: 'webUrl', whatsapp: 'whatsapp' }),
-  branding: Object.freeze({ brandName: 'text', primaryColor: 'text' }),
+  branding: Object.freeze({ brandName: 'text', primaryColor: 'hexColor' }),
 });
 
 function plainObject(value) {
@@ -52,6 +52,7 @@ function validValue(value, kind) {
   if (kind === 'boolean') return typeof value === 'boolean';
   if (typeof value !== 'string' || value.length > 2048) return false;
   if (kind === 'requiredText' && !value.trim()) return false;
+  if (kind === 'hexColor') return !value.trim() || /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value.trim());
   if (kind === 'whatsapp') return !value.trim() || normalizeWhatsAppNumber(value) !== null;
   if (kind === 'webUrl' && !validWebUrl(value.trim())) return false;
   if (kind === 'externalUrl' && value.trim() &&

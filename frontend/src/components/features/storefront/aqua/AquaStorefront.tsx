@@ -53,8 +53,9 @@ export function AquaHome({ restaurant, initialProducts, offers }: { restaurant: 
   const { categories, href } = useStorefront();
   const pictured = initialProducts.filter((product) => safePublicImage(product.imageUrl || product.images[0]));
   const heroProduct = restaurant.heroProductSelected ? restaurant.heroProduct ?? undefined : pictured[0];
+  const tenantHeroImage = safePublicImage(restaurant.heroImageUrl);
   const heroImage = heroProduct && safePublicImage(heroProduct.imageUrl || heroProduct.images[0]);
-  const secondProduct = heroImage ? pictured.find((product) => product.id !== heroProduct?.id) : undefined;
+  const secondProduct = heroImage && !tenantHeroImage ? pictured.find((product) => product.id !== heroProduct?.id) : undefined;
   const showcase = offers.filter((product) => product.isFeatured).slice(0, 5);
   return <main className={styles.home}>
     <section className={styles.hero}>
@@ -66,7 +67,9 @@ export function AquaHome({ restaurant, initialProducts, offers }: { restaurant: 
             <Link className={styles.primaryAction} href={href("/menu")}>{ar ? "تصفح المنيو" : "Explore the menu"}<ArrowUpRight aria-hidden="true" size={20} /></Link>
           </div>
           <div className={styles.heroGallery}>
-            {heroProduct && heroImage ? <Link href={href(`/menu/${heroProduct.id}`)} className={styles.heroTile} aria-label={heroProduct.name}><FoodImage product={heroProduct} sizes="(min-width: 900px) 58vw, 100vw" /><span><strong>{heroProduct.name}</strong><small>{productDisplayPrice(heroProduct, restaurant.currency, locale)}</small></span></Link> : <div className={styles.heroEmpty}><span>{ar ? "اكتشف المنيو" : "Explore the menu"}</span><Link href={href("/menu")}>{ar ? "اذهب إلى المنيو" : "Go to the menu"}<ArrowUpRight size={17} aria-hidden="true" /></Link></div>}
+            {tenantHeroImage ? <div className={styles.heroTile} data-tenant-hero>
+              <PublicProductImage src={tenantHeroImage} alt={restaurant.name} className={styles.foodImage} sizes="(min-width: 900px) 58vw, 100vw" />
+            </div> : heroProduct && heroImage ? <Link href={href(`/menu/${heroProduct.id}`)} className={styles.heroTile} aria-label={heroProduct.name}><FoodImage product={heroProduct} sizes="(min-width: 900px) 58vw, 100vw" /><span><strong>{heroProduct.name}</strong><small>{productDisplayPrice(heroProduct, restaurant.currency, locale)}</small></span></Link> : <div className={styles.heroEmpty}><span>{ar ? "اكتشف المنيو" : "Explore the menu"}</span><Link href={href("/menu")}>{ar ? "اذهب إلى المنيو" : "Go to the menu"}<ArrowUpRight size={17} aria-hidden="true" /></Link></div>}
             {secondProduct && <Link href={href(`/menu/${secondProduct.id}`)} className={styles.heroSecondary} aria-label={secondProduct.name}><FoodImage product={secondProduct} sizes="(min-width: 900px) 18vw, 36vw" /><span>{secondProduct.name}</span></Link>}
           </div>
         </div>

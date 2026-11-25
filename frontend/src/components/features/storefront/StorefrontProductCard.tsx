@@ -11,7 +11,7 @@ import { ProductMetadata } from "./ProductMetadata";
 import { PublicProductImage } from "./PublicProductImage";
 import { useStorefront } from "./StorefrontContext";
 
-const actionClass = "relative z-20 inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--sf-primary)] text-sm font-bold text-[color:var(--sf-on-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--sf-primary)] sm:min-h-12 sm:w-auto sm:px-4";
+const actionClass = "relative z-20 inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[color:var(--sf-primary)] text-sm font-bold text-[color:var(--sf-on-primary)] transition-colors hover:bg-[color:var(--sf-primary-hover)] active:bg-[color:var(--sf-primary-active)] sm:min-h-12 sm:w-auto sm:px-4";
 
 export function StorefrontProductCard({ product, categoryName }: {
   product: PublicProduct;
@@ -43,7 +43,7 @@ export function StorefrontProductCard({ product, categoryName }: {
       {product.description && <p className="mt-1 line-clamp-2 break-words text-xs leading-relaxed text-[color:var(--sf-text-muted)] sm:text-sm">{product.description}</p>}
       <ProductMetadata product={product} locale={locale} compact />
       <div className="mt-2 flex flex-wrap items-end justify-between gap-x-2 gap-y-1 sm:mt-4 sm:items-center">
-        <div className="min-w-0 break-words text-sm font-semibold text-[color:var(--sf-text)] sm:text-lg">
+        <div className="min-w-0 break-words text-sm font-semibold text-[color:var(--sf-accent-ink)] sm:text-lg">
           {productDisplayPrice(product, restaurant.currency, locale)}
           {!hasVariants && product.oldPrice !== null && product.oldPrice > product.price &&
             <del className="ms-2 text-xs text-[color:var(--sf-text-muted)]">{publicMoney(product.oldPrice, restaurant.currency, locale)}</del>}

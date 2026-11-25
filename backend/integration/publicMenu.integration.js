@@ -108,9 +108,9 @@ test('public restaurant and menu API on savora_test', async (t) => {
       assert.equal(response.headers.get('set-cookie'), null);
       const { restaurant } = await response.json();
       assert.deepEqual(Object.keys(restaurant), ['name', 'slug', 'storefrontTheme', 'heroProduct',
-        'heroProductSelected', 'description', 'logoUrl', 'aboutImageUrl',
+        'heroProductSelected', 'description', 'logoUrl', 'aboutImageUrl', 'heroImageUrl',
         'currency', 'phone', 'contactEmail', 'address', 'openingHours',
-        'deliverySettings', 'socialLinks', 'branding']);
+        'deliverySettings', 'whatsappOrderingAvailable', 'socialLinks', 'branding']);
       assert.equal(restaurant.slug, a.slug);
       assert.equal(restaurant.storefrontTheme, 'savora-classic');
       assert.equal(restaurant.currency, 'EGP');

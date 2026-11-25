@@ -120,7 +120,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
   return (
     <main className="min-h-screen overflow-hidden bg-[color:var(--background)] text-[color:var(--text)]">
       <section className="relative isolate overflow-hidden px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
-        <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_82%_20%,rgba(255,122,0,0.18),transparent_32%),radial-gradient(circle_at_16%_30%,rgba(212,160,23,0.1),transparent_30%),linear-gradient(135deg,rgba(31,31,31,0.86),rgba(13,13,13,1)_54%,rgba(13,13,13,1))]" />
+        <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_82%_20%,color-mix(in_srgb,var(--sf-primary)_18%,transparent),transparent_32%),radial-gradient(circle_at_16%_30%,rgba(212,160,23,0.1),transparent_30%),linear-gradient(135deg,rgba(31,31,31,0.86),rgba(13,13,13,1)_54%,rgba(13,13,13,1))]" />
         <div className="absolute inset-x-0 bottom-0 -z-10 h-36 bg-gradient-to-t from-[color:var(--background)] to-transparent" />
         <div className="mx-auto max-w-7xl">
           <motion.div
@@ -128,10 +128,10 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.72, ease: sectionEase }}
           >
-            <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 px-4 py-2 text-xs font-semibold tracking-[0.24em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_rgba(255,122,0,0.14)] backdrop-blur">
+            <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 px-4 py-2 text-xs font-semibold tracking-[0.24em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_color-mix(in_srgb,var(--sf-primary)_14%,transparent)] backdrop-blur">
               <span className="h-px w-8 bg-gradient-to-r from-transparent to-[color:var(--primary)]/80" />
               {isArabic ? "إتمام الطلب" : "Checkout"}
-              <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_rgba(255,157,51,0.9)]" />
+              <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_color-mix(in_srgb,var(--sf-primary)_90%,transparent)]" />
             </div>
             <h1 className="max-w-4xl text-[clamp(3rem,7vw,5.6rem)] font-semibold leading-[0.95] text-balance">
               {isArabic ? "أكمل" : "Complete Your"}
@@ -140,7 +140,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
             <p className="mt-6 max-w-2xl text-base leading-8 text-[color:var(--text-muted)] sm:text-lg">
               {isArabic ? `راجع تفاصيل طلبك من ${restaurant.name} وأكده كضيف.` : `Review and place your guest order from ${restaurant.name}.`}
             </p>
-            {beta && <p className="mt-4 max-w-2xl rounded-lg border border-[color:var(--gold)]/30 bg-[color:var(--gold)]/10 px-4 py-3 text-sm leading-7">
+            {beta && <p className="storefront-warning mt-4 max-w-2xl rounded-lg border px-4 py-3 text-sm leading-7">
               {isArabic ? "نسخة تجريبية عامة. الطلبات للاختبار فقط ولن يتم تجهيزها أو توصيلها. لن يتم تحصيل أي مبلغ، ولا تحتاج إلى إدخال بيانات شخصية."
                 : "Public beta. Test orders will not be prepared or delivered. You will not be charged. No personal details are required."}
             </p>}
@@ -151,7 +151,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
       <section className="px-4 pb-20 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_25rem] lg:items-start">
           <motion.form
-            className="relative overflow-hidden rounded-[1.6rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.085),rgba(255,255,255,0.028)_58%,rgba(255,122,0,0.052))] p-5 shadow-[0_34px_100px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.075)] backdrop-blur-2xl sm:p-8"
+            className="relative overflow-hidden rounded-[1.6rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.085),rgba(255,255,255,0.028)_58%,color-mix(in_srgb,var(--sf-primary)_5%,transparent))] p-5 shadow-[0_34px_100px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.075)] backdrop-blur-2xl sm:p-8"
             initial={{ opacity: 0, x: -28, filter: "blur(8px)" }}
             animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.72, ease: sectionEase }}
@@ -186,7 +186,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
                     <span
                       className={`flex size-9 items-center justify-center rounded-full border text-sm font-bold ${
                         index === step
-                          ? "border-[color:var(--primary)] bg-[color:var(--primary)] text-[color:var(--background)]"
+                          ? "border-[color:var(--primary)] bg-[color:var(--primary)] text-[color:var(--sf-on-primary)]"
                           : "border-white/12 bg-white/[0.04] text-[color:var(--text-muted)]"
                       }`}
                     >
@@ -211,7 +211,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
                       : handoffBlocked
                         ? (isArabic ? "تعذّر فتح WhatsApp تلقائيًا. افتحه من الزر بالأسفل وأرسل الرسالة بنفسك." : "WhatsApp could not open automatically. Use the button below and send the message yourself.")
                         : (isArabic ? "فتح WhatsApp لا يعني إرسال الرسالة. راجعها وأرسلها بنفسك." : "Opening WhatsApp does not send the message. Review and send it yourself.")}</p>
-                    <a className="mt-6 inline-flex min-h-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 text-sm font-bold text-[color:var(--background)]" href={handoffUrl} target="_blank" rel="noopener noreferrer">{isArabic ? "فتح WhatsApp" : "Open WhatsApp"}</a>
+                    <a className="mt-6 inline-flex min-h-14 items-center justify-center rounded-full storefront-action px-8 text-sm font-bold text-[color:var(--sf-on-primary)]" href={handoffUrl} target="_blank" rel="noopener noreferrer">{isArabic ? "فتح WhatsApp" : "Open WhatsApp"}</a>
                   </> : confirmation.order.submissionMethod === "whatsapp" ? (
                     <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "واتساب غير متاح حاليًا لهذا الطلب. احتفظ برقم الطلب." : "WhatsApp is currently unavailable for this order. Keep your order reference."}</p>
                   ) : <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">{beta
@@ -219,7 +219,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
                     : (isArabic ? "استلم المطعم طلبك في Savora. لم يتم تأكيد الدفع." : "Your order is saved in Savora. Payment has not been confirmed.")}</p>}
                 </div>
               ) : checkoutAvailability !== "available" ? (
-                <p className="mt-8 rounded-lg border border-[color:var(--gold)]/30 p-4 text-sm leading-7" role="status">
+                <p className="storefront-warning mt-8 rounded-lg border p-4 text-sm leading-7" role="status">
                   {checkoutUnavailableMessage(checkoutAvailability, isArabic)}
                 </p>
               ) : <>
@@ -243,7 +243,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
                           size={17}
                         />
                         <input
-                          className="h-14 w-full rounded-[1rem] border border-white/10 bg-[color:var(--background)]/62 ps-12 pe-4 text-sm text-[color:var(--text)] outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] transition-all placeholder:text-[color:var(--text-muted)]/48 focus:border-[color:var(--primary)]/70 focus:shadow-[0_0_0_4px_rgba(255,122,0,0.13)]"
+                          className="h-14 w-full rounded-[1rem] border border-white/10 bg-[color:var(--background)]/62 ps-12 pe-4 text-sm text-[color:var(--text)] outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] transition-all placeholder:text-[color:var(--text-muted)]/48 focus:border-[color:var(--primary)]/70 focus:shadow-[0_0_0_4px_color-mix(in_srgb,var(--sf-primary)_13%,transparent)]"
                           name={field.name}
                           aria-invalid={Boolean(errors[field.name])}
                           value={details[field.name]}
@@ -252,7 +252,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
                           type={field.type}
                         />
                       </span>
-                      {fieldError(field.name) && <span className="mt-2 block text-xs text-[color:var(--primary-light)]" role="alert">{fieldError(field.name)}</span>}
+                      {fieldError(field.name) && <span className="storefront-field-error mt-2 block text-xs" role="alert">{fieldError(field.name)}</span>}
                     </label>
                   );
                 })}
@@ -261,14 +261,14 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
                     {isArabic ? "ملاحظات" : "Notes"}
                   </span>
                   <textarea
-                    className="mt-3 min-h-36 w-full resize-none rounded-[1rem] border border-white/10 bg-[color:var(--background)]/62 px-4 py-4 text-sm leading-7 text-[color:var(--text)] outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] transition-all placeholder:text-[color:var(--text-muted)]/48 focus:border-[color:var(--primary)]/70 focus:shadow-[0_0_0_4px_rgba(255,122,0,0.13)]"
+                    className="mt-3 min-h-36 w-full resize-none rounded-[1rem] border border-white/10 bg-[color:var(--background)]/62 px-4 py-4 text-sm leading-7 text-[color:var(--text)] outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] transition-all placeholder:text-[color:var(--text-muted)]/48 focus:border-[color:var(--primary)]/70 focus:shadow-[0_0_0_4px_color-mix(in_srgb,var(--sf-primary)_13%,transparent)]"
                     name="notes"
                     aria-invalid={Boolean(errors.notes)}
                     value={details.notes}
                     onChange={(event) => updateDetail("notes", event.currentTarget.value)}
                     placeholder={isArabic ? "الحساسية أو تعليمات التوصيل أو أي شيء يجب أن يعرفه المطبخ." : "Allergies, delivery instructions, or anything our kitchen should know."}
                   />
-                  {fieldError("notes") && <span className="mt-2 block text-xs text-[color:var(--primary-light)]" role="alert">{fieldError("notes")}</span>}
+                  {fieldError("notes") && <span className="storefront-field-error mt-2 block text-xs" role="alert">{fieldError("notes")}</span>}
                 </label>
               </div>
               </>}
@@ -288,7 +288,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
                 <fieldset>
                   <legend className="text-xl font-semibold">{isArabic ? "طريقة إرسال الطلب" : "Submission method"}</legend>
                   <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    {(["whatsapp", "direct"] as const).filter((option) => option === "direct" || whatsappAvailable).map((option) => <label className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-[1rem] border px-4 text-sm font-semibold ${method === option ? "border-[color:var(--primary)]/70 bg-[color:var(--primary)]/10" : "border-white/10 bg-white/[0.04]"}`} key={option}>
+                    {(["whatsapp", "direct"] as const).filter((option) => option === "direct" || whatsappAvailable).map((option) => <label className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-[1rem] border px-4 text-sm font-semibold ${method === option ? "border-[color:var(--sf-accent-border)] bg-[color:var(--sf-accent-soft)]" : "border-[color:var(--sf-border)] bg-[color:var(--sf-surface)]"}`} key={option}>
                       <input checked={method === option} disabled={sending} name="submissionMethod" onChange={() => setMethod(option)} type="radio" value={option} />
                       {option === "direct" ? (isArabic ? "مباشر" : "Direct") : "WhatsApp"}
                     </label>)}
@@ -299,13 +299,13 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
                 {!beta && <button className="mt-4 text-sm font-semibold text-[color:var(--primary-light)] hover:underline" disabled={sending} onClick={() => setStep(1)} type="button">{isArabic ? "العودة للمراجعة" : "Back to review"}</button>}
               </div>}
 
-              {errors.cart && <p className="mt-6 rounded-lg border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 p-4 text-sm text-[color:var(--primary-light)]" role="alert">{isArabic ? "راجع السلة: يجب اختيار منتجات صالحة وكميات مسموحة من هذا المطعم." : "Check your cart: select valid products and quantities from this restaurant."}</p>}
-              {failure && <p className="mt-6 rounded-lg border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 p-4 text-sm leading-7 text-[color:var(--text)]" role="alert" data-testid="checkout-error">{failureMessage()}</p>}
+              {errors.cart && <p className="storefront-field-error mt-6 rounded-lg border border-current/30 p-4 text-sm" role="alert">{isArabic ? "راجع السلة: يجب اختيار منتجات صالحة وكميات مسموحة من هذا المطعم." : "Check your cart: select valid products and quantities from this restaurant."}</p>}
+              {failure && <p className="storefront-field-error mt-6 rounded-lg border border-current/30 p-4 text-sm leading-7" role="alert" data-testid="checkout-error">{failureMessage()}</p>}
               <p className="mt-7 rounded-lg border border-[color:var(--gold)]/20 bg-[color:var(--gold)]/8 p-4 text-sm leading-7 text-[color:var(--text-muted)]" role="status">
                 {isArabic ? "المبالغ المعروضة تقديرية حتى يؤكد الخادم الطلب. لا يُحفظ الطلب إلا بعد خطوة الإرسال." : "Displayed amounts are provisional until the server confirms the order. Nothing is saved until you submit."}
               </p>
               <button
-                className="mt-8 inline-flex min-h-14 w-full items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 text-sm font-bold text-[color:var(--background)] shadow-[0_22px_62px_rgba(255,122,0,0.38)] transition-all hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
+                className="mt-8 inline-flex min-h-14 w-full items-center justify-center rounded-full storefront-action px-8 text-sm font-bold text-[color:var(--sf-on-primary)] shadow-[0_22px_62px_color-mix(in_srgb,var(--sf-primary)_38%,transparent)] transition-all hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
                 disabled={sending || items.length === 0 || tenantSlug !== slug}
                 type="submit"
               >
@@ -321,7 +321,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
             animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
             transition={{ delay: 0.08, duration: 0.72, ease: sectionEase }}
           >
-            <div className="relative overflow-hidden rounded-[1.6rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035)_54%,rgba(255,122,0,0.07))] p-6 shadow-[0_34px_110px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl">
+            <div className="relative overflow-hidden rounded-[1.6rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035)_54%,color-mix(in_srgb,var(--sf-primary)_7%,transparent))] p-6 shadow-[0_34px_110px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl">
               <div className="pointer-events-none absolute -right-20 -top-20 size-52 rounded-full bg-[color:var(--primary)]/18 blur-3xl" />
               <div className="relative">
                 <div className="flex items-center justify-between gap-4">
@@ -337,7 +337,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
                     </div>
                     {isArabic ? "سلتك فارغة. أضف بعض أطباقك المفضلة قبل تأكيد الطلب." : "Your cart is empty. Add a few favorites before placing an order."}
                     <Link
-                      className="mt-4 inline-flex min-h-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-5 text-sm font-bold text-[color:var(--background)]"
+                      className="mt-4 inline-flex min-h-10 items-center justify-center rounded-full storefront-action px-5 text-sm font-bold text-[color:var(--sf-on-primary)]"
                       href={href("/menu")}
                     >
                       {isArabic ? "تصفح المنيو" : "Browse Menu"}

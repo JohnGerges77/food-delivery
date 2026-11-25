@@ -85,7 +85,7 @@ export function PublicNavbar() {
                 className={cn(
                   "whitespace-nowrap rounded-full px-2 py-2 text-xs transition-all duration-300 hover:bg-[color:var(--glass-strong)] hover:text-[color:var(--text)] min-[360px]:px-3 sm:px-4 sm:text-sm",
                   isActive &&
-                    "bg-[color:var(--glass-strong)] text-[color:var(--primary-light)] shadow-[0_10px_28px_rgba(255,122,0,0.18)] ring-1 ring-[color:var(--primary)]/35",
+                    "bg-[color:var(--glass-strong)] text-[color:var(--primary-light)] shadow-[0_10px_28px_color-mix(in_srgb,var(--sf-primary)_18%,transparent)] ring-1 ring-[color:var(--primary)]/35",
                 )}
                 href={link.href}
                 key={link.href}
@@ -109,14 +109,14 @@ export function PublicNavbar() {
           <Link
             aria-current={cartIsActive ? "page" : undefined}
             className={cn(
-              "group relative grid size-11 place-items-center rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/10 text-[color:var(--primary-light)] shadow-[0_10px_30px_rgba(255,122,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--primary)]/60 hover:bg-[color:var(--primary)] hover:text-[color:var(--background)] hover:shadow-[0_14px_38px_rgba(255,122,0,0.38)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--primary)]",
-              cartIsActive && "border-[color:var(--primary)]/70 bg-[color:var(--primary)] text-[color:var(--background)] shadow-[0_14px_38px_rgba(255,122,0,0.38)]",
+              "group relative grid size-11 place-items-center rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/10 text-[color:var(--primary-light)] shadow-[0_10px_30px_color-mix(in_srgb,var(--sf-primary)_18%,transparent)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--primary)]/60 hover:bg-[color:var(--primary)] hover:text-[color:var(--sf-on-primary)] hover:shadow-[0_14px_38px_color-mix(in_srgb,var(--sf-primary)_38%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--primary)]",
+              cartIsActive && "border-[color:var(--primary)]/70 bg-[color:var(--primary)] text-[color:var(--sf-on-primary)] shadow-[0_14px_38px_color-mix(in_srgb,var(--sf-primary)_38%,transparent)]",
             )}
             href={href(routes.cart)}
             aria-label={`${t("viewCart")}: ${tenantSlug === restaurant.slug ? cartCount : 0}`}
           >
             <CartAttention><ShoppingCart aria-hidden="true" className="size-5 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110" strokeWidth={2.2} /></CartAttention>
-            {tenantSlug === restaurant.slug && cartCount > 0 ? <span className="absolute -right-1 -top-1 rounded-full bg-[color:var(--primary)] px-1.5 text-xs text-[color:var(--background)]">{cartCount}</span> : null}
+            {tenantSlug === restaurant.slug && cartCount > 0 ? <span className="absolute -right-1 -top-1 rounded-full bg-[color:var(--primary)] px-1.5 text-xs text-[color:var(--sf-on-primary)]">{cartCount}</span> : null}
           </Link>
         </div>
       </div>

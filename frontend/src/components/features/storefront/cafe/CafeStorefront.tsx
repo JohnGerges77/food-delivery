@@ -49,6 +49,7 @@ export function CafeHome({ restaurant, initialProducts, offers }: { restaurant: 
   const { categories, href } = useStorefront();
   const ordered = [...initialProducts.filter((product) => product.isFeatured), ...initialProducts.filter((product) => !product.isFeatured)];
   const heroProduct = restaurant.heroProductSelected ? restaurant.heroProduct ?? undefined : ordered[0];
+  const tenantHeroImage = safePublicImage(restaurant.heroImageUrl);
   const heroImage = heroProduct && safePublicImage(heroProduct.imageUrl || heroProduct.images[0]);
   const menuPreview = offers.filter((product) => product.isFeatured).slice(0, 5);
   const heroCategory = categories.find((category) => category.id === heroProduct?.categoryId);
@@ -64,8 +65,11 @@ export function CafeHome({ restaurant, initialProducts, offers }: { restaurant: 
       <div className={styles.stageVisual}>
         <div className={styles.menuSheet}>
           <div className={styles.sheetTop}><span>{restaurant.name}</span><span>{ar ? "المنيو" : "Menu"}</span></div>
+          {tenantHeroImage && <div className={`${styles.sheetPhoto} ${styles.tenantHero}`} data-tenant-hero>
+            <PublicProductImage src={tenantHeroImage} alt={restaurant.name} className={styles.photo} sizes="(min-width: 900px) 38vw, 85vw" />
+          </div>}
           {heroProduct ? <Link href={href(`/menu/${heroProduct.id}`)} className={styles.sheetFeature}>
-            {heroImage && <div className={styles.sheetPhoto}><ProductPhoto product={heroProduct} sizes="(min-width: 900px) 38vw, 85vw" /></div>}
+            {!tenantHeroImage && heroImage && <div className={styles.sheetPhoto}><ProductPhoto product={heroProduct} sizes="(min-width: 900px) 38vw, 85vw" /></div>}
             <div className={styles.sheetDetails}>{heroCategory && <span>{heroCategory.name}</span>}<strong>{heroProduct.name}</strong>{heroProduct.description && <p>{heroProduct.description}</p>}<b>{productDisplayPrice(heroProduct, restaurant.currency, locale)}</b></div>
           </Link> : <div className={styles.sheetEmpty}>{ar ? "اكتشف المنيو" : "Explore the menu"}</div>}
           <Link href={href("/menu")} className={styles.sheetBottom}>{ar ? "المنيو كاملة" : "View the full menu"}<span aria-hidden="true">↗</span></Link>

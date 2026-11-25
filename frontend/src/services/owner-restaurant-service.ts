@@ -1,5 +1,6 @@
 import { ApiError, apiRequest } from "./api-client.ts";
 import { westernDigits } from "../lib/western-digits.ts";
+import { normalizeStorefrontAccent } from "../lib/storefront-accent.ts";
 
 export interface OwnerRestaurant {
   id: string;
@@ -7,10 +8,12 @@ export interface OwnerRestaurant {
   slug: string;
   currency: string;
   status: "active" | "suspended";
+  storefrontTheme?: string;
   heroProductId: string | null;
   description: string | null;
   logoUrl: string | null;
   aboutImageUrl?: string | null;
+  heroImageUrl?: string | null;
   phone: string | null;
   contactEmail: string | null;
   address: string | null;
@@ -32,6 +35,7 @@ export interface RestaurantSettingsForm {
   description: string;
   logoUrl: string;
   aboutImageUrl: string;
+  heroImageUrl: string;
   phone: string;
   contactEmail: string;
   address: string;
@@ -49,7 +53,7 @@ export interface RestaurantSettingsForm {
 }
 
 export type RestaurantSettingsPatch = Partial<Pick<OwnerRestaurant,
-  "name" | "heroProductId" | "description" | "logoUrl" | "aboutImageUrl" | "phone" | "contactEmail" | "address" | "openingHours">> & {
+  "name" | "heroProductId" | "description" | "logoUrl" | "aboutImageUrl" | "heroImageUrl" | "phone" | "contactEmail" | "address" | "openingHours">> & {
   deliverySettings?: Partial<OwnerRestaurant["deliverySettings"]>;
   socialLinks?: Partial<OwnerRestaurant["socialLinks"]>;
   branding?: Partial<OwnerRestaurant["branding"]>;
@@ -82,6 +86,8 @@ export function parseOwnerRestaurant(value: unknown): OwnerRestaurant {
       ![value.id, value.name, value.slug, value.currency].every((field) => typeof field === "string" && field.length > 0) ||
       !(value.heroProductId === undefined || value.heroProductId === null ||
         (typeof value.heroProductId === "string" && /^[0-9a-fA-F]{24}$/.test(value.heroProductId))) ||
+      !(value.heroImageUrl === undefined || nullableString(value.heroImageUrl)) ||
+      !(value.storefrontTheme === undefined || typeof value.storefrontTheme === "string") ||
       ![value.description, value.logoUrl, value.phone, value.contactEmail, value.address, value.openingHours,
         value.deliverySettings.estimatedDeliveryTime, value.socialLinks.facebook, value.socialLinks.instagram,
         value.socialLinks.whatsapp, value.branding.brandName, value.branding.primaryColor].every(nullableString) ||
@@ -118,6 +124,7 @@ export function restaurantToForm(restaurant: OwnerRestaurant): RestaurantSetting
     description: restaurant.description ?? "",
     logoUrl: restaurant.logoUrl ?? "",
     aboutImageUrl: restaurant.aboutImageUrl ?? "",
+    heroImageUrl: restaurant.heroImageUrl ?? "",
     phone: restaurant.phone ?? "",
     contactEmail: restaurant.contactEmail ?? "",
     address: restaurant.address ?? "",
@@ -153,9 +160,10 @@ export function validateSettingsForm(form: RestaurantSettingsForm, original: Own
       errors.whatsapp = "Enter a WhatsApp number with its country code.";
     }
   }
-  for (const key of ["logoUrl", "aboutImageUrl", "facebook", "instagram"] as const) {
+  for (const key of ["logoUrl", "aboutImageUrl", "heroImageUrl", "facebook", "instagram"] as const) {
     const value = form[key].trim();
-    if (!value) continue;
+    const previous = key === "facebook" || key === "instagram" ? original.socialLinks[key] : original[key];
+    if (!value || value === (previous ?? "")) continue;
     if (key === "logoUrl" && /^\/api\/public\/restaurants\/[a-z0-9-]+\/media\/[0-9a-f]{24}\/large$/.test(value)) continue;
     try {
       const url = new URL(value);
@@ -164,7 +172,7 @@ export function validateSettingsForm(form: RestaurantSettingsForm, original: Own
       errors[key] = "Enter a valid HTTP or HTTPS URL without credentials.";
     }
   }
-  if (form.primaryColor.trim() && !/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(form.primaryColor.trim())) {
+  if (form.primaryColor.trim() && !normalizeStorefrontAccent(form.primaryColor)) {
     errors.primaryColor = "Use a hex color such as #ff7a00.";
   }
   for (const key of ["deliveryFee", "minimumOrder"] as const) {
@@ -185,7 +193,7 @@ export function settingsPatch(form: RestaurantSettingsForm, original: OwnerResta
   if (Object.keys(errors).length) throw new Error("Invalid settings form");
   const patch: RestaurantSettingsPatch = {};
   if (form.heroProductId !== (original.heroProductId ?? "")) patch.heroProductId = form.heroProductId || null;
-  for (const key of ["name", "description", "logoUrl", "aboutImageUrl", "phone", "contactEmail", "address", "openingHours"] as const) {
+  for (const key of ["name", "description", "logoUrl", "aboutImageUrl", "heroImageUrl", "phone", "contactEmail", "address", "openingHours"] as const) {
     const value = form[key].trim();
     if (value !== (original[key] ?? "")) patch[key] = value;
   }

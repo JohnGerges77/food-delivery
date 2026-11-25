@@ -90,7 +90,7 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
               size={18}
             />
             <input
-              className="h-13 w-full rounded-full border border-white/10 bg-white/[0.045] pl-12 pr-12 text-sm text-[color:var(--text)] outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-all placeholder:text-[color:var(--text-muted)]/60 focus:border-[color:var(--primary)]/65 focus:shadow-[0_0_0_4px_rgba(255,122,0,0.12)]"
+              className="h-13 w-full rounded-full border border-white/10 bg-white/[0.045] pl-12 pr-12 text-sm text-[color:var(--text)] outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-all placeholder:text-[color:var(--text-muted)]/60 focus:border-[color:var(--primary)]/65 focus:shadow-[0_0_0_4px_color-mix(in_srgb,var(--sf-primary)_12%,transparent)]"
               onChange={(event) => setQuery(event.target.value)}
               placeholder={isArabic ? "ابحث في الأطباق المحمّلة..." : "Search loaded dishes..."}
               type="search"
@@ -117,7 +117,7 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
               <button
                 className={`h-10 flex-auto rounded-full border px-3 text-xs font-semibold transition-all sm:h-11 sm:flex-none sm:px-4 sm:text-sm ${
                   activeCategory === category.id
-                    ? "border-[color:var(--primary)] bg-[color:var(--primary)] text-[color:var(--background)] shadow-[0_14px_34px_rgba(255,122,0,0.28)]"
+                    ? "border-[color:var(--primary)] bg-[color:var(--primary)] text-[color:var(--sf-on-primary)] shadow-[0_14px_34px_color-mix(in_srgb,var(--sf-primary)_28%,transparent)]"
                     : "border-white/10 bg-white/[0.035] text-[color:var(--text-muted)] hover:border-[color:var(--primary)]/45 hover:text-[color:var(--primary-light)]"
                 }`}
                 key={category.id}
@@ -155,7 +155,7 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
           {menuError && <div className="mb-6 rounded-[1.2rem] border border-red-400/30 bg-red-400/10 p-5" role="alert">{menuError}<button className="ml-3 underline" onClick={() => activeCategory === "all" ? loadMore() : setRetry((value) => value + 1)} type="button">{isArabic ? "إعادة المحاولة" : "Retry"}</button></div>}
           {loading && products.length === 0 ? <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label={isArabic ? "جار تحميل المنيو" : "Loading menu"}>{[1, 2, 3, 4].map((value) => <div className="h-80 animate-pulse rounded-[1.35rem] bg-white/[0.06]" key={value} />)}</div> : visibleProducts.length === 0 ? (
             <div
-              className="rounded-[1.45rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.075),rgba(255,255,255,0.026)_60%,rgba(255,122,0,0.04))] p-8 text-center shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl"
+              className="rounded-[1.45rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.075),rgba(255,255,255,0.026)_60%,color-mix(in_srgb,var(--sf-primary)_4%,transparent))] p-8 text-center shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl"
             >
               <div className="mx-auto flex size-16 items-center justify-center rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/12 text-[color:var(--primary-light)]">
                 <Search aria-hidden="true" size={26} />

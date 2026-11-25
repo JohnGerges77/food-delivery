@@ -16,7 +16,7 @@ export function PublicProductImage({ src, alt, sizes = "100vw", className = "", 
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const locale = useLocale();
   if (!safe || failedSrc === safe) return <div role="img" aria-label={alt + (locale === "ar" ? "، لا توجد صورة" : ": no image")}
-    className={`flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_70%_20%,rgba(255,157,51,.22),transparent_48%),linear-gradient(135deg,#29221e,#111)] text-[color:var(--primary-light)] ${className}`}>
+    className={`storefront-product-placeholder flex h-full w-full items-center justify-center bg-[color:var(--card-muted)] text-[color:var(--primary-light)] ${className}`}>
     <ImageIcon aria-hidden="true" size={36} strokeWidth={1.4} />
   </div>;
   return <Image alt={alt} className={className} fill sizes={sizes} src={safe}

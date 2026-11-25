@@ -20,10 +20,12 @@ export function serializeOwnerRestaurant(restaurant) {
     slug: restaurant.slug,
     currency: restaurant.currency,
     status: restaurant.status,
+    storefrontTheme: restaurant.storefrontTheme ?? 'savora-classic',
     heroProductId: restaurant.heroProductId ? String(restaurant.heroProductId) : null,
     description: restaurant.description ?? null,
     logoUrl: restaurant.logoUrl ?? null,
     aboutImageUrl: restaurant.aboutImageUrl ?? null,
+    heroImageUrl: restaurant.heroImageUrl || null,
     phone: restaurant.phone ?? null,
     contactEmail: restaurant.contactEmail ?? null,
     address: restaurant.address ?? null,
@@ -42,7 +44,7 @@ export function serializeOwnerRestaurant(restaurant) {
     },
     branding: {
       brandName: restaurant.branding?.brandName ?? null,
-      primaryColor: restaurant.branding?.primaryColor ?? null,
+      primaryColor: restaurant.branding?.primaryColor || null,
     },
   };
 }

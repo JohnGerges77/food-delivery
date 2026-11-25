@@ -23,7 +23,7 @@ function ContactCard({ card }) {
       <div className="absolute -left-16 -top-20 size-36 rounded-full bg-white/0 blur-2xl transition-colors duration-700 group-hover:bg-white/[0.035]" />
       <div className="absolute inset-x-7 top-0 h-px bg-gradient-to-r from-transparent via-white/24 to-transparent opacity-80" />
       <div className="absolute inset-y-5 left-0 w-px bg-gradient-to-b from-transparent via-[color:var(--primary)]/0 to-transparent transition-colors duration-500 group-hover:via-[color:var(--primary)]/70" />
-      <div className="flex size-14 shrink-0 items-center justify-center rounded-[1.15rem] border border-[color:var(--primary)]/28 bg-[linear-gradient(145deg,rgba(255,122,0,0.16),rgba(255,157,51,0.055))] text-[color:var(--primary-light)] shadow-[0_0_32px_rgba(255,122,0,0.15),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-500 group-hover:scale-105 group-hover:border-[color:var(--primary)]/70 group-hover:bg-[color:var(--primary)]/18 group-hover:shadow-[0_0_42px_rgba(255,122,0,0.32),inset_0_1px_0_rgba(255,255,255,0.12)]">
+      <div className="flex size-14 shrink-0 items-center justify-center rounded-[1.15rem] border border-[color:var(--primary)]/28 bg-[linear-gradient(145deg,color-mix(in_srgb,var(--sf-primary)_16%,transparent),color-mix(in_srgb,var(--sf-primary)_6%,transparent))] text-[color:var(--primary-light)] shadow-[0_0_32px_color-mix(in_srgb,var(--sf-primary)_15%,transparent),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-500 group-hover:scale-105 group-hover:border-[color:var(--primary)]/70 group-hover:bg-[color:var(--primary)]/18 group-hover:shadow-[0_0_42px_color-mix(in_srgb,var(--sf-primary)_32%,transparent),inset_0_1px_0_rgba(255,255,255,0.12)]">
         <Icon aria-hidden="true" size={22} strokeWidth={1.8} />
       </div>
       <div className="min-w-0">
@@ -39,7 +39,7 @@ function ContactCard({ card }) {
   const contentClassName = "relative z-20 flex items-start gap-5";
 
   return (
-    <article className="group relative flex min-h-36 items-start gap-5 overflow-hidden rounded-[1.65rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.075),rgba(255,255,255,0.028)_58%,rgba(255,122,0,0.035))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:border-[color:var(--primary)]/55 hover:bg-white/[0.075] hover:shadow-[0_32px_92px_rgba(255,122,0,0.18),inset_0_1px_0_rgba(255,255,255,0.09)] sm:p-6 lg:p-7">
+    <article className="group relative flex min-h-36 items-start gap-5 overflow-hidden rounded-[1.65rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.075),rgba(255,255,255,0.028)_58%,color-mix(in_srgb,var(--sf-primary)_4%,transparent))] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:border-[color:var(--primary)]/55 hover:bg-white/[0.075] hover:shadow-[0_32px_92px_color-mix(in_srgb,var(--sf-primary)_18%,transparent),inset_0_1px_0_rgba(255,255,255,0.09)] sm:p-6 lg:p-7">
       {card.href ? (
         <a className={contentClassName} href={card.href} aria-label={`${card.title}: ${card.value}`}>
           {content}
@@ -62,40 +62,40 @@ export default function ContactSection() {
   return (
     <section id="contact" className="relative isolate overflow-hidden bg-[color:var(--background)] px-4 py-24 text-[color:var(--text)] sm:px-6 sm:py-30 lg:px-8 lg:py-32">
       <div
-        className="absolute right-[-20rem] top-10 -z-10 size-[50rem] rounded-full bg-[radial-gradient(circle,rgba(255,122,0,0.26),rgba(255,122,0,0.1)_36%,transparent_70%)] blur-3xl"
+        className="absolute right-[-20rem] top-10 -z-10 size-[50rem] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sf-primary)_26%,transparent),color-mix(in_srgb,var(--sf-primary)_10%,transparent)_36%,transparent_70%)] blur-3xl"
       />
       <div
-        className="absolute bottom-[-21rem] left-[-18rem] -z-10 size-[46rem] rounded-full bg-[radial-gradient(circle,rgba(212,160,23,0.16),rgba(255,122,0,0.08)_42%,transparent_72%)] blur-3xl"
+        className="absolute bottom-[-21rem] left-[-18rem] -z-10 size-[46rem] rounded-full bg-[radial-gradient(circle,rgba(212,160,23,0.16),color-mix(in_srgb,var(--sf-primary)_8%,transparent)_42%,transparent_72%)] blur-3xl"
       />
       <div
-        className="absolute left-1/2 top-[14%] -z-10 h-[34rem] w-[72rem] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,rgba(255,157,51,0.08),transparent_68%)] blur-2xl"
+        className="absolute left-1/2 top-[14%] -z-10 h-[34rem] w-[72rem] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,color-mix(in_srgb,var(--sf-primary)_8%,transparent),transparent_68%)] blur-2xl"
       />
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_50%_10%,rgba(255,157,51,0.11),transparent_33%),radial-gradient(circle_at_14%_72%,rgba(255,122,0,0.08),transparent_28%),linear-gradient(180deg,rgba(13,13,13,1),rgba(31,31,31,0.55)_48%,rgba(13,13,13,1))]" />
+      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_50%_10%,color-mix(in_srgb,var(--sf-primary)_11%,transparent),transparent_33%),radial-gradient(circle_at_14%_72%,color-mix(in_srgb,var(--sf-primary)_8%,transparent),transparent_28%),linear-gradient(180deg,rgba(13,13,13,1),rgba(31,31,31,0.55)_48%,rgba(13,13,13,1))]" />
       <div className="absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[color:var(--primary)]/35 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 -z-10 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       <div className="pointer-events-none absolute left-1/2 top-0 -z-10 hidden h-full w-px bg-gradient-to-b from-transparent via-[color:var(--primary)]/18 to-transparent lg:block" />
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(115deg,transparent_0%,transparent_43%,rgba(255,122,0,0.08)_44%,transparent_46%,transparent_100%)]" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(115deg,transparent_0%,transparent_43%,color-mix(in_srgb,var(--sf-primary)_8%,transparent)_44%,transparent_46%,transparent_100%)]" />
       <div className="pointer-events-none absolute inset-x-6 top-24 -z-10 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent sm:inset-x-16" />
       <div className="pointer-events-none absolute inset-x-10 bottom-24 -z-10 h-px bg-gradient-to-r from-transparent via-[color:var(--gold)]/18 to-transparent sm:inset-x-24" />
 
       {particleClasses.map((className) => (
         <span
-          className={`absolute rounded-full bg-[color:var(--primary-light)]/45 shadow-[0_0_20px_rgba(255,157,51,0.55)] ${className}`}
+          className={`absolute rounded-full bg-[color:var(--primary-light)]/45 shadow-[0_0_20px_color-mix(in_srgb,var(--sf-primary)_55%,transparent)] ${className}`}
           key={className}
         />
       ))}
 
       <div className="mx-auto max-w-7xl">
         <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-7 inline-flex items-center gap-4 rounded-full border border-[color:var(--primary)]/35 bg-[linear-gradient(135deg,rgba(255,122,0,0.16),rgba(255,255,255,0.035))] px-4 py-2 text-xs font-semibold tracking-[0.26em] text-[color:var(--primary-light)] uppercase shadow-[0_0_38px_rgba(255,122,0,0.16),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">
+          <div className="mb-7 inline-flex items-center gap-4 rounded-full border border-[color:var(--primary)]/35 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--sf-primary)_16%,transparent),rgba(255,255,255,0.035))] px-4 py-2 text-xs font-semibold tracking-[0.26em] text-[color:var(--primary-light)] uppercase shadow-[0_0_38px_color-mix(in_srgb,var(--sf-primary)_16%,transparent),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">
             <span className="h-px w-8 bg-gradient-to-r from-transparent to-[color:var(--primary)]/80" />
             {isArabic ? "تواصل معنا" : "Get In Touch"}
-            <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_rgba(255,157,51,0.9)]" />
+            <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_color-mix(in_srgb,var(--sf-primary)_90%,transparent)]" />
           </div>
           <h2 className="text-4xl font-semibold leading-[1.02] text-balance text-[color:var(--text)] sm:text-5xl lg:text-6xl">
             {isArabic ? "تواصل مع" : "Get in Touch with"}
             <span className="block">
-              <span className="text-[color:var(--primary)] drop-shadow-[0_0_30px_rgba(255,122,0,0.22)]">
+              <span className="text-[color:var(--primary)] drop-shadow-[0_0_30px_color-mix(in_srgb,var(--sf-primary)_22%,transparent)]">
                 {restaurant.name}
               </span>
             </span>
@@ -119,17 +119,17 @@ export default function ContactSection() {
             className="relative"
           >
             <div
-              className="absolute -inset-10 -z-10 rounded-[3.5rem] bg-[radial-gradient(circle,rgba(255,157,51,0.28),rgba(255,122,0,0.1)_38%,transparent_72%)] blur-2xl"
+              className="absolute -inset-10 -z-10 rounded-[3.5rem] bg-[radial-gradient(circle,color-mix(in_srgb,var(--sf-primary)_28%,transparent),color-mix(in_srgb,var(--sf-primary)_10%,transparent)_38%,transparent_72%)] blur-2xl"
             />
 
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035)_50%,rgba(255,122,0,0.055))] p-5 shadow-[0_38px_110px_rgba(0,0,0,0.48),inset_0_1px_0_rgba(255,255,255,0.075)] backdrop-blur-2xl sm:p-7 lg:p-9">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_24%_0%,rgba(255,255,255,0.12),transparent_24%),linear-gradient(135deg,rgba(255,255,255,0.09),transparent_36%,rgba(255,122,0,0.11))]" />
+            <div className="relative overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035)_50%,color-mix(in_srgb,var(--sf-primary)_6%,transparent))] p-5 shadow-[0_38px_110px_rgba(0,0,0,0.48),inset_0_1px_0_rgba(255,255,255,0.075)] backdrop-blur-2xl sm:p-7 lg:p-9">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_24%_0%,rgba(255,255,255,0.12),transparent_24%),linear-gradient(135deg,rgba(255,255,255,0.09),transparent_36%,color-mix(in_srgb,var(--sf-primary)_11%,transparent))]" />
               <div className="pointer-events-none absolute -right-24 -top-24 size-60 rounded-full bg-[color:var(--primary)]/20 blur-3xl" />
               <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
               <div className="relative">
                 <div className="mb-8 rounded-[1.45rem] border border-[color:var(--gold)]/24 bg-[linear-gradient(135deg,rgba(13,13,13,0.68),rgba(31,31,31,0.48))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_24px_66px_rgba(0,0,0,0.3)] backdrop-blur-xl sm:p-6">
                   <div className="flex items-start gap-4">
-                    <div className="flex size-12 shrink-0 items-center justify-center rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/12 text-[color:var(--primary-light)] shadow-[0_0_30px_rgba(255,122,0,0.2),inset_0_1px_0_rgba(255,255,255,0.08)]">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/12 text-[color:var(--primary-light)] shadow-[0_0_30px_color-mix(in_srgb,var(--sf-primary)_20%,transparent),inset_0_1px_0_rgba(255,255,255,0.08)]">
                       <Sparkles aria-hidden="true" size={19} strokeWidth={1.8} />
                     </div>
                     <div>
@@ -145,7 +145,7 @@ export default function ContactSection() {
 
                 <div className="grid gap-5">
                   <p className="text-lg leading-8 text-[color:var(--text-muted)]">{isArabic ? "يمكنك تصفح الأطباق المتاحة أو استخدام بيانات التواصل المعروضة." : "Browse available dishes or use the contact details shown here."}</p>
-                  <Link className="group relative mt-3 inline-flex min-h-15 items-center justify-center gap-3 overflow-hidden rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 text-sm font-bold tracking-wide text-[color:var(--background)] shadow-[0_22px_62px_rgba(255,122,0,0.38)] transition-all duration-300 hover:-translate-y-1" href={href("/menu")}>{isArabic ? "عرض المنيو" : "View Menu"}</Link>
+                  <Link className="group relative mt-3 inline-flex min-h-15 items-center justify-center gap-3 overflow-hidden rounded-full storefront-action px-8 text-sm font-bold tracking-wide text-[color:var(--sf-on-primary)] shadow-[0_22px_62px_color-mix(in_srgb,var(--sf-primary)_38%,transparent)] transition-all duration-300 hover:-translate-y-1" href={href("/menu")}>{isArabic ? "عرض المنيو" : "View Menu"}</Link>
                 </div>
               </div>
             </div>

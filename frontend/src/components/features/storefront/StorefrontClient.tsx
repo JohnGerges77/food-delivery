@@ -25,6 +25,7 @@ import { AboutImage } from "./AboutImage";
 import { StorefrontProvider, useStorefront } from "./StorefrontContext";
 import type { StorefrontPage } from "./StorefrontView";
 import { resolveStorefrontTheme, type StorefrontThemeId } from "@/lib/storefront-theme";
+import { storefrontAccentStyle } from "@/lib/storefront-accent";
 import { AquaAbout, AquaFooter, AquaHome, AquaMenu, AquaNavbar, AquaProduct } from "./aqua/AquaStorefront";
 import aquaStyles from "./aqua/AquaStorefront.module.css";
 import { CafeAbout, CafeFooter, CafeHome, CafeMenu, CafeNavbar, CafeProduct } from "./cafe/CafeStorefront";
@@ -53,7 +54,7 @@ function ProductPage({ product }: { product: PublicProduct }) {
   return <main className="min-h-screen overflow-hidden bg-[color:var(--background)] px-4 py-16 text-[color:var(--text)] sm:px-6 lg:px-8">
     <div className="mx-auto max-w-7xl">
       <Link className="text-sm font-semibold text-[color:var(--primary-light)] hover:underline" href={href("/menu")}>{isArabic ? "العودة للمنيو" : "Back to menu"}</Link>
-      <article className="mt-8 grid gap-8 overflow-hidden rounded-[1.75rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.025)_60%,rgba(255,122,0,.05))] shadow-[0_30px_90px_rgba(0,0,0,.35)] lg:grid-cols-2">
+      <article className="mt-8 grid gap-8 overflow-hidden rounded-[1.75rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.025)_60%,color-mix(in_srgb,var(--sf-primary)_5%,transparent))] shadow-[0_30px_90px_rgba(0,0,0,.35)] lg:grid-cols-2">
         <div className="relative aspect-square overflow-hidden"><ProductImageGallery product={product} sizes="(min-width: 1024px) 50vw, 100vw" /></div>
         <div className="flex flex-col justify-center p-7 sm:p-10 lg:p-12">
           {category && <p className="text-xs font-semibold uppercase tracking-[.22em] text-[color:var(--gold)]">{category.name}</p>}
@@ -61,7 +62,7 @@ function ProductPage({ product }: { product: PublicProduct }) {
           {product.description && <p className="mt-6 whitespace-pre-line text-base leading-8 text-[color:var(--text-muted)]">{product.description}</p>}
           <div className="mt-8 flex flex-wrap items-center gap-4"><strong className="text-3xl text-[color:var(--primary-light)]">{productDisplayPrice(product, restaurant.currency, locale)}</strong>{!product.variants?.length && product.oldPrice !== null && product.oldPrice > product.price && <span className="text-[color:var(--text-muted)] line-through">{publicMoney(product.oldPrice, restaurant.currency, locale)}</span>}</div>
           <ProductMetadata product={product} locale={locale} />
-          <ProductPurchase product={product} buttonClassName={"mt-9 min-h-13 rounded-full bg-[color:var(--primary)] px-8 font-bold text-[color:var(--background)]"} />
+          <ProductPurchase product={product} buttonClassName={"mt-9 min-h-13 rounded-full bg-[color:var(--primary)] px-8 font-bold text-[color:var(--sf-on-primary)]"} />
         </div>
       </article>
     </div>
@@ -132,8 +133,10 @@ export function StorefrontClient({ basePath, restaurant, page, categories, initi
   useEffect(() => { setTenant(restaurant.slug); }, [restaurant.slug, setTenant]);
   const themeId = resolveStorefrontTheme(restaurant);
   const theme = storefrontThemes[themeId];
+  const accent = storefrontAccentStyle(themeId, restaurant.branding.primaryColor);
   return <StorefrontProvider restaurant={restaurant} categories={categories} basePath={basePath}>
-    <div data-storefront-theme={themeId} data-storefront-page={page} className={`min-h-screen bg-[color:var(--sf-background)] text-[color:var(--sf-text)] ${themeId === "savora-aqua" ? aquaStyles.root : themeId === "savora-cafe" ? cafeStyles.root : themeId === "savora-luxury" ? luxuryStyles.root : ""}`}>
+    <div data-storefront-theme={themeId} data-storefront-page={page} data-custom-accent={accent ? "" : undefined} style={accent}
+      className={`min-h-screen bg-[color:var(--sf-background)] text-[color:var(--sf-text)] ${themeId === "savora-aqua" ? aquaStyles.root : themeId === "savora-cafe" ? cafeStyles.root : themeId === "savora-luxury" ? luxuryStyles.root : ""}`}>
       <theme.Navbar />
       {page === "home" && <theme.Home restaurant={restaurant} initialProducts={initialProducts} offers={offers} />}
       {page === "menu" && <theme.Menu initialProducts={initialProducts} initialPagination={initialPagination} />}

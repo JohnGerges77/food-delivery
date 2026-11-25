@@ -15,7 +15,7 @@ export function ProductPurchase({ product, buttonClassName }: { product: PublicP
   const variant = product.variants?.find((v) => v.id === selected && v.isAvailable);
   return <div className="mt-5 w-full min-w-0">
     {Boolean(product.variants?.length) && <fieldset className="grid gap-2"><legend className="mb-2 font-semibold">{ar ? 'اختر الحجم أو النوع' : 'Choose a size or variant'}</legend>
-      {product.variants!.map((v) => <label key={v.id} className="flex min-h-11 flex-wrap items-center gap-3 rounded-lg border border-[color:var(--sf-border)] p-3 text-sm">
+      {product.variants!.map((v) => <label key={v.id} className="storefront-variant flex min-h-11 flex-wrap items-center gap-3 rounded-lg border border-[color:var(--sf-border)] p-3 text-sm">
         <input type="radio" name={`variant-${product.id}`} value={v.id} checked={selected === v.id} disabled={!v.isAvailable}
           onChange={() => { setSelected(v.id); setFeedback(null); }} />
         <span>{v.name}{!v.isAvailable ? (ar ? ' — غير متاح' : ' — Unavailable') : ''}</span><span className="ms-auto">{publicMoney(v.price, restaurant.currency, locale)}</span>

@@ -222,6 +222,34 @@ test('owner tenant isolation on savora_test', async (t) => {
       assert.match(preflight.headers.get('access-control-allow-methods'), /PATCH/);
     });
 
+    await t.test('Owner hero and accent persist in uncached public reads and reset per tenant', async () => {
+      const [a, b] = tenants;
+      const heroImageUrl = 'https://example.test/restaurant-hero.webp';
+      const publicRestaurant = async (tenant) => {
+        const result = await fetch(`http://127.0.0.1:${server.address().port}/api/public/restaurants/${tenant.restaurant.slug}`);
+        assert.equal(result.status, 200);
+        assert.equal(result.headers.get('cache-control'), 'no-store');
+        return (await result.json()).restaurant;
+      };
+      assert.equal((await patchRestaurant(a.session, { heroImageUrl, branding: { primaryColor: '#89CFF0' } },
+        { query: `?restaurantId=${b.restaurant._id}` })).status, 200);
+      const saved = (await (await getRestaurant(a.session.cookie)).json()).restaurant;
+      assert.equal(saved.heroImageUrl, heroImageUrl);
+      assert.equal(saved.branding.primaryColor, '#89CFF0');
+      const publicA = await publicRestaurant(a);
+      assert.equal(publicA.heroImageUrl, heroImageUrl);
+      assert.equal(publicA.branding.primaryColor, '#89CFF0');
+      assert.equal(publicA.storefrontTheme, 'savora-classic');
+      const publicB = await publicRestaurant(b);
+      assert.equal(publicB.heroImageUrl, null);
+      assert.equal(publicB.branding.primaryColor, '#abc');
+      assert.equal((await patchRestaurant(a.session, { heroImageUrl: '', branding: { primaryColor: '' } })).status, 200);
+      const cleared = await publicRestaurant(a);
+      assert.equal(cleared.heroImageUrl, null);
+      assert.equal(cleared.branding.primaryColor, null);
+      assert.equal(cleared.branding.brandName, 'Brand a');
+    });
+
     await t.test('PATCH rejects immutable, unknown, operator, malformed and invalid values', async () => {
       const ownerA = tenants[0];
       for (const body of [

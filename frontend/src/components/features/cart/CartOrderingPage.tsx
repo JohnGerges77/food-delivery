@@ -33,7 +33,7 @@ export function CartOrderingPage({ deliveryFee, currency, slug, checkoutAvailabi
   return (
     <main className="min-h-screen overflow-hidden bg-[color:var(--background)] text-[color:var(--text)]">
       <section className="relative isolate overflow-hidden px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
-        <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_80%_22%,rgba(255,122,0,0.18),transparent_32%),linear-gradient(135deg,rgba(31,31,31,0.84),rgba(13,13,13,1)_55%,rgba(13,13,13,1))]" />
+        <div className="absolute inset-0 -z-20 bg-[image:var(--hero-background)]" />
         <div className="absolute inset-x-0 bottom-0 -z-10 h-36 bg-gradient-to-t from-[color:var(--background)] to-transparent" />
         <div className="mx-auto max-w-7xl">
           <motion.div
@@ -41,10 +41,10 @@ export function CartOrderingPage({ deliveryFee, currency, slug, checkoutAvailabi
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{ duration: 0.72, ease: sectionEase }}
           >
-            <div className="mb-1 inline-flex items-center gap-3 rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 px-4 py-2 text-xs font-semibold tracking-[0.24em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_rgba(255,122,0,0.14)] backdrop-blur">
+            <div className="mb-1 inline-flex items-center gap-3 rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 px-4 py-2 text-xs font-semibold tracking-[0.24em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_color-mix(in_srgb,var(--sf-primary)_14%,transparent)] backdrop-blur">
               <span className="h-px w-8 bg-gradient-to-r from-transparent to-[color:var(--primary)]/80" />
               {isArabic ? "سلتك" : "Your Cart"}
-              <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_rgba(255,157,51,0.9)]" />
+              <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_color-mix(in_srgb,var(--sf-primary)_90%,transparent)]" />
             </div>
             <h1 className="mt-5 max-w-4xl text-[clamp(3rem,7vw,5.6rem)] font-semibold leading-[0.95] text-balance">
               {isArabic ? "راجع سلتك" : "Review Your"} <span className="block text-[color:var(--primary-light)]">{isArabic ? "قبل المتابعة" : "Cart"}</span>
@@ -57,12 +57,12 @@ export function CartOrderingPage({ deliveryFee, currency, slug, checkoutAvailabi
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_24rem] lg:items-start">
           {items.length === 0 ? (
             <motion.div
-              className="rounded-[1.6rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.08),rgba(255,255,255,0.028)_60%,rgba(255,122,0,0.045))] p-8 text-center shadow-[0_34px_100px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-2xl sm:p-12 lg:col-span-2"
+              className="rounded-[1.6rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.08),rgba(255,255,255,0.028)_60%,color-mix(in_srgb,var(--sf-primary)_5%,transparent))] p-8 text-center shadow-[0_34px_100px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-2xl sm:p-12 lg:col-span-2"
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, ease: sectionEase }}
             >
-              <div className="mx-auto flex size-20 items-center justify-center rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/12 text-[color:var(--primary-light)] shadow-[0_0_42px_rgba(255,122,0,0.2)]">
+              <div className="mx-auto flex size-20 items-center justify-center rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/12 text-[color:var(--primary-light)] shadow-[0_0_42px_color-mix(in_srgb,var(--sf-primary)_20%,transparent)]">
                 <ShoppingBag aria-hidden="true" size={34} />
               </div>
               <h2 className="mt-7 text-3xl font-semibold">{isArabic ? "سلتك فارغة" : "Your Cart Is Empty"}</h2>
@@ -70,7 +70,7 @@ export function CartOrderingPage({ deliveryFee, currency, slug, checkoutAvailabi
                 {isArabic ? "تصفح القائمة وأضف الأطباق التي تفضلها إلى سلتك." : "Browse the menu and add your favorite dishes."}
               </p>
               <Link
-                className="mt-8 inline-flex min-h-13 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 text-sm font-bold text-[color:var(--background)] shadow-[0_20px_56px_rgba(255,122,0,0.34)] transition-transform hover:-translate-y-0.5"
+                className="mt-8 inline-flex min-h-13 items-center justify-center rounded-full storefront-action px-8 text-sm font-bold text-[color:var(--sf-on-primary)] shadow-[0_20px_56px_color-mix(in_srgb,var(--sf-primary)_34%,transparent)] transition-transform hover:-translate-y-0.5"
                 href={href("/menu")}
               >
                 {isArabic ? "تصفح المنيو" : "Browse Menu"}
@@ -99,7 +99,7 @@ export function CartOrderingPage({ deliveryFee, currency, slug, checkoutAvailabi
                 <AnimatePresence initial={false}>
                   {items.map((item) => (
                     <motion.article
-                      className="group grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-3 gap-y-1 rounded-[1.35rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.078),rgba(255,255,255,0.028)_58%,rgba(255,122,0,0.04))] p-3 shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.065)] backdrop-blur-xl transition-colors hover:border-[color:var(--primary)]/35 sm:grid-cols-[8rem_1fr_auto] sm:items-center sm:gap-4 sm:p-5"
+                      className="group grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-3 gap-y-1 rounded-[1.35rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.078),rgba(255,255,255,0.028)_58%,color-mix(in_srgb,var(--sf-primary)_4%,transparent))] p-3 shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.065)] backdrop-blur-xl transition-colors hover:border-[color:var(--primary)]/35 sm:grid-cols-[8rem_1fr_auto] sm:items-center sm:gap-4 sm:p-5"
                       key={cartItemKey(item)}
                       layout
                       initial={{ opacity: 0, y: 24, scale: 0.98 }}
@@ -164,7 +164,7 @@ export function CartOrderingPage({ deliveryFee, currency, slug, checkoutAvailabi
               </div>
 
               <aside className="lg:sticky lg:top-28">
-                <div className="relative overflow-hidden rounded-[1.6rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035)_54%,rgba(255,122,0,0.07))] p-6 shadow-[0_34px_110px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl">
+                <div className="relative overflow-hidden rounded-[1.6rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035)_54%,color-mix(in_srgb,var(--sf-primary)_7%,transparent))] p-6 shadow-[0_34px_110px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl">
                   <div className="pointer-events-none absolute -right-20 -top-20 size-52 rounded-full bg-[color:var(--primary)]/18 blur-3xl" />
                   <div className="relative">
                     <h2 className="text-2xl font-semibold">{isArabic ? "ملخص الطلب" : "Order Summary"}</h2>
@@ -174,11 +174,11 @@ export function CartOrderingPage({ deliveryFee, currency, slug, checkoutAvailabi
                       {isArabic ? "السعر النهائي يحدده الخادم عند إرسال الطلب. لم يتم حفظ أي طلب." : "The server determines final prices when orders can be submitted. No order has been saved."}
                     </div>
                     {checkoutAvailability === "available" ? <Link
-                      className="mt-4 inline-flex min-h-13 w-full items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-7 text-sm font-bold text-[color:var(--background)] shadow-[0_20px_56px_rgba(255,122,0,0.36)] transition-transform hover:-translate-y-0.5"
+                      className="mt-4 inline-flex min-h-13 w-full items-center justify-center rounded-full storefront-action px-7 text-sm font-bold text-[color:var(--sf-on-primary)] shadow-[0_20px_56px_color-mix(in_srgb,var(--sf-primary)_36%,transparent)] transition-transform hover:-translate-y-0.5"
                       href={href("/checkout")}
                     >
                       {isArabic ? "المتابعة لإتمام الطلب" : "Proceed To Checkout"}
-                    </Link> : <p className="mt-4 rounded-lg border border-[color:var(--gold)]/30 px-4 py-3 text-sm leading-6" role="status">
+                    </Link> : <p className="storefront-warning mt-4 rounded-lg border px-4 py-3 text-sm leading-6" role="status">
                       {checkoutUnavailableMessage(checkoutAvailability, isArabic)}
                     </p>}
                     <button

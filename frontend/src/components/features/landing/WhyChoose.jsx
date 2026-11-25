@@ -18,10 +18,10 @@ export default function WhyChoose({ restaurant }) {
   return (
     <section className="relative isolate overflow-hidden bg-[color:var(--background)] px-4 py-24 text-[color:var(--text)] sm:px-6 sm:py-28 lg:px-8">
       <div
-        className="absolute left-[-18rem] top-10 -z-10 size-[38rem] rounded-full bg-[radial-gradient(circle,rgba(255,122,0,0.18),rgba(255,122,0,0.08)_36%,transparent_70%)] blur-3xl"
+        className="absolute left-[-18rem] top-10 -z-10 size-[38rem] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sf-primary)_18%,transparent),color-mix(in_srgb,var(--sf-primary)_8%,transparent)_36%,transparent_70%)] blur-3xl"
       />
       <div
-        className="absolute bottom-[-16rem] right-[-12rem] -z-10 size-[40rem] rounded-full bg-[radial-gradient(circle,rgba(212,160,23,0.14),rgba(255,122,0,0.08)_42%,transparent_72%)] blur-3xl"
+        className="absolute bottom-[-16rem] right-[-12rem] -z-10 size-[40rem] rounded-full bg-[radial-gradient(circle,rgba(212,160,23,0.14),color-mix(in_srgb,var(--sf-primary)_8%,transparent)_42%,transparent_72%)] blur-3xl"
       />
       <div className="absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[color:var(--primary)]/30 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 -z-10 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -29,17 +29,17 @@ export default function WhyChoose({ restaurant }) {
       <div className={`mx-auto grid max-w-7xl items-center gap-16 ${showImage ? "lg:grid-cols-[0.96fr_1.04fr] lg:gap-20" : ""}`}>
         <div>
           <div
-            className="mb-7 inline-flex items-center gap-4 rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 px-4 py-2 text-xs font-semibold tracking-[0.26em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_rgba(255,122,0,0.14)] backdrop-blur"
+            className="mb-7 inline-flex items-center gap-4 rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 px-4 py-2 text-xs font-semibold tracking-[0.26em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_color-mix(in_srgb,var(--sf-primary)_14%,transparent)] backdrop-blur"
           >
             <span className="h-px w-8 bg-gradient-to-r from-transparent to-[color:var(--primary)]/80" />
             {isArabic ? "عن المطعم" : "About the Restaurant"}
-            <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_rgba(255,157,51,0.9)]" />
+            <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_color-mix(in_srgb,var(--sf-primary)_90%,transparent)]" />
           </div>
 
           <div>
             <h2 className="max-w-3xl text-4xl font-semibold leading-[1.02] text-balance text-[color:var(--text)] sm:text-5xl lg:text-6xl">
               {restaurant.name}
-              <span className="block text-[color:var(--primary-light)] drop-shadow-[0_0_28px_rgba(255,122,0,0.18)]">
+              <span className="block text-[color:var(--primary-light)] drop-shadow-[0_0_28px_color-mix(in_srgb,var(--sf-primary)_18%,transparent)]">
                 {isArabic ? "تعرّف علينا" : "Get to Know Us"}
               </span>
             </h2>
@@ -62,12 +62,12 @@ export default function WhyChoose({ restaurant }) {
 
               return (
                 <article
-                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.025))] p-5 shadow-[0_18px_56px_rgba(0,0,0,0.28)] backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:border-[color:var(--primary)]/45 hover:bg-white/[0.065] hover:shadow-[0_26px_78px_rgba(255,122,0,0.16)]"
+                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.055),rgba(255,255,255,0.025))] p-5 shadow-[0_18px_56px_rgba(0,0,0,0.28)] backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:border-[color:var(--primary)]/45 hover:bg-white/[0.065] hover:shadow-[0_26px_78px_color-mix(in_srgb,var(--sf-primary)_16%,transparent)]"
                   key={feature.title}
                 >
                   <div className="absolute -right-14 top-2 size-32 rounded-full bg-[color:var(--primary)]/0 blur-2xl transition-colors duration-500 group-hover:bg-[color:var(--primary)]/18" />
                   <div className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-                  <div className="mb-5 flex size-13 items-center justify-center rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 text-[color:var(--primary-light)] shadow-[0_0_28px_rgba(255,122,0,0.14)] transition-all duration-500 group-hover:border-[color:var(--primary)]/60 group-hover:bg-[color:var(--primary)]/18 group-hover:shadow-[0_0_34px_rgba(255,122,0,0.24)]">
+                  <div className="mb-5 flex size-13 items-center justify-center rounded-full border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 text-[color:var(--primary-light)] shadow-[0_0_28px_color-mix(in_srgb,var(--sf-primary)_14%,transparent)] transition-all duration-500 group-hover:border-[color:var(--primary)]/60 group-hover:bg-[color:var(--primary)]/18 group-hover:shadow-[0_0_34px_color-mix(in_srgb,var(--sf-primary)_24%,transparent)]">
                     <Icon aria-hidden="true" size={22} strokeWidth={1.8} />
                   </div>
                   <h3 className="text-lg font-semibold text-[color:var(--text)] transition-colors duration-300 group-hover:text-[color:var(--primary-light)]">
@@ -86,7 +86,7 @@ export default function WhyChoose({ restaurant }) {
           className="relative lg:pl-2"
         >
           <div
-            className="absolute -inset-10 -z-10 rounded-[3.5rem] bg-[radial-gradient(circle,rgba(255,157,51,0.28),rgba(255,122,0,0.09)_44%,transparent_72%)] blur-2xl"
+            className="absolute -inset-10 -z-10 rounded-[3.5rem] bg-[radial-gradient(circle,color-mix(in_srgb,var(--sf-primary)_28%,transparent),color-mix(in_srgb,var(--sf-primary)_9%,transparent)_44%,transparent_72%)] blur-2xl"
           />
           <div className="absolute -left-4 top-10 z-10 hidden h-24 w-px bg-gradient-to-b from-transparent via-[color:var(--primary)]/60 to-transparent lg:block" />
           <div className="absolute -right-4 -top-4 z-10 hidden rounded-full border border-[color:var(--gold)]/35 bg-[color:var(--background)]/75 px-5 py-2 text-xs font-semibold tracking-[0.22em] text-[color:var(--gold)] uppercase shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-md sm:block">

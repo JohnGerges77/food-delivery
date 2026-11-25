@@ -9,6 +9,8 @@ import { ApiError } from "@/services/api-client";
 import { listOwnerProducts, type OwnerProduct } from "@/services/owner-products-service";
 import { allOwnerCategories } from "@/services/owner-categories-service";
 import { safePublicImage } from "@/lib/public-menu-presentation";
+import { normalizeStorefrontAccent, storefrontAccentStyle, themeDefaultAccent } from "@/lib/storefront-accent";
+import { resolveStorefrontTheme } from "@/lib/storefront-theme";
 import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";
 import { getOwnerRestaurant, patchOwnerRestaurant, restaurantToForm, settingsPatch, validateSettingsForm,
   type OwnerRestaurant, type RestaurantSettingsForm } from "@/services/owner-restaurant-service";
@@ -149,11 +151,13 @@ function RestaurantSettingsEditor({ ownerId }: { ownerId: string | undefined }) 
       onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => change(key, event.target.value) };
     return <div key={key} className={key === "description" || key === "logoUrl" ? "sm:col-span-2" : ""}>
       <label htmlFor={id} className="mb-2 block text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">{ar ? labels[label] ?? label : label}</label>
-      {type === "textarea" ? <textarea {...props} className={textareaClass} /> : <input {...props} className={inputClass} type={type} dir={key === "whatsapp" ? "ltr" : undefined} inputMode={key === "deliveryFee" || key === "minimumOrder" ? "decimal" : undefined} />}
+      {type === "textarea" ? <textarea {...props} className={textareaClass} /> : <input {...props} className={inputClass} type={type} dir={key === "whatsapp" || key === "primaryColor" || type === "url" ? "ltr" : undefined} inputMode={key === "deliveryFee" || key === "minimumOrder" ? "decimal" : undefined} />}
       {errors[key] ? <p id={`error-${key}`} className="mt-2 text-sm text-red-300">{ownerText(ar ? "ar" : "en", errors[key]!)}</p> : null}
     </div>;
   }
 
+  const theme = resolveStorefrontTheme({ storefrontTheme: restaurant?.storefrontTheme });
+  const previewAccent = storefrontAccentStyle(theme, form?.primaryColor);
   return <section>
     <DashboardPageHeader eyebrow={ar ? "إدارة المطعم" : "Restaurant Control"} title={ar ? "الإعدادات" : "Settings"}
       description={ar ? "إدارة بيانات المطعم والتوصيل وساعات العمل وروابط التواصل والمظهر." : "Maintain your restaurant profile, delivery rules, hours, social links, and appearance."}
@@ -176,7 +180,15 @@ function RestaurantSettingsEditor({ ownerId }: { ownerId: string | undefined }) 
               onChange={(event) => change("whatsappOrderingEnabled", event.target.checked)} className="size-5 accent-[color:var(--primary)]" />
           </label>
         </DashboardCard>
-        <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">{ownerText((ar ? "ar" : "en"), "Hero Product")}</h3><p className="mt-2 text-sm text-[color:var(--text-muted)]">{ownerText((ar ? "ar" : "en"), "Choose an available product for your storefront Hero. Its own image appears when available.")}</p>
+        <DashboardCard className="p-5 sm:p-6">
+          <h3 className="text-2xl font-semibold">{ar ? "صورة واجهة المطعم" : "Storefront hero image"}</h3>
+          <p className="mt-2 text-sm text-[color:var(--text-muted)]">{ar ? "استخدم رابطًا عامًا لصورة أفقية. اتركه فارغًا لاستخدام الصورة الافتراضية." : "Use a public URL for a wide photo. Leave it empty to use the theme’s fallback."}</p>
+          <div className="mt-5">{field("heroImageUrl", "Image URL", "url")}</div>
+          {safePublicImage(form.heroImageUrl) && <div className="relative mt-4 aspect-video max-w-md overflow-hidden rounded-xl">
+            <PublicProductImage src={form.heroImageUrl.trim()} alt={ar ? "معاينة صورة الواجهة" : "Hero image preview"} className="object-cover" sizes="448px" />
+          </div>}
+        </DashboardCard>
+        <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">{ownerText((ar ? "ar" : "en"), "Hero Product")}</h3><p className="mt-2 text-sm text-[color:var(--text-muted)]">{ar ? "اختر منتجًا متاحًا لتمييزه. تُستخدم صورته في الواجهة حسب القالب وإعدادات الصورة." : "Choose an available product to feature. Its photo is used according to the theme and hero image setting."}</p>
           <label htmlFor="settings-hero-product" className="mt-5 block text-sm font-semibold">{ownerText((ar ? "ar" : "en"), "Featured Hero product")}</label>
           <select id="settings-hero-product" className={`${inputClass} mt-2`} value={form.heroProductId} disabled={saving} onChange={(event) => change("heroProductId", event.target.value)}>
             <option value="">{ownerText((ar ? "ar" : "en"), "Automatic selection / graphic fallback")}</option>
@@ -194,7 +206,32 @@ function RestaurantSettingsEditor({ ownerId }: { ownerId: string | undefined }) 
           {field("deliveryFee", ar ? `رسوم التوصيل (${restaurant.currency})` : `Delivery Fee (${restaurant.currency})`)}{field("minimumOrder", ar ? `الحد الأدنى للطلب (${restaurant.currency})` : `Minimum Order (${restaurant.currency})`)}{field("estimatedDeliveryTime", ar ? "وقت التوصيل المتوقع" : "Estimated Delivery Time")}
           <label className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4"><span><span className="block font-semibold">{ownerText((ar ? "ar" : "en"), "Delivery Available")}</span><span className="text-sm text-[color:var(--text-muted)]">{ownerText((ar ? "ar" : "en"), "Allow delivery orders.")}</span></span><input type="checkbox" checked={form.deliveryAvailable} disabled={saving} onChange={(event) => change("deliveryAvailable", event.target.checked)} className="size-5 accent-[color:var(--primary)]" /></label>
         </div></DashboardCard>
-        <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">{ownerText((ar ? "ar" : "en"), "Appearance")}</h3><div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.035] p-5 text-center"><div className="mx-auto flex size-20 items-center justify-center rounded-3xl border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/12 text-[color:var(--primary-light)]"><ImageIcon aria-hidden="true" size={30} /></div><div className="mt-4 text-2xl font-semibold tracking-[0.16em]">{form.brandName || restaurant.name}</div><p className="mt-2 text-sm text-[color:var(--text-muted)]">{ownerText((ar ? "ar" : "en"), "Brand preview")}</p></div><div className="mt-5 grid gap-4">{field("brandName", ar ? "اسم العلامة" : "Brand Name")}{field("primaryColor", ar ? "اللون الأساسي (hex)" : "Primary Color (hex)")}<div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-4"><span className="size-10 rounded-full border border-white/20" style={{ backgroundColor: /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(form.primaryColor) ? form.primaryColor : "var(--primary)" }} /><span className="text-sm text-[color:var(--text-muted)]">{ownerText((ar ? "ar" : "en"), "Color preview")}</span></div></div></DashboardCard>
+        <DashboardCard className="p-5 sm:p-6">
+          <h3 className="text-2xl font-semibold">{ownerText(ar ? "ar" : "en", "Appearance")}</h3>
+          <div className="mt-5 grid gap-4">
+            {field("brandName", "Brand Name")}
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3">
+              {field("primaryColor", "Primary Color (hex)")}
+              <input data-primary-picker type="color" disabled={saving}
+                aria-label={ar ? "اختيار اللون الأساسي" : "Pick primary color"}
+                className="h-12 w-14 cursor-pointer rounded-md border border-white/20 bg-transparent p-1 focus-visible:outline-2"
+                value={normalizeStorefrontAccent(form.primaryColor) ?? themeDefaultAccent[theme]}
+                onChange={(event) => change("primaryColor", event.target.value)} />
+            </div>
+            <button type="button" disabled={saving || !form.primaryColor} onClick={() => change("primaryColor", "")}
+              className="min-h-11 w-fit text-sm font-semibold underline disabled:opacity-50">
+              {ar ? "استعادة لون القالب الافتراضي" : "Reset to Theme Default"}
+            </button>
+            <div data-storefront-theme={theme} data-custom-accent={previewAccent ? "" : undefined} style={previewAccent}
+              className="rounded-xl border border-[color:var(--sf-border)] bg-[color:var(--sf-surface)] p-4 text-[color:var(--sf-text)]">
+              <p className="text-xs text-[color:var(--sf-text-muted)]">{ar ? "معاينة واجهة المطعم" : "Storefront preview"}</p>
+              <p className="mt-1 break-words text-lg font-semibold">{form.brandName || restaurant.name}</p>
+              <span className="mt-3 inline-flex rounded-full bg-[color:var(--sf-primary)] px-4 py-2 text-sm font-bold text-[color:var(--sf-on-primary)]">
+                {ar ? "استعرض المنيو" : "Explore Menu"}
+              </span>
+            </div>
+          </div>
+        </DashboardCard>
         {error ? <p role="alert" className="rounded-xl border border-red-400/25 bg-red-500/10 p-4 text-sm text-red-200">{ownerText(ar ? "ar" : "en", error)}</p> : null}
         <ActionButton className="min-h-14 w-full" disabled={!dirty || saving} type="submit">{saving ? <LoaderCircle aria-hidden="true" className="animate-spin" size={17} /> : <Save aria-hidden="true" size={17} />}{saving ? (ar ? "جارٍ الحفظ…" : ownerText((ar ? "ar" : "en"), "Saving…")) : (ar ? "حفظ الإعدادات" : "Save Settings")}</ActionButton>
         {dirty ? <p className="text-center text-sm text-amber-200">{ar ? "لديك تغييرات لم تُحفظ." : "You have unsaved changes."}</p> : null}

@@ -72,10 +72,10 @@ export default function Footer() {
     <footer className="relative isolate overflow-hidden bg-[color:var(--background)] px-4 pt-20 text-[color:var(--text)] sm:px-6 lg:px-8">
       <div className="absolute inset-0 -z-20 bg-[image:var(--footer-background)]" />
       <div
-        className="absolute right-[-18rem] top-8 -z-10 size-[42rem] rounded-full bg-[radial-gradient(circle,rgba(255,122,0,0.22),rgba(255,122,0,0.08)_40%,transparent_72%)] blur-3xl"
+        className="absolute right-[-18rem] top-8 -z-10 size-[42rem] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sf-primary)_22%,transparent),color-mix(in_srgb,var(--sf-primary)_8%,transparent)_40%,transparent_72%)] blur-3xl"
       />
       <div
-        className="absolute bottom-[-18rem] left-[-14rem] -z-10 size-[38rem] rounded-full bg-[radial-gradient(circle,rgba(212,160,23,0.14),rgba(255,122,0,0.08)_42%,transparent_72%)] blur-3xl"
+        className="absolute bottom-[-18rem] left-[-14rem] -z-10 size-[38rem] rounded-full bg-[radial-gradient(circle,rgba(212,160,23,0.14),color-mix(in_srgb,var(--sf-primary)_8%,transparent)_42%,transparent_72%)] blur-3xl"
       />
       <div className="absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[color:var(--primary)]/75 to-transparent" />
       <div className="pointer-events-none absolute inset-x-8 top-24 -z-10 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent sm:inset-x-20" />
@@ -83,20 +83,20 @@ export default function Footer() {
 
       {particles.map((className) => (
         <span
-          className={`absolute rounded-full bg-[color:var(--primary-light)]/45 shadow-[0_0_18px_rgba(255,157,51,0.58)] ${className}`}
+          className={`absolute rounded-full bg-[color:var(--primary-light)]/45 shadow-[0_0_18px_color-mix(in_srgb,var(--sf-primary)_58%,transparent)] ${className}`}
           key={className}
         />
       ))}
 
       <div className="mx-auto max-w-7xl">
-        <div className="mx-auto mb-8 flex w-fit items-center gap-4 rounded-full border border-[color:var(--primary)]/25 bg-[color:var(--primary)]/10 px-4 py-2 text-xs font-semibold tracking-[0.28em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_rgba(255,122,0,0.13)] backdrop-blur-xl">
+        <div className="mx-auto mb-8 flex w-fit items-center gap-4 rounded-full border border-[color:var(--primary)]/25 bg-[color:var(--primary)]/10 px-4 py-2 text-xs font-semibold tracking-[0.28em] text-[color:var(--primary-light)] uppercase shadow-[0_0_34px_color-mix(in_srgb,var(--sf-primary)_13%,transparent)] backdrop-blur-xl">
           <span className="h-px w-8 bg-gradient-to-r from-transparent to-[color:var(--primary)]/80" />
           {restaurant.name}
-          <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_rgba(255,157,51,0.9)]" />
+          <span className="size-1.5 rounded-full bg-[color:var(--primary-light)] shadow-[0_0_14px_color-mix(in_srgb,var(--sf-primary)_90%,transparent)]" />
         </div>
 
-        <div className="relative mb-16 overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035)_54%,rgba(255,122,0,0.07))] p-6 shadow-[0_34px_110px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl sm:p-8 lg:p-10">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_0%,rgba(255,255,255,0.12),transparent_25%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_38%,rgba(255,122,0,0.12))]" />
+        <div className="relative mb-16 overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035)_54%,color-mix(in_srgb,var(--sf-primary)_7%,transparent))] p-6 shadow-[0_34px_110px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl sm:p-8 lg:p-10">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_0%,rgba(255,255,255,0.12),transparent_25%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_38%,color-mix(in_srgb,var(--sf-primary)_12%,transparent))]" />
           <div className="pointer-events-none absolute -right-24 -top-24 size-64 rounded-full bg-[color:var(--primary)]/22 blur-3xl" />
           <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
           <div className="relative grid items-center gap-7 lg:grid-cols-[1fr_auto]">
@@ -111,7 +111,7 @@ export default function Footer() {
             <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
               <div>
                 <Link
-                  className="group inline-flex min-h-13 w-full items-center justify-center gap-3 rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-7 text-sm font-bold text-[color:var(--background)] shadow-[0_20px_56px_rgba(255,122,0,0.36)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(255,122,0,0.5)] sm:w-auto"
+                  className="group inline-flex min-h-13 w-full items-center justify-center gap-3 rounded-full storefront-action px-7 text-sm font-bold text-[color:var(--sf-on-primary)] shadow-[0_20px_56px_color-mix(in_srgb,var(--sf-primary)_36%,transparent)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_26px_70px_color-mix(in_srgb,var(--sf-primary)_50%,transparent)] sm:w-auto"
                   href={href(routes.about)}
                 >
                   {isArabic ? "عن المطعم" : "About Restaurant"}
@@ -163,7 +163,7 @@ export default function Footer() {
                 return (
                   <a
                     aria-label={social.label}
-                    className="group flex size-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[color:var(--text-muted)] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur transition-all duration-300 hover:border-[color:var(--primary)]/55 hover:bg-[color:var(--primary)]/12 hover:text-[color:var(--primary-light)] hover:shadow-[0_0_34px_rgba(255,122,0,0.24)]"
+                    className="group flex size-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[color:var(--text-muted)] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur transition-all duration-300 hover:border-[color:var(--primary)]/55 hover:bg-[color:var(--primary)]/12 hover:text-[color:var(--primary-light)] hover:shadow-[0_0_34px_color-mix(in_srgb,var(--sf-primary)_24%,transparent)]"
                     href={social.href}
                     key={social.label}
                     rel="noreferrer"

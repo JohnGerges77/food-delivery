@@ -31,6 +31,17 @@ test("About image changes are isolated, clearable, and reject unsafe URLs", () =
   assert.ok(validateSettingsForm({ ...form, aboutImageUrl: "javascript:alert(1)" }, initial).aboutImageUrl);
 });
 
+test("hero image and primary color can be saved and reset independently", () => {
+  const original = dto({ heroImageUrl: "https://example.test/hero.webp", storefrontTheme: "savora-aqua", logoUrl: "/logo.webp",
+    branding: { primaryColor: "#89CFF0", brandName: "Cafe" } });
+  const form = restaurantToForm(original);
+  assert.equal(form.heroImageUrl, original.heroImageUrl);
+  assert.deepEqual(settingsPatch({ ...form, heroImageUrl: "", primaryColor: "" }, original),
+    { heroImageUrl: "", branding: { primaryColor: "" } });
+  const invalid = validateSettingsForm({ ...form, primaryColor: "#12345", heroImageUrl: "/hero.webp" }, original);
+  assert.ok(invalid.primaryColor && invalid.heroImageUrl);
+});
+
 test("Hero patch is isolated from branding and international WhatsApp phone normalizes per restaurant", () => {
   const selected = "507f1f77bcf86cd799439012";
   const initial = dto();

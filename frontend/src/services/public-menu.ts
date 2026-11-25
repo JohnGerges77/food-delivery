@@ -4,6 +4,7 @@ import { demoCatalogText } from "../lib/demo-catalog-text.ts";
 export type PublicRestaurant = {
   name: string; slug: string; description: string | null; logoUrl: string | null; aboutImageUrl?: string | null;
   storefrontTheme?: string;
+  heroImageUrl?: string | null;
   heroProduct?: PublicProduct | null;
   heroProductSelected?: boolean;
   whatsappOrderingAvailable?: boolean;
