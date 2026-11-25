@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "title": "Restaurant Management System",
-    "description": "Frontend architecture for a restaurant ordering and management app."
+    "title": "Savora",
+    "description": "Browse restaurant menus and place guest orders with Savora."
   },
   "common": {
     "close": "Close",
@@ -22,7 +22,7 @@
     "dashboard": "Dashboard"
   },
   "navigation": {
-    "brand": "Bistro Central",
+    "brand": "Savora",
     "logoAlt": "Bistro Central logo",
     "dashboardBrand": "Restaurant Dashboard",
     "menu": "Menu",

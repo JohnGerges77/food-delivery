@@ -22,6 +22,42 @@ test("offers filter before limiting and preserve menu order", () => {
   assert.deepEqual(selectOffers([product]), []);
 });
 
+test("Arabic demo catalog translation preserves tenant data, IDs, and variant prices", async () => {
+  const burger = { ...product, slug: "cheese-burger", name: "Cheese Burger", description: "Test description",
+    price: 150, variants: [{ id: "variant", name: "Double", price: 210, isAvailable: true, sortOrder: 1 }] };
+  const sides = { id: categoryId, name: "Sides", slug: "sides", description: null };
+  globalThis.fetch = async (url) => json(url.endsWith("/categories?page=1&limit=100")
+    ? { categories: [sides], pagination: { hasNext: false } }
+    : { products: [burger], pagination: { hasNext: false } });
+  const translated = await findPublicProduct("savora-beta-demo", id, "ar");
+  assert.match(translated.name, /[\u0600-\u06ff]/);
+  assert.match(translated.description, /[\u0600-\u06ff]/);
+  assert.match(translated.variants[0].name, /[\u0600-\u06ff]/);
+  assert.deepEqual([translated.id, translated.categoryId, translated.price,
+    translated.variants[0].id, translated.variants[0].price], [id, categoryId, 150, "variant", 210]);
+  assert.match((await getAllPublicCategories("savora-beta-demo", "ar"))[0].name, /[\u0600-\u06ff]/);
+  assert.deepEqual(await findPublicProduct("savora-beta-demo", id), burger);
+  assert.deepEqual(await findPublicProduct("another-tenant", id, "ar"), burger);
+});
+
+test("thumbnail proxies fall back while approved static asset URLs still work", () => {
+  assert.equal(safePublicImage("https://encrypted-tbn0.gstatic.com/images?q=fixture"), null);
+  assert.equal(safePublicImage("https://lh3.googleusercontent.com/proxy"), null);
+  assert.equal(safePublicImage("/best1.webp"), "/best1.webp");
+});
+
+test("a variant must be explicitly chosen and an invalid add preserves the current cart", () => {
+  const store = useCartStore.getState();
+  assert.equal(store.addPublicItem("first", { ...product, price: 60 }), true);
+  const burger = { ...product, variants: [{ id: "variant", name: "Double", price: 210, isAvailable: true }] };
+  assert.equal(store.addPublicItem("second", burger), false);
+  assert.equal(useCartStore.getState().tenantSlug, "first");
+  assert.equal(useCartStore.getState().getSubtotal(), 60);
+  assert.equal(store.addPublicItem("second", burger, 2, "variant"), true);
+  assert.equal(useCartStore.getState().items[0].variantId, "variant");
+  assert.equal(useCartStore.getState().getSubtotal(), 420);
+});
+
 test("cart quantity controls preserve subtotal and clear items", () => {
   const store = useCartStore.getState();
   store.clearCart();

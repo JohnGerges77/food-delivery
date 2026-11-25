@@ -1,33 +1,24 @@
 "use client";
 
 import {
-  Plus,
   Search,
   X,
 } from "lucide-react";
 import { useLocale } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useRouter } from "@/i18n/navigation";
-import { productDisplayPrice, publicMoney } from "@/lib/public-menu-presentation";
-import { useCartStore } from "@/store/cart-store";
 import { getPublicProducts, type PublicPage, type PublicProduct } from "@/services/public-menu";
-import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";
-import { ProductMetadata } from "@/components/features/storefront/ProductMetadata";
+import { StorefrontProductCard } from "@/components/features/storefront/StorefrontProductCard";
 import { useStorefront } from "@/components/features/storefront/StorefrontContext";
 
 export function MenuOrderingPage({ initialProducts, initialPagination }: {
   initialProducts: PublicProduct[]; initialPagination: PublicPage | null;
 }) {
-  const router = useRouter();
   const locale = useLocale();
   const isArabic = locale === "ar";
-  const { restaurant, categories, href } = useStorefront();
+  const { restaurant, categories } = useStorefront();
   const localizedCategories = [{ id: "all", label: isArabic ? "الكل" : "All" },
     ...categories.map((category) => ({ id: category.id, label: category.name }))];
   const categoryLabels = useMemo(() => new Map(categories.map((category) => [category.id, category.name])), [categories]);
-  const addItem = useCartStore((state) => state.addPublicItem);
-  const cartItems = useCartStore((state) => state.items);
-  const cartTenant = useCartStore((state) => state.tenantSlug);
   const [products, setProducts] = useState(initialProducts);
   const [pagination, setPagination] = useState(initialPagination);
   const [query, setQuery] = useState("");
@@ -39,13 +30,13 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
   useEffect(() => {
     if (activeCategory === "all") return;
     let active = true;
-    getPublicProducts(restaurant.slug, 1, { categoryId: activeCategory }).then((result) => {
+    getPublicProducts(restaurant.slug, 1, { categoryId: activeCategory, locale }).then((result) => {
       if (active) { setProducts(result.products); setPagination(result.pagination); setLoading(false); setMenuError(""); }
     }).catch(() => {
       if (active) { setLoading(false); setMenuError(isArabic ? "تعذّر تحميل القسم. حاول مجددًا." : "Could not load this category. Try again."); }
     });
     return () => { active = false; };
-  }, [activeCategory, restaurant.slug, retry, isArabic]);
+  }, [activeCategory, restaurant.slug, retry, isArabic, locale]);
 
   const visibleProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -79,7 +70,7 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
     setMenuError("");
     try {
       const result = await getPublicProducts(restaurant.slug, pagination.page + 1,
-        activeCategory === "all" ? {} : { categoryId: activeCategory });
+        { locale, ...(activeCategory === "all" ? {} : { categoryId: activeCategory }) });
       setProducts((current) => [...current, ...result.products]);
       setPagination(result.pagination);
     } catch {
@@ -87,26 +78,15 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
     } finally { setLoading(false); }
   }
 
-  function addProduct(product: PublicProduct) {
-    if (product.variants?.length) { router.push(href(`/menu/${product.id}`)); return; }
-    addItem(restaurant.slug, product, 1);
-  }
-
-  function getCartQuantity(productId: string) {
-    return cartTenant === restaurant.slug ? cartItems.reduce((sum, item) => sum + (item.productId === productId ? item.quantity : 0), 0) : 0;
-  }
-
   return (
-    <main className="overflow-hidden bg-[color:var(--background)] text-[color:var(--text)]">
-    
-
-      <section data-menu-filters className="sticky top-[7.25rem] z-30 border-y border-white/10 bg-[color:var(--background)]/86 px-4 py-3 shadow-[0_18px_56px_rgba(0,0,0,0.32)] backdrop-blur-2xl sm:px-6 lg:top-[4.75rem] lg:px-8">
+    <main className="overflow-x-clip bg-[color:var(--background)] text-[color:var(--text)]">
+      <section data-menu-filters className="relative lg:sticky z-30 border-y border-white/10 bg-[color:var(--background)]/86 px-4 py-3 shadow-[0_18px_56px_rgba(0,0,0,0.32)] backdrop-blur-2xl sm:px-6 lg:top-[4.75rem] lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-3 lg:grid-cols-[minmax(15rem,0.75fr)_minmax(0,1.25fr)] lg:items-center">
           <label className="relative block">
             <span className="sr-only">{isArabic ? "ابحث في الأطباق المحمّلة" : "Search loaded dishes"}</span>
             <Search
               aria-hidden="true"
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--primary-light)]"
+              className="absolute start-4 top-1/2 -translate-y-1/2 text-[color:var(--primary-light)]"
               size={18}
             />
             <input
@@ -119,7 +99,7 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
             {query ? (
               <button
                 aria-label={isArabic ? "مسح البحث" : "Clear search"}
-                className="absolute right-3 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-[color:var(--text-muted)] transition-colors hover:bg-white/[0.08] hover:text-[color:var(--primary-light)]"
+                className="absolute end-3 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-[color:var(--text-muted)] transition-colors hover:bg-white/[0.08] hover:text-[color:var(--primary-light)]"
                 onClick={() => setQuery("")}
                 type="button"
               >
@@ -156,7 +136,7 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
       <p className="mx-auto max-w-7xl px-4 pt-4 text-xs text-[color:var(--text-muted)] sm:px-6 lg:px-8">
         {isArabic ? "البحث يشمل الأطباق المحمّلة فقط؛ حمّل المزيد للبحث في الباقي." : "Search covers loaded dishes only. Load more to include the rest."}
       </p>
-      <section data-menu-list className="px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+      <section data-menu-list className="px-4 py-8 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -197,60 +177,8 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
             </div>
           ) : (
             <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {visibleProducts.map((product) => {
-                const productCartQuantity = getCartQuantity(product.id);
-
-                return (
-              <article data-menu-card
-                className="group relative flex min-h-28 cursor-pointer overflow-hidden rounded-[1.1rem] border border-[color:var(--sf-border)] bg-[color:var(--sf-surface)] shadow-sm transition-all focus-within:ring-2 focus-within:ring-[color:var(--sf-primary)] sm:block sm:rounded-[1.35rem] sm:border-white/10 sm:bg-[linear-gradient(145deg,rgba(255,255,255,0.082),rgba(255,255,255,0.026)_60%,rgba(255,122,0,0.045))] sm:shadow-[0_24px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.07)] sm:backdrop-blur-xl sm:duration-500 sm:hover:-translate-y-1 sm:hover:border-[color:var(--primary)]/50 sm:hover:shadow-[0_32px_96px_rgba(255,122,0,0.16)]"
-                key={product.id}
-              >
-                <Link href={href(`/menu/${product.id}`)} className="absolute inset-0 z-10 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[color:var(--sf-primary)]" aria-label={isArabic ? `تفاصيل ${product.name}` : `Details for ${product.name}`} />
-                <div data-menu-image className="relative m-2 w-24 shrink-0 overflow-hidden rounded-lg sm:m-0 sm:aspect-[1.5] sm:w-auto sm:rounded-none">
-                  <PublicProductImage alt={product.name} className="object-cover transition-transform duration-700 group-hover:scale-[1.08]" sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw" src={product.imageUrl || product.images[0]} variant="small" />
-                  <div data-menu-overlay className="absolute inset-0 hidden bg-gradient-to-t from-[color:var(--background)] via-transparent to-black/10 sm:block" />
-                  <div className="absolute left-4 top-4 hidden max-w-[calc(100%-2rem)] truncate rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--background)]/70 px-3 py-1.5 text-xs font-semibold tracking-[0.16em] text-[color:var(--primary-light)] uppercase backdrop-blur sm:block">
-                    {categoryLabels.get(product.categoryId)}
-                  </div>
-                  {product.isFeatured ? (
-                    <div data-menu-featured className="absolute bottom-4 right-4 hidden max-w-[calc(100%-2rem)] truncate rounded-full border border-[color:var(--gold)]/35 bg-[color:var(--gold)]/12 px-3 py-1.5 text-xs font-semibold tracking-[0.16em] text-[color:var(--gold)] uppercase backdrop-blur sm:block">
-                      {isArabic ? "مميز" : "Featured"}
-                    </div>
-                  ) : null}
-                </div>
-                <div className="min-w-0 flex-1 py-3 ps-1 pe-2 sm:p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <h3 className="line-clamp-2 text-sm font-semibold leading-tight text-[color:var(--text)] sm:text-lg">
-                      {product.name}
-                    </h3>
-                    {!product.variants?.length && product.oldPrice !== null && product.oldPrice > product.price && <span className="hidden shrink-0 text-sm text-[color:var(--text-muted)] line-through sm:block">{publicMoney(product.oldPrice, restaurant.currency, locale)}</span>}
-                  </div>
-                  <ProductMetadata product={product} locale={locale} compact />
-                  {productCartQuantity > 0 && <div className="mt-2 hidden text-xs font-semibold text-[color:var(--primary-light)] sm:block">{isArabic ? `${productCartQuantity} في السلة` : `${productCartQuantity} in cart`}</div>}
-                  <div className="mt-1 flex items-end justify-between gap-2 sm:mt-4 sm:items-center">
-                    <div>
-                      <div className="hidden text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase sm:block">
-                        {isArabic ? "السعر" : "Price"}
-                      </div>
-                      <div className="text-sm font-semibold text-[color:var(--primary-light)] sm:mt-1 sm:text-xl">
-                        {productDisplayPrice(product, restaurant.currency, locale)}
-                      </div>
-                    </div>
-                    <button
-                      aria-label={isArabic ? `أضف ${product.name} إلى السلة` : `Add ${product.name} to cart`}
-                      className="relative z-20 inline-flex size-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full bg-[color:var(--sf-primary)] text-sm font-bold text-[color:var(--sf-on-primary)] transition-transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--sf-primary)] sm:min-h-12 sm:w-auto sm:bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] sm:px-4 sm:text-[color:var(--background)] sm:shadow-[0_18px_48px_rgba(255,122,0,0.3)] sm:hover:-translate-y-0.5"
-                      onClick={() => addProduct(product)}
-                      type="button"
-                    >
-                      <span className="sr-only sm:not-sr-only">{isArabic ? "أضف" : "Add"}</span>
-                      <Plus aria-hidden="true" size={16} />
-                      {productCartQuantity > 0 && <span className="absolute -top-2 -end-2 grid size-5 place-items-center rounded-full bg-[color:var(--sf-accent)] text-[10px] text-[color:var(--sf-background)] sm:hidden">{productCartQuantity}</span>}
-                    </button>
-                  </div>
-                </div>
-              </article>
-                );
-              })}
+              {visibleProducts.map((product) => <StorefrontProductCard key={product.id}
+                product={product} categoryName={categoryLabels.get(product.categoryId)} />)}
             </div>
           )}
           {pagination?.hasNext && <div className="mt-10 flex justify-center"><button className="min-h-12 rounded-full border border-[color:var(--primary)]/45 bg-white/[0.04] px-8 text-sm font-bold text-[color:var(--primary-light)] transition-all hover:bg-[color:var(--primary)]/12 disabled:opacity-50" disabled={loading} onClick={loadMore} type="button">{loading ? (isArabic ? "جار التحميل…" : "Loading…") : (isArabic ? "تحميل المزيد" : "Load More")}</button></div>}

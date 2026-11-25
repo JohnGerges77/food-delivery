@@ -20,6 +20,7 @@ import { buildBetaCheckoutPayload, buildCheckoutPayload, checkoutUnavailableMess
   GuestCheckoutCoordinator, GuestCheckoutError, invalidCart, type CheckoutAvailability,
   type CheckoutErrors, type GuestCheckoutResult, type SubmissionMethod } from "@/services/guest-checkout-service";
 import { emptyCheckoutDetails, updateCheckoutDetail, type CheckoutDetails } from "./checkout-details";
+import { CheckoutPriceSummary } from "./CheckoutPriceSummary";
 
 const sectionEase = [0.16, 1, 0.3, 1] as const;
 
@@ -40,7 +41,6 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
   const tenantSlug = useCartStore((state) => state.tenantSlug);
   const items = tenantSlug === slug ? cartItems : [];
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const total = subtotal + (deliveryFee ?? 0);
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);
   const [details, setDetails] = useState<CheckoutDetails>(emptyCheckoutDetails);
   const [step, setStep] = useState(beta ? 2 : 0);
@@ -203,6 +203,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
                 <div className="mt-8 rounded-[1rem] border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/10 p-6" role="status" data-testid="checkout-confirmation">
                   <h3 className="text-2xl font-semibold text-[color:var(--primary-light)]">{isArabic ? "تم حفظ الطلب" : "Order saved successfully"}</h3>
                   <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "رقم الطلب" : "Order reference"}: <strong className="text-[color:var(--text)]">{confirmation.order.orderNumber}</strong></p>
+                  <p className="mt-2 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "رسوم التوصيل المؤكدة" : "Confirmed delivery fee"}: <strong className="text-[color:var(--text)]">{publicMoney(confirmation.order.deliveryFee, confirmation.order.currency, locale)}</strong></p>
                   <p className="mt-2 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "الإجمالي المؤكد" : "Confirmed total"}: <strong className="text-[color:var(--text)]">{publicMoney(confirmation.order.total, confirmation.order.currency, locale)}</strong></p>
                   {handoffUrl ? <>
                     <p className="mt-4 text-sm leading-7 text-[color:var(--text)]">{beta
@@ -367,32 +368,17 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
                         </div>
                       ))}
                     </div>
+                    {!beta && checkoutAvailability === "available" && restaurant.deliverySettings.estimatedDeliveryTime && (
                     <div className="mt-5 rounded-lg border border-[color:var(--gold)]/20 bg-[color:var(--gold)]/8 p-4">
                       <div className="text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">
                         {isArabic ? "معلومات التوصيل" : "Delivery Information"}
                       </div>
                       <div className="mt-2 text-sm leading-7 text-[color:var(--text-muted)]">
-                        {restaurant.deliverySettings.deliveryAvailable
-                          ? restaurant.deliverySettings.estimatedDeliveryTime || (isArabic ? "لم يحدد المطعم وقتًا تقديريًا للتوصيل." : "The restaurant has not listed a delivery estimate.")
-                          : (isArabic ? "التوصيل غير متاح حاليًا." : "Delivery is currently unavailable.")}
+                        {restaurant.deliverySettings.estimatedDeliveryTime}
                       </div>
-                    </div>
-                    <div className="mt-6 divide-y divide-white/10 text-sm">
-                      <div className="flex justify-between py-4 text-[color:var(--text-muted)]">
-                        <span>{isArabic ? "المجموع الفرعي" : "Subtotal"}</span>
-                        <span>{publicMoney(subtotal, currency, locale)}</span>
-                      </div>
-                      <div className="flex justify-between py-4 text-[color:var(--text-muted)]">
-                        <span>{isArabic ? "رسوم التوصيل" : "Delivery Fee"}</span>
-                        <span>{deliveryFee === null ? "—" : publicMoney(deliveryFee, currency, locale)}</span>
-                      </div>
-                      <div className="flex justify-between py-5 text-lg font-semibold">
-                        <span>{isArabic ? "إجمالي تقديري" : "Provisional Total"}</span>
-                        <span className="text-[color:var(--primary-light)]">
-                          {deliveryFee === null ? "—" : publicMoney(total, currency, locale)}
-                        </span>
-                      </div>
-                    </div>
+                    </div>)}
+                    <CheckoutPriceSummary currency={currency} deliveryFee={deliveryFee} locale={locale}
+                      minimumOrder={restaurant.deliverySettings.minimumOrder} ordering={checkoutAvailability === "available"} subtotal={subtotal} />
                   </>
                 )}
               </div>

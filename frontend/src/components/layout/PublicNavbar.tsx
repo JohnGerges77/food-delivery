@@ -65,7 +65,7 @@ export function PublicNavbar() {
           <span className="relative block h-12 w-36 overflow-hidden sm:h-14 sm:w-40 lg:h-12 lg:w-36">
             {restaurant.logoUrl ? <PublicProductImage alt={restaurant.name} className="object-contain" src={restaurant.logoUrl} sizes="160px" /> : <Image
               src="/headIcon.webp"
-              alt={t("brand")}
+              alt="Savora"
               width={1536}
               height={1024}
               sizes="(min-width: 1024px) 144px, 160px"
@@ -83,7 +83,7 @@ export function PublicNavbar() {
               <Link
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "rounded-full px-4 py-2 transition-all duration-300 hover:bg-[color:var(--glass-strong)] hover:text-[color:var(--text)]",
+                  "whitespace-nowrap rounded-full px-2 py-2 text-xs transition-all duration-300 hover:bg-[color:var(--glass-strong)] hover:text-[color:var(--text)] min-[360px]:px-3 sm:px-4 sm:text-sm",
                   isActive &&
                     "bg-[color:var(--glass-strong)] text-[color:var(--primary-light)] shadow-[0_10px_28px_rgba(255,122,0,0.18)] ring-1 ring-[color:var(--primary)]/35",
                 )}

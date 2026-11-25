@@ -11,7 +11,7 @@ type CartState = {
   items: CartItem[];
   addRevision: number;
   setTenant: (slug: string) => void;
-  addPublicItem: (slug: string, product: PublicProduct, quantity?: number, variantId?: string) => void;
+  addPublicItem: (slug: string, product: PublicProduct, quantity?: number, variantId?: string) => boolean;
   addItem: (product: Product, quantity?: number) => void;
   removeItem: (productId: string) => void;
   increaseQuantity: (productId: string) => void;
@@ -55,12 +55,12 @@ export const useCartStore = create<CartState>()((set, get) => ({
     set({ tenantSlug: slug, items });
   },
   addPublicItem: (slug, product, quantity = 1, variantId) => {
+    const variant = product.variants?.find((v) => v.id === variantId && v.isAvailable);
+    if (product.variants?.length ? !variant : variantId !== undefined) return false;
+    if (!Number.isSafeInteger(quantity) || quantity < 1 ||
+        !/^[0-9a-fA-F]{24}$/.test(product.id)) return false;
     if (get().tenantSlug !== slug) get().setTenant(slug);
     set((state) => {
-      const variant = product.variants?.find((v) => v.id === variantId && v.isAvailable);
-      if (product.variants?.length ? !variant : variantId !== undefined) return state;
-      if (!Number.isSafeInteger(quantity) || quantity < 1 ||
-          !/^[0-9a-fA-F]{24}$/.test(product.id)) return state;
       const items = state.tenantSlug === slug ? state.items : [];
       const safeQuantity = quantity;
       const key = cartItemKey({ productId: product.id, variantId });
@@ -71,6 +71,7 @@ export const useCartStore = create<CartState>()((set, get) => ({
           ...(variant ? { variantId: variant.id, variantName: variant.name } : {}),
           image: product.imageUrl ?? "", quantity: safeQuantity }] };
     });
+    return true;
   },
   addItem: (product, quantity = 1) =>
     set((state) => {

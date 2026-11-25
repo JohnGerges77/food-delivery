@@ -23,6 +23,27 @@ const restaurant = {
   socialLinks: { facebook: null, instagram: null, whatsapp: null },
   branding: { brandName: "Savora", primaryColor: null },
 };
+const pausedRestaurant = { ...restaurant, slug: "phase101-paused",
+  deliverySettings: { ...restaurant.deliverySettings, deliveryAvailable: false } };
+const demoRestaurant = { ...restaurant, slug: "savora-beta-demo", name: "Savora Beta Demo",
+  logoUrl: null, address: " ", deliverySettings: { ...restaurant.deliverySettings, deliveryFee: 0 } };
+const demoCategories = ["Pizza", "Burgers", "Sides"].map((name, sortOrder) => ({
+  ...categories[0], id: id(String(51 + sortOrder)), name, slug: name.toLowerCase(), sortOrder,
+}));
+const demoProducts = [
+  ["Pizza Margherita", "pizza-margherita", "Tomato, mozzarella and basil on a stone-baked crust.",
+    ["Small", "Medium", "Large"], [150, 200, 270], null],
+  ["Cheese Burger", "cheese-burger", "Grilled beef with cheddar and pickles on a toasted bun.",
+    ["Single", "Double"], [150, 210], "/best1.webp"],
+  ["French Fries", "french-fries", "Golden fries tossed with sea salt.",
+    [], [60], "https://encrypted-tbn0.gstatic.com/images?q=fixture"],
+].map(([name, slug, description, variantNames, prices, imageUrl], index) => ({
+  ...products[index], name, slug, description, imageUrl, price: prices[0], startingPrice: prices[0], calories: null,
+  id: id(String(61 + index)), categoryId: demoCategories[index].id, isFeatured: true,
+  variants: variantNames.map((name, sortOrder) => ({
+    id: id(String(71 + index * 3 + sortOrder)), name, price: prices[sortOrder], sortOrder, isAvailable: true,
+  })),
+}));
 const aquaRestaurant = { ...restaurant, name: "Savora Aqua Preview",
   slug: "phase102-aqua", storefrontTheme: "savora-aqua",
   description: "Freshly prepared dishes from our kitchen.",
@@ -60,19 +81,29 @@ createServer((request, response) => {
   const url = new URL(request.url, "http://localhost");
   const slug = url.pathname.startsWith("/api/public/restaurants/phase102-aqua") ? "phase102-aqua" :
     url.pathname.startsWith("/api/public/restaurants/phase101-classic") ? "phase101-classic" :
+    url.pathname.startsWith("/api/public/restaurants/phase101-paused") ? pausedRestaurant.slug :
     url.pathname.startsWith("/api/public/restaurants/phase103-cafe") ? "phase103-cafe" :
-    url.pathname.startsWith("/api/public/restaurants/phase104-luxury") ? "phase104-luxury" : null;
+    url.pathname.startsWith("/api/public/restaurants/phase104-luxury") ? "phase104-luxury" :
+    url.pathname.startsWith("/api/public/restaurants/savora-beta-demo") ? "savora-beta-demo" : null;
   if (!slug) {
     response.writeHead(404).end(JSON.stringify({ error: "Not found" }));
     return;
   }
   const suffix = url.pathname.slice(`/api/public/restaurants/${slug}`.length);
-  const listing = slug === "phase103-cafe" ? suffix === "/categories" ? cafeCategories : cafeProducts :
+  let listing = slug === demoRestaurant.slug ? suffix === "/categories" ? demoCategories : demoProducts :
+    slug === "phase103-cafe" ? suffix === "/categories" ? cafeCategories : cafeProducts :
     suffix === "/categories" ? categories : products;
+  if (suffix === "/products" && url.searchParams.has("categoryId")) {
+    listing = listing.filter((item) => item.categoryId === url.searchParams.get("categoryId"));
+  }
   if (suffix === "" || suffix === "/categories" || suffix === "/products") {
     response.writeHead(200).end(JSON.stringify(suffix === "" ? { restaurant: {
-      ...(slug === "phase102-aqua" ? aquaRestaurant : slug === "phase103-cafe" ? cafeRestaurant : slug === "phase104-luxury" ? luxuryRestaurant : restaurant),
-      heroProductSelected: true, heroProduct: slug === "phase103-cafe" ? cafeProducts[0] : products[1],
+      ...(slug === demoRestaurant.slug ? demoRestaurant :
+        slug === pausedRestaurant.slug ? pausedRestaurant :
+        slug === "phase102-aqua" ? aquaRestaurant : slug === "phase103-cafe" ? cafeRestaurant :
+          slug === "phase104-luxury" ? luxuryRestaurant : restaurant),
+      heroProductSelected: true, heroProduct: slug === demoRestaurant.slug ? demoProducts[1] :
+        slug === "phase103-cafe" ? cafeProducts[0] : products[1],
       whatsappOrderingAvailable: slug === "phase101-classic",
       socialLinks: { facebook: null, instagram: null, whatsapp: "https://wa.me/201000000000" },
     } } : {

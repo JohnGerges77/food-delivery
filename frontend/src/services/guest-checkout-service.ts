@@ -18,8 +18,7 @@ type CheckoutSubmission = GuestCheckoutPayload | BetaCheckoutPayload;
 export type CheckoutAvailability = "available" | "checkout-disabled" | "delivery-unavailable";
 
 export function storefrontCheckoutAvailability(beta: boolean, checkoutEnabled: boolean, deliveryAvailable: boolean): CheckoutAvailability {
-  if (!beta) return "available";
-  if (!checkoutEnabled) return "checkout-disabled";
+  if (beta && !checkoutEnabled) return "checkout-disabled";
   return deliveryAvailable ? "available" : "delivery-unavailable";
 }
 

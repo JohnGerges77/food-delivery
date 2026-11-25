@@ -128,6 +128,8 @@ test('demo rows pass owner validators and the public menu preserves both variant
     menu.push(serializePublicProduct(product));
   }
   assertDemoMenu(catalog, menu);
+  const fries = menu.find(({ slug }) => slug === 'french-fries');
+  assert.equal(fries.categoryId, catalog.find(({ slug }) => slug === 'sides').id);
   assert.deepEqual(menu.map(({ startingPrice, variants }) =>
     [startingPrice, variants.map(({ price }) => price)]), [[150, [150, 200, 270]], [150, [150, 210]], [60, []]]);
   menu[1].variants[1].price = 211;

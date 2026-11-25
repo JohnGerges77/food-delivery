@@ -4,6 +4,8 @@ export function safePublicImage(value: string | null | undefined): string | null
       !/[\u0000-\u001f]/.test(value)) return value;
   try {
     const url = new URL(value);
+    if (/^(?:(?:encrypted-)?tbn[0-9]*\.gstatic\.com|lh[0-9]+\.googleusercontent\.com)$/.test(url.hostname) &&
+        (url.hostname.endsWith(".gstatic.com") || url.pathname === "/proxy")) return null;
     return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password ? url.href : null;
   } catch { return null; }
 }

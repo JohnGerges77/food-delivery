@@ -1,4 +1,5 @@
 import { westernDigits } from "../lib/western-digits.ts";
+import { demoCatalogText } from "../lib/demo-catalog-text.ts";
 
 export type PublicRestaurant = {
   name: string; slug: string; description: string | null; logoUrl: string | null; aboutImageUrl?: string | null;
@@ -77,56 +78,68 @@ async function request<T>(slug: string, suffix = "", params?: URLSearchParams): 
   catch { throw new PublicMenuError(null, "Invalid menu response"); }
 }
 
-export async function getPublicRestaurant(slug: string): Promise<PublicRestaurant> {
+export async function getPublicRestaurant(slug: string, locale = "en"): Promise<PublicRestaurant> {
   const data = await request<{ restaurant: PublicRestaurant }>(slug);
   if (!data?.restaurant || data.restaurant.slug !== validateStorefrontSlug(slug)) throw new PublicMenuError(null, "Invalid restaurant response");
   const restaurant = data.restaurant;
   return { ...restaurant, ...(typeof restaurant.name === "string" ? { name: westernDigits(restaurant.name) } : {}),
     ...(Object.hasOwn(restaurant, "description") ? { description: presentText(restaurant.description) } : {}),
-    ...(Object.hasOwn(restaurant, "phone") ? { phone: presentText(restaurant.phone) } : {}),
-    ...(Object.hasOwn(restaurant, "address") ? { address: presentText(restaurant.address) } : {}),
+    ...(Object.hasOwn(restaurant, "phone") ? { phone: presentText(restaurant.phone?.trim() || null) } : {}),
+    ...(Object.hasOwn(restaurant, "contactEmail") ? { contactEmail: restaurant.contactEmail?.trim() || null } : {}),
+    ...(Object.hasOwn(restaurant, "address") ? { address: presentText(restaurant.address?.trim() || null) } : {}),
     ...(Object.hasOwn(restaurant, "openingHours") ? { openingHours: presentText(restaurant.openingHours) } : {}),
     ...(restaurant.deliverySettings ? { deliverySettings: { ...restaurant.deliverySettings,
       estimatedDeliveryTime: presentText(restaurant.deliverySettings.estimatedDeliveryTime) } } : {}),
     ...(restaurant.branding ? { branding: { ...restaurant.branding,
       brandName: presentText(restaurant.branding.brandName) } } : {}),
     ...(Object.hasOwn(restaurant, "heroProduct") ? { heroProduct: restaurant.heroProduct ?
-      presentProduct(restaurant.heroProduct) : restaurant.heroProduct } : {}) };
+      presentProduct(restaurant.heroProduct, demoCatalogText(restaurant.slug, locale)) : restaurant.heroProduct } : {}) };
 }
-function presentProduct(product: PublicProduct): PublicProduct {
-  return { ...product, name: presentText(product.name),
-    description: presentText(product.description) };
+function presentProduct(product: PublicProduct, text: ReturnType<typeof demoCatalogText>): PublicProduct {
+  const translation = text?.product(product.slug);
+  return { ...product, name: translation?.name ?? presentText(product.name),
+    description: translation?.description ?? presentText(product.description),
+    ...(translation && product.variants ? {
+      variants: product.variants.map((variant) => ({ ...variant, name: text?.variant(variant.name) ?? variant.name })),
+    } : {}),
+  };
 }
-export function getPublicCategories(slug: string, page = 1) {
+export function getPublicCategories(slug: string, page = 1, locale = "en") {
   return request<PublicCategoriesResponse>(slug, "/categories", new URLSearchParams({ page: String(page), limit: "100" }))
-    .then((result) => ({ ...result, categories: result.categories.map((category) => ({ ...category,
-      name: presentText(category.name),
-      description: presentText(category.description) })) }));
+    .then((result) => {
+      const text = demoCatalogText(validateStorefrontSlug(slug), locale);
+      return { ...result, categories: result.categories.map((category) => ({ ...category,
+        name: text?.category(category.slug) ?? presentText(category.name),
+        description: presentText(category.description) })) };
+    });
 }
-export function getPublicProducts(slug: string, page = 1, options: { categoryId?: string; isFeatured?: boolean; sort?: string } = {}) {
+export function getPublicProducts(slug: string, page = 1, options: { categoryId?: string; isFeatured?: boolean; sort?: string; locale?: string } = {}) {
   const params = new URLSearchParams({ page: String(page), limit: "100" });
   if (options.categoryId) params.set("categoryId", options.categoryId);
   if (options.isFeatured !== undefined) params.set("isFeatured", String(options.isFeatured));
   if (options.sort) params.set("sort", options.sort);
   return request<PublicProductsResponse>(slug, "/products", params)
-    .then((result) => ({ ...result, products: result.products.map(presentProduct) }));
+    .then((result) => {
+      const text = demoCatalogText(validateStorefrontSlug(slug), options.locale ?? "en");
+      return { ...result, products: result.products.map((product) => presentProduct(product, text)) };
+    });
 }
 
-export async function getAllPublicCategories(slug: string): Promise<PublicCategory[]> {
+export async function getAllPublicCategories(slug: string, locale = "en"): Promise<PublicCategory[]> {
   const categories: PublicCategory[] = [];
   for (let page = 1; page <= 10; page++) {
-    const result = await getPublicCategories(slug, page);
+    const result = await getPublicCategories(slug, page, locale);
     categories.push(...result.categories);
     if (!result.pagination.hasNext) return categories;
   }
   throw new PublicMenuError(null, "Category list exceeds the supported preview size");
 }
 
-export async function findPublicProduct(slug: string, id: string): Promise<PublicProduct | null> {
+export async function findPublicProduct(slug: string, id: string, locale = "en"): Promise<PublicProduct | null> {
   if (!/^[0-9a-fA-F]{24}$/.test(id)) return null;
   for (let page = 1; page <= 10; page++) {
-    const result = await getPublicProducts(slug, page);
-    const found = result.products.find((product) => product.id === id);
+    const result = await getPublicProducts(slug, page, { locale });
+    const found = result.products.find((product) => product.id === id.toLowerCase());
     if (found) return found;
     if (!result.pagination.hasNext) return null;
   }

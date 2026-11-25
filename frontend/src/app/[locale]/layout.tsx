@@ -37,6 +37,8 @@ export async function generateMetadata({
   return {
     title: t("title"),
     description: t("description"),
+    icons: { icon: { url: "/logo.webp", type: "image/webp" } },
+    openGraph: { title: t("title"), description: t("description") },
   };
 }
 

@@ -71,9 +71,9 @@ test("the checkout gate rejection tells guests to keep their cart while unknown 
   (error) => error.status === 503 && error.uncertain && /same details/.test(error.message));
 });
 
-test("the early storefront pause applies only in Beta", () => {
-  assert.equal(storefrontCheckoutAvailability(false, false, false), "available");
-  assert.equal(storefrontCheckoutAvailability(false, true, false), "available");
+test("delivery pauses storefront checkout in both modes and the deploy flag gates only Beta", () => {
+  assert.equal(storefrontCheckoutAvailability(false, false, true), "available");
+  assert.equal(storefrontCheckoutAvailability(false, true, false), "delivery-unavailable");
   assert.equal(storefrontCheckoutAvailability(true, false, true), "checkout-disabled");
   assert.equal(storefrontCheckoutAvailability(true, true, false), "delivery-unavailable");
   assert.equal(storefrontCheckoutAvailability(true, true, true), "available");

@@ -12,9 +12,9 @@ export default function WhyChoose({ restaurant }) {
   const features = [
     { title: isArabic ? "المنيو" : "Menu", description: isArabic ? "استكشف الأطباق المتاحة في المنيو." : "Explore the currently available dishes.", icon: UtensilsCrossed },
     { title: isArabic ? "ساعات العمل" : "Opening Hours", description: restaurant.openingHours || (isArabic ? "لم تُذكر ساعات العمل." : "Hours have not been listed."), icon: Clock },
-    { title: isArabic ? "العنوان" : "Address", description: restaurant.address || (isArabic ? "لم يُذكر العنوان." : "Address has not been listed."), icon: MapPin },
-    { title: isArabic ? "التواصل" : "Contact", description: restaurant.phone || restaurant.contactEmail || (isArabic ? "لم تُذكر بيانات التواصل." : "Contact details have not been listed."), icon: Phone },
-  ];
+    restaurant.address && { title: isArabic ? "العنوان" : "Address", description: restaurant.address, icon: MapPin },
+    (restaurant.phone || restaurant.contactEmail) && { title: isArabic ? "التواصل" : "Contact", description: restaurant.phone || restaurant.contactEmail, icon: Phone },
+  ].filter(Boolean);
   return (
     <section className="relative isolate overflow-hidden bg-[color:var(--background)] px-4 py-24 text-[color:var(--text)] sm:px-6 sm:py-28 lg:px-8">
       <div

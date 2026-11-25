@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 
 const beta = process.env.SAVORA_CHECKOUT_BETA_TEST === "1";
+const method = process.env.SAVORA_CHECKOUT_METHOD_TEST || "whatsapp";
+assert.ok(["direct", "whatsapp"].includes(method));
 const base = process.env.SAVORA_STOREFRONT_URL || "http://localhost:3101";
 const cdpPort = process.env.SAVORA_CDP_PORT || "9451";
 const orderPath = "/api/public/restaurants/phase101-classic/orders";
@@ -30,12 +32,13 @@ socket.addEventListener("message", (event) => {
     assert.equal(request.method, "POST");
     posts.push({ path: new URL(request.url).pathname, body: JSON.parse(request.postData) });
     const order = { orderNumber: "SV-8341302408423A218E893F82", status: "pending",
-      submissionMethod: "whatsapp", currency: "EGP", subtotal: 185,
+      submissionMethod: method, currency: "EGP", subtotal: 185,
       deliveryFee: 15, total: 200, savedInSavora: true };
     void send("Fetch.fulfillRequest", { requestId: message.params.requestId, responseCode: 201,
       responseHeaders: [{ name: "Content-Type", value: "application/json" },
         { name: "Access-Control-Allow-Origin", value: "*" }],
-      body: Buffer.from(JSON.stringify({ order, whatsapp: { url: handoff, messageSent: false } })).toString("base64") });
+      body: Buffer.from(JSON.stringify(method === "whatsapp" ?
+        { order, whatsapp: { url: handoff, messageSent: false } } : { order })).toString("base64") });
   }
   if (!pending.has(message.id)) return;
   const entry = pending.get(message.id); pending.delete(message.id);
@@ -87,7 +90,7 @@ try {
       await evaluate("document.querySelector('form button[type=submit]').click()");
     }
     await waitFor("!!document.querySelector('[data-testid=checkout-methods]')");
-    await evaluate("document.querySelector('input[value=whatsapp]').click()");
+    await evaluate(`document.querySelector('input[value=${method}]').click()`);
     assert.equal(await evaluate("!!document.querySelector('[data-testid=checkout-confirmation] a')"), false);
     await evaluate(mobile ? "window.open = () => null" :
       "window.open = () => ({ location: { replace: (url) => { window.handoffUrl = url; } } })");
@@ -97,12 +100,20 @@ try {
     assert.equal(posts.length, before + 1);
     const { path, body } = posts[before];
     assert.equal(path, orderPath);
-    assert.equal(body.submissionMethod, "whatsapp");
+    assert.equal(body.submissionMethod, method);
     assert.equal("customerName" in body, !beta);
     assert.equal("customerPhone" in body, !beta);
     assert.equal("total" in body, false);
     assert.equal("whatsappTarget" in body, false);
+    const confirmation = await evaluate("document.querySelector('[data-testid=checkout-confirmation]').textContent");
+    assert.match(confirmation, /15\.00/);
+    assert.match(confirmation, /200\.00/);
     const link = "document.querySelector('[data-testid=checkout-confirmation] a[href^=\"https://wa.me/\"]')";
+    if (method === "direct") {
+      assert.equal(await evaluate("!!" + link), false);
+      assert.equal(await evaluate("window.handoffUrl ?? null"), null);
+      continue;
+    }
     assert.equal(await evaluate(link + ".href"), handoff);
     assert.equal(await evaluate("window.handoffUrl ?? null"), mobile ? null : handoff);
     if (mobile) {
@@ -111,5 +122,5 @@ try {
       assert.equal(posts.length, before + 1, "reopening the fallback link is local and never resubmits the Order");
     }
   }
-  console.log(`${beta ? "Beta" : "Standard"} mocked WhatsApp checkout passed on desktop EN and mobile AR`);
+  console.log(`${beta ? "Beta" : "Standard"} mocked ${method} checkout passed on desktop EN and mobile AR`);
 } finally { socket.close(); }

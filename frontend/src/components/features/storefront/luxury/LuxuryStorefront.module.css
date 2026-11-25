@@ -85,8 +85,8 @@
 .menu :global([data-menu-image]:has([role='img']) [role='img']) { display: none; }
 .menu :global([data-menu-overlay]) { display: none; }
 .menu :global([data-menu-featured]) { background: var(--sf-highlight); border-color: var(--sf-accent); color: var(--sf-primary); backdrop-filter: none; }
-.menu :global([data-menu-card] button:last-child) { min-width: 85px; background: var(--sf-primary); background-image: none; color: var(--sf-on-primary); box-shadow: none; }
-.menu :global([data-menu-card] button:last-child:hover) { background: var(--sf-primary-hover); }
+.menu :global([data-menu-card] [data-product-action]) { min-width: 85px; background: var(--sf-primary); background-image: none; color: var(--sf-on-primary); box-shadow: none; }
+.menu :global([data-menu-card] [data-product-action]:hover) { background: var(--sf-primary-hover); }
 .menu :global([role='dialog'] > div) { background: var(--sf-surface); background-image: none; color: var(--sf-text); border-color: var(--sf-border); }
 .menu :global([role='dialog'] [class*='border-white/']) { border-color: var(--sf-border); }
 .menu :global([role='dialog'] [class*='bg-white/']) { background: var(--sf-surface-alt); }
@@ -160,7 +160,7 @@
 :global(html[lang='ar']) .root :is(.wordmark, .hero h1, .heroPhoto strong, .heroNoPhoto strong, .storyCopy h2, .storyText, .sectionHeading h2, .cardNoImage, .cardDetails h3, .categoryList a, .contact h2, .pageIntro h1, .productCopy h1, .productNoImage strong, .aboutIntro h1, .footerTop strong) { font-family: var(--font-tajawal), Tajawal, sans-serif; letter-spacing: normal; }
 @media (prefers-reduced-motion: reduce) { .root *, .root *::before, .root *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
 @media (max-width: 639px) {
-  .menu :global([data-menu-image]), .menu :global([data-menu-image]:has([role='img'])) { height: auto; aspect-ratio: auto; }
+  .menu :global([data-menu-image]), .menu :global([data-menu-image]:has([role='img'])) { height: auto; aspect-ratio: 1; }
   .menu :global([data-menu-image]:has([role='img']) [role='img']) { display: flex; }
-  .menu :global([data-menu-card] button:last-child) { min-width: 44px; }
+  .menu :global([data-menu-card] [data-product-action]) { min-width: 44px; }
 }

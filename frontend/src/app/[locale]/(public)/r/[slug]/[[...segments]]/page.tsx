@@ -1,5 +1,10 @@
 import { notFound } from "next/navigation";
-import { StorefrontView, type StorefrontPage } from "@/components/features/storefront/StorefrontView";
+import { StorefrontView, restaurantMetadata, type StorefrontPage } from "@/components/features/storefront/StorefrontView";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string; locale: string }> }) {
+  const { slug, locale } = await params;
+  return restaurantMetadata(locale, slug);
+}
 
 export default async function Page({ params }: { params: Promise<{ slug: string; segments?: string[] }> }) {
   const { slug, segments = [] } = await params;

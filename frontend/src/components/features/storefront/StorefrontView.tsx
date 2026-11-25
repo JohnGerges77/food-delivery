@@ -1,4 +1,7 @@
 import { notFound } from "next/navigation";
+import { getLocale } from "next-intl/server";
+import type { Metadata } from "next";
+import { cache } from "react";
 import { PublicMenuError, findPublicProduct, getAllPublicCategories, getPublicProducts, selectOffers,
   getPublicRestaurant, localPreviewSlug, validateStorefrontSlug } from "@/services/public-menu";
 import { StorefrontClient } from "./StorefrontClient";
@@ -6,12 +9,36 @@ import { storefrontCheckoutAvailability } from "@/services/guest-checkout-servic
 
 export type StorefrontPage = "home" | "menu" | "product" | "cart" | "checkout" | "about";
 
+const isBeta = () => process.env.VERCEL_ENV === "production" && process.env.SAVORA_DEPLOYMENT_MODE === "beta";
+const storefrontRestaurant = cache(getPublicRestaurant);
+
+function resolveSlug(slug?: string) {
+  return slug ? validateStorefrontSlug(slug) : isBeta() ? "savora-beta-demo" : localPreviewSlug();
+}
+
+export async function restaurantMetadata(locale: string, slug?: string): Promise<Metadata> {
+  try {
+    const resolved = resolveSlug(slug);
+    if (!resolved) return {};
+    const restaurant = await storefrontRestaurant(resolved, locale);
+    const title = restaurant.name + " | Savora";
+    const description = restaurant.description?.trim() || (locale === "ar"
+      ? "تصفّح قائمة المطعم واطلب كضيف مع سافورا."
+      : "Browse the restaurant menu and order as a guest with Savora.");
+    return { title, description, openGraph: { title, description } };
+  } catch (error) {
+    if (error instanceof PublicMenuError) return {};
+    throw error;
+  }
+}
+
 export async function StorefrontView({ slug, page, productId }: {
   slug?: string; page: StorefrontPage; productId?: string;
 }) {
-  const beta = process.env.VERCEL_ENV === "production" && process.env.SAVORA_DEPLOYMENT_MODE === "beta";
+  const beta = isBeta();
+  const locale = await getLocale();
   let resolvedSlug: string | null;
-  try { resolvedSlug = slug ? validateStorefrontSlug(slug) : beta ? "savora-beta-demo" : localPreviewSlug(); }
+  try { resolvedSlug = resolveSlug(slug); }
   catch (error) {
     if (slug && error instanceof PublicMenuError) notFound();
     throw error;
@@ -24,13 +51,13 @@ export async function StorefrontView({ slug, page, productId }: {
   let product;
   let offers;
   try {
-    restaurant = await getPublicRestaurant(resolvedSlug);
+    restaurant = await storefrontRestaurant(resolvedSlug, locale);
     const needsMenu = page === "home" || page === "menu" || page === "product";
     [categories, listing, product, offers] = await Promise.all([
-      needsMenu ? getAllPublicCategories(resolvedSlug) : Promise.resolve([]),
-      page === "home" || page === "menu" ? getPublicProducts(resolvedSlug) : Promise.resolve(null),
-      page === "product" && productId ? findPublicProduct(resolvedSlug, productId) : Promise.resolve(null),
-      page === "home" ? getPublicProducts(resolvedSlug, 1, { isFeatured: true }) : Promise.resolve(null),
+      needsMenu ? getAllPublicCategories(resolvedSlug, locale) : Promise.resolve([]),
+      page === "home" || page === "menu" ? getPublicProducts(resolvedSlug, 1, { locale }) : Promise.resolve(null),
+      page === "product" && productId ? findPublicProduct(resolvedSlug, productId, locale) : Promise.resolve(null),
+      page === "home" ? getPublicProducts(resolvedSlug, 1, { isFeatured: true, locale }) : Promise.resolve(null),
     ]);
   } catch (error) {
     if (error instanceof PublicMenuError && error.status === 404) notFound();

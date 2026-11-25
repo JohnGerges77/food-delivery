@@ -10,7 +10,7 @@ Target `savora_beta` as the Atlas database user `savora_beta_user`. The operator
 | --- | --- | --- | --- |
 | Pizza | Pizza Margherita | Small 150, Medium 200, Large 270 | 18 minutes |
 | Burgers | Cheese Burger | Single 150, Double 210 | 14 minutes |
-| Burgers | French Fries | 60, no variants | 8 minutes |
+| Sides | French Fries | 60, no variants | 8 minutes |
 
 The committed dataset also includes one Platform Admin, one active Owner tied to the restaurant, and the platform service's `restaurant.created` audit event. The verified dataset has zero Orders and zero persisted login sessions.
 

@@ -29,6 +29,7 @@ const ownerName = 'Savora Beta Demo Owner';
 const categories = [
   { name: 'Pizza', slug: 'pizza', sortOrder: 0, isActive: true },
   { name: 'Burgers', slug: 'burgers', sortOrder: 1, isActive: true },
+  { name: 'Sides', slug: 'sides', sortOrder: 2, isActive: true },
 ];
 const products = [
   {
@@ -44,13 +45,13 @@ const products = [
     variants: makeVariants([['Single', 150], ['Double', 210]]),
   },
   {
-    categorySlug: 'burgers', name: 'French Fries', slug: 'french-fries',
+    categorySlug: 'sides', name: 'French Fries', slug: 'french-fries',
     description: 'Crisp golden potato fries tossed with sea salt.',
     price: 60, preparationTime: 8, isAvailable: true, isFeatured: false, variants: [],
   },
 ];
 const expectedCounts = {
-  restaurants: 1, users: 1, categories: 2, products: 3, orders: 0,
+  restaurants: 1, users: 1, categories: 3, products: 3, orders: 0,
   ownersessions: 0, platformadmins: 1, platformadminsessions: 0, platformaudits: 1,
 };
 const emptyCounts = Object.fromEntries(Object.keys(expectedCounts).map((name) => [name, 0]));

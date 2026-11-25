@@ -7,6 +7,7 @@ import { useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { publicMoney } from "@/lib/public-menu-presentation";
 import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";
+import { CheckoutPriceSummary } from "@/components/features/checkout/CheckoutPriceSummary";
 import { useStorefront } from "@/components/features/storefront/StorefrontContext";
 import { useCartStore } from "@/store/cart-store";
 import { checkoutUnavailableMessage, type CheckoutAvailability } from "@/services/guest-checkout-service";
@@ -18,7 +19,7 @@ export function CartOrderingPage({ deliveryFee, currency, slug, checkoutAvailabi
 }) {
   const locale = useLocale();
   const isArabic = locale === "ar";
-  const { href } = useStorefront();
+  const { href, restaurant } = useStorefront();
   const cartItems = useCartStore((state) => state.items);
   const tenantSlug = useCartStore((state) => state.tenantSlug);
   const items = tenantSlug === slug ? cartItems : [];
@@ -27,7 +28,6 @@ export function CartOrderingPage({ deliveryFee, currency, slug, checkoutAvailabi
   const removeItem = useCartStore((state) => state.removeItem);
   const clearCart = useCartStore((state) => state.clearCart);
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const total = subtotal + (deliveryFee ?? 0);
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);
 
   return (
@@ -168,22 +168,8 @@ export function CartOrderingPage({ deliveryFee, currency, slug, checkoutAvailabi
                   <div className="pointer-events-none absolute -right-20 -top-20 size-52 rounded-full bg-[color:var(--primary)]/18 blur-3xl" />
                   <div className="relative">
                     <h2 className="text-2xl font-semibold">{isArabic ? "ملخص الطلب" : "Order Summary"}</h2>
-                    <div className="mt-6 divide-y divide-white/10 text-sm">
-                      <div className="flex justify-between py-4 text-[color:var(--text-muted)]">
-                        <span>{isArabic ? "المجموع الفرعي" : "Subtotal"}</span>
-                        <span>{publicMoney(subtotal, currency, locale)}</span>
-                      </div>
-                      <div className="flex justify-between py-4 text-[color:var(--text-muted)]">
-                        <span>{isArabic ? "رسوم التوصيل" : "Delivery Fee"}</span>
-                        <span>{deliveryFee === null ? "—" : publicMoney(deliveryFee, currency, locale)}</span>
-                      </div>
-                      <div className="flex justify-between py-5 text-lg font-semibold">
-                        <span>{isArabic ? "الإجمالي" : "Total"}</span>
-                        <span className="text-[color:var(--primary-light)]">
-                          {deliveryFee === null ? "—" : publicMoney(total, currency, locale)}
-                        </span>
-                      </div>
-                    </div>
+                    <CheckoutPriceSummary currency={currency} deliveryFee={deliveryFee} locale={locale}
+                      minimumOrder={restaurant.deliverySettings.minimumOrder} ordering={checkoutAvailability === "available"} subtotal={subtotal} />
                     <div className="mt-2 rounded-lg border border-[color:var(--gold)]/20 bg-[color:var(--gold)]/8 px-4 py-3 text-xs leading-6 text-[color:var(--text-muted)]">
                       {isArabic ? "السعر النهائي يحدده الخادم عند إرسال الطلب. لم يتم حفظ أي طلب." : "The server determines final prices when orders can be submitted. No order has been saved."}
                     </div>
