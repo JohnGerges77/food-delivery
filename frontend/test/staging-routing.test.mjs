@@ -32,7 +32,7 @@ test("Preview browser API uses its own origin and server rendering uses the priv
         return new Response(JSON.stringify({ order: { orderNumber: "SV-123", status: "pending",
           submissionMethod: method, currency: "EGP", subtotal: 20, deliveryFee: 0,
           total: 20, savedInSavora: true }, ...(method === "whatsapp" ?
-          { whatsapp: { url: "https://wa.me/201001234567", messageSent: false } } : {}) }), { status: 201 });
+          { whatsapp: { url: "https://wa.me/12025550100?text=Order%20SV-123", messageSent: false } } : {}) }), { status: 201 });
       };
       assert.equal((await submitGuestCheckout("cafe", payload, "12345678-1234-1234-1234-123456789012")).order.orderNumber, "SV-123");
     }

@@ -73,6 +73,7 @@ createServer((request, response) => {
     response.writeHead(200).end(JSON.stringify(suffix === "" ? { restaurant: {
       ...(slug === "phase102-aqua" ? aquaRestaurant : slug === "phase103-cafe" ? cafeRestaurant : slug === "phase104-luxury" ? luxuryRestaurant : restaurant),
       heroProductSelected: true, heroProduct: slug === "phase103-cafe" ? cafeProducts[0] : products[1],
+      whatsappOrderingAvailable: slug === "phase101-classic",
       socialLinks: { facebook: null, instagram: null, whatsapp: "https://wa.me/201000000000" },
     } } : {
       [suffix === "/categories" ? "categories" : "products"]: listing,

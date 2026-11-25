@@ -7,6 +7,7 @@ import RestaurantSchema from '../models/Restaurant.js';
 import { withCategoryReferenceTransaction } from './categoryReference.js';
 import { currencyFractionDigits } from './ownerProducts.js';
 import { PublicRestaurantNotFound, resolvePublicRestaurant } from './publicMenu.js';
+import { restaurantWhatsAppTarget } from './whatsappOrdering.js';
 
 export class InvalidCheckout extends Error {}
 export class CheckoutConflict extends Error {}
@@ -45,10 +46,10 @@ function cleanText(value, limit, required = true) {
 
 export function betaCheckoutBody(body) {
   onlyKeys(body, BETA_FIELDS);
-  if (body.submissionMethod !== 'direct' || !Array.isArray(body.items) ||
+  if (!['direct', 'whatsapp'].includes(body.submissionMethod) || !Array.isArray(body.items) ||
       !body.items.length || body.items.length > MAX_ITEMS) invalid();
   for (const item of body.items) onlyKeys(item, BETA_ITEM_FIELDS);
-  return { submissionMethod: 'direct', items: body.items, customerName: 'Savora Beta Test Guest',
+  return { submissionMethod: body.submissionMethod, items: body.items, customerName: 'Savora Beta Test Guest',
     customerPhone: '+12025550100', deliveryAddress: 'Synthetic order, no fulfillment', city: 'Beta Test City' };
 }
 
@@ -110,19 +111,6 @@ function currencyDigits(currency) {
   } catch { throw new CheckoutUnavailable(); }
 }
 
-export function whatsappTarget(value) {
-  if (typeof value !== 'string') throw new CheckoutUnavailable();
-  try {
-    const url = new URL(value);
-    if (url.protocol !== 'https:' || url.hostname !== 'wa.me' ||
-        !/^\/[1-9][0-9]{6,14}$/.test(url.pathname) ||
-        url.search || url.hash || url.username || url.password || url.port) {
-      throw new Error();
-    }
-    return `https://wa.me${url.pathname}`;
-  } catch { throw new CheckoutUnavailable(); }
-}
-
 function digest(value) { return createHash('sha256').update(value).digest('hex'); }
 function modelsFor(connection) {
   if (connection?.readyState !== 1) throw new Error('Database unavailable');
@@ -140,41 +128,52 @@ function confirmation(order, currency) {
     deliveryFee: order.deliveryFee, total: order.total, savedInSavora: true };
 }
 
-export function buildWhatsAppUrl(order, target, currency, restaurantName = '') {
-  const safe = (value) => String(value).replace(/[\x00-\x1f\x7f]/g, ' ').slice(0, 240);
-  const money = (amount) => `${Number(amount).toFixed(currencyDigits(currency))} ${currency}`;
-  const essential = [safe(restaurantName), `Order ${safe(order.orderNumber)}`, `Name: ${safe(order.customerName)}`,
-    `Phone: ${safe(order.customerPhone)}`, `Address: ${safe(order.deliveryAddress)}, ${safe(order.city)}`,
-    `Subtotal: ${money(order.subtotal)}`, `Delivery: ${money(order.deliveryFee)}`,
+export function buildWhatsAppUrl(order, target, currency, restaurantName = '', { beta = false } = {}) {
+  const safe = (value, length = 240) => {
+    const chars = Array.from(String(value).toWellFormed().replace(/[\x00-\x1f\x7f]/g, ' '));
+    return chars.length > length ? chars.slice(0, length - 1).join('') + '…' : chars.join('');
+  };
+  const digits = currencyDigits(currency);
+  const money = (amount) => `${Number(amount).toFixed(digits)} ${currency}`;
+  const header = [
+    ...(beta ? ['TEST ORDER — no payment or fulfillment.', 'طلب تجريبي فقط. لا دفع ولا تنفيذ للطلب.'] : []),
+    safe(restaurantName, 45), `Order ${safe(order.orderNumber, 40)}`,
+  ];
+  const totals = [`Subtotal: ${money(order.subtotal)}`, `Delivery: ${money(order.deliveryFee)}`,
     `Total: ${money(order.total)}`];
-  let message = essential.join('\n');
-  const lines = order.items.map((item) =>
-    `${item.quantity} x ${safe(item.name).slice(0, 70)}${item.variantName ? ` (${safe(item.variantName).slice(0, 70)})` : ''} @ ${money(item.unitPrice)} = ${money(item.quantity * item.unitPrice)}${item.notes ? ` (${safe(item.notes)})` : ''}`);
-  for (const line of lines) {
-    const candidate = `${message}\n${line}`;
-    if (encodeURIComponent(candidate).length > 3500) break;
-    message = candidate;
-  }
-  if (message === essential.join('\n')) message += `\nItems: ${order.items.length}`;
-  if (order.notes && encodeURIComponent(`${message}\nNotes: ${safe(order.notes)}`).length <= 3500) {
-    message += `\nNotes: ${safe(order.notes)}`;
-  }
+  const itemLines = (length, includeNotes) => order.items.map(item => {
+    const variant = item.variantName ? ` (${safe(item.variantName, length)})` : '';
+    const notes = includeNotes && item.notes ? ` (${safe(item.notes)})` : '';
+    return `${item.quantity} x ${safe(item.name, length)}${variant} @ ${money(item.unitPrice)} = ${money(item.quantity * item.unitPrice)}${notes}`;
+  });
+  let message = [...header, ...itemLines(70, !beta), ...totals].join('\n');
+  // Keep every item and its variant within the handoff budget, even for long Unicode names.
   if (encodeURIComponent(message).length > 3500) {
-    message = `${safe(restaurantName)}\nOrder ${safe(order.orderNumber)}\nTotal: ${money(order.total)}`;
+    message = [...header, ...itemLines(8, false), ...totals].join('\n');
+  }
+  if (!beta) {
+    const details = [`Name: ${safe(order.customerName)}`, `Phone: ${safe(order.customerPhone)}`,
+      `Address: ${safe(order.deliveryAddress)}, ${safe(order.city)}`,
+      ...(order.notes ? [`Notes: ${safe(order.notes)}`] : [])];
+    const withDetails = [message, ...details].join('\n');
+    if (encodeURIComponent(withDetails).length <= 3500) message = withDetails;
   }
   return `${target}?text=${encodeURIComponent(message)}`;
 }
 
-function resultFor(order, restaurant) {
+function resultFor(order, restaurant, target, beta) {
   const result = { order: confirmation(order, restaurant.currency) };
   if (order.submissionMethod === 'whatsapp') {
-    result.whatsapp = { url: buildWhatsAppUrl(order, order.whatsappTarget,
-      restaurant.currency, restaurant.name), messageSent: false };
+    result.whatsapp = {
+      url: target && order.whatsappTarget === target
+        ? buildWhatsAppUrl(order, target, restaurant.currency, restaurant.name, { beta }) : null,
+      messageSent: false,
+    };
   }
   return result;
 }
 
-export async function createGuestOrder(connection, slug, body, idempotencyKey) {
+export async function createGuestOrder(connection, slug, body, idempotencyKey, { betaWhatsAppTargets } = {}) {
   const input = parseCheckout(body, idempotencyKey);
   const restaurant = await resolvePublicRestaurant(connection, slug);
   const { Restaurant, Product, Category, Order } = modelsFor(connection);
@@ -185,7 +184,8 @@ export async function createGuestOrder(connection, slug, body, idempotencyKey) {
     const order = await Order.findOne(lookup).select('+idempotencyRequestHash +whatsappTarget');
     if (!order) return null;
     if (order.idempotencyRequestHash !== requestHash) throw new CheckoutConflict();
-    return resultFor(order, restaurant);
+    const current = order.submissionMethod === 'whatsapp' ? await resolvePublicRestaurant(connection, slug) : restaurant;
+    return resultFor(order, current, restaurantWhatsAppTarget(current, betaWhatsAppTargets), Boolean(betaWhatsAppTargets));
   }
   const replay = await existing();
   if (replay) return { ...replay, replayed: true };
@@ -196,7 +196,7 @@ export async function createGuestOrder(connection, slug, body, idempotencyKey) {
       // cannot both commit against an earlier active snapshot.
       const currentRestaurant = await Restaurant.findOneAndUpdate({ _id: restaurant._id,
         status: { $ne: 'suspended' } }, { $inc: { __v: 1 } }, { returnDocument: 'after' })
-        .select('_id name currency deliverySettings socialLinks')
+        .select('_id name slug currency deliverySettings socialLinks')
         .session(session).lean();
       if (!currentRestaurant) throw new PublicRestaurantNotFound();
       const digits = currencyDigits(currentRestaurant.currency);
@@ -207,7 +207,8 @@ export async function createGuestOrder(connection, slug, body, idempotencyKey) {
         throw new CheckoutUnavailable();
       }
       const target = input.submissionMethod === 'whatsapp' ?
-        whatsappTarget(currentRestaurant.socialLinks?.whatsapp) : undefined;
+        restaurantWhatsAppTarget(currentRestaurant, betaWhatsAppTargets) : null;
+      if (input.submissionMethod === 'whatsapp' && !target) throw new CheckoutUnavailable();
       // Every attempt reads current product/category state and writes each selected Product.
       const snapshots = [];
       let subtotalMinor = 0;
@@ -240,9 +241,9 @@ export async function createGuestOrder(connection, slug, body, idempotencyKey) {
         source: 'website', status: 'pending', idempotencyKeyHash: keyHash,
         idempotencyRequestHash: requestHash,
         ...(target ? { whatsappTarget: target } : {}) }], { session });
-      return { order: saved, restaurant: currentRestaurant };
+      return { order: saved, restaurant: currentRestaurant, target };
     });
-    return { ...resultFor(saved.order, saved.restaurant), replayed: false };
+    return { ...resultFor(saved.order, saved.restaurant, saved.target, Boolean(betaWhatsAppTargets)), replayed: false };
   } catch (error) {
     if (error.code === 11000) {
       const recovered = await existing();

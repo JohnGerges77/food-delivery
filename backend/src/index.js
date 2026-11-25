@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { createApp } from './app.js';
 import { connectDB } from './config/db.js';
 import { inspectConnectionIndexes } from './cli/check-indexes.js';
+import { betaWhatsAppPolicy } from './services/whatsappOrdering.js';
 
 const STAGING_BRANCH = 'codex/savora-staging-preview';
 
@@ -127,7 +128,8 @@ export function createVercelEntry({ env = process.env, connection = mongoose.con
         checkoutEnabled: config.checkoutEnabled,
         ...(config.databaseName === 'savora_beta' ? {
           checkoutAllowedOrigins: config.allowedOrigins.split(','), checkoutLimit: 10,
-          betaCheckout: true } : {}) });
+          betaCheckout: true,
+          betaWhatsAppTargets: betaWhatsAppPolicy(env.SAVORA_BETA_WHATSAPP_TARGETS) } : {}) });
       app(req, res);
     } catch {
       res.status(503).json({ error: 'Service unavailable' });

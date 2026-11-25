@@ -10,6 +10,7 @@ import CategorySchema from '../src/models/Category.js';
 import ProductSchema from '../src/models/Product.js';
 import OrderSchema from '../src/models/Order.js';
 import { tokenHash } from '../src/services/ownerAuth.js';
+import { betaWhatsAppPolicy } from '../src/services/whatsappOrdering.js';
 
 function validatedTestUri() {
   const value = process.env.MONGODB_TEST_URI;
@@ -33,6 +34,7 @@ test('secure guest checkout on savora_test', async (t) => {
   });
   const ids = new Map();
   let server;
+  let betaServer;
   try {
     await connection.asPromise();
     assert.equal(connection.name, 'savora_test');
@@ -56,8 +58,8 @@ test('secure guest checkout on savora_test', async (t) => {
     const suffix = randomUUID().replaceAll('-', '');
     const a = await fixture(Restaurant, { name: 'Checkout A',
       slug: `it-checkout-a-${suffix}`, currency: 'EGP',
-      socialLinks: { whatsapp: 'https://wa.me/201001234567' },
-      deliverySettings: { deliveryAvailable: true, deliveryFee: 7.5, minimumOrder: 20 } });
+      socialLinks: { whatsapp: 'https://wa.me/12025550100' },
+      deliverySettings: { deliveryAvailable: true, deliveryFee: 7.5, minimumOrder: 20, whatsappOrderingEnabled: true } });
     const b = await fixture(Restaurant, { name: 'Checkout B',
       slug: `it-checkout-b-${suffix}`, currency: 'EGP' });
     const suspended = await fixture(Restaurant, { name: 'Suspended',
@@ -89,6 +91,11 @@ test('secure guest checkout on savora_test', async (t) => {
     const csrf = randomBytes(32).toString('hex');
     await fixture(OwnerSession, { userId: owner._id, tokenHash: tokenHash(raw),
       csrfTokenHash: tokenHash(csrf), expiresAt: new Date(Date.now() + 900_000) });
+    const secondOwner = await fixture(User, { restaurantId: b._id, name: 'Second Owner',
+      email: `it-checkout-b-${suffix}@example.test`, passwordHash: 'test-only-hash' });
+    const secondToken = randomBytes(32).toString('hex');
+    await fixture(OwnerSession, { userId: secondOwner._id, tokenHash: tokenHash(secondToken),
+      csrfTokenHash: tokenHash(csrf), expiresAt: new Date(Date.now() + 900_000) });
 
     server = createApp({ connection, allowedOrigins: 'https://dashboard.example.test',
       secureCookies: true }).listen(0, '127.0.0.1');
@@ -100,10 +107,11 @@ test('secure guest checkout on savora_test', async (t) => {
       city: 'Cairo', notes: 'Ring bell', submissionMethod: method,
       items: [{ productId: String(productId), quantity: 2, notes: 'No onions' }],
     });
-    const post = async (slug, payload, key = randomUUID()) => {
+    const origin = 'https://dashboard.example.test';
+    const post = async (slug, payload, key = randomUUID(), endpoint = base, requestOrigin = origin) => {
       const response = await fetch(
-      `${base}/api/public/restaurants/${slug}/orders`, { method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key },
+      `${endpoint}/api/public/restaurants/${slug}/orders`, { method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': key, Origin: requestOrigin },
         body: typeof payload === 'string' ? payload : JSON.stringify(payload) });
       if (response.ok) {
         const result = await response.clone().json();
@@ -117,6 +125,17 @@ test('secure guest checkout on savora_test', async (t) => {
       method: 'DELETE', headers: { Cookie: `savora_owner_session=${raw}; savora_owner_csrf=${csrf}`,
         Origin: 'https://dashboard.example.test', 'X-Savora-CSRF': csrf },
     });
+    const settings = (endpoint, token, patch, headers = {}) => fetch(endpoint + '/api/owner/restaurant', {
+      method: patch ? 'PATCH' : 'GET',
+      headers: { Cookie: `savora_owner_session=${token}; savora_owner_csrf=${csrf}`,
+        Origin: origin, 'X-Savora-CSRF': csrf, 'Content-Type': 'application/json', ...headers },
+      ...(patch ? { body: JSON.stringify(patch) } : {}),
+    });
+    const restaurant = async (endpoint, slug) => {
+      const response = await fetch(endpoint + '/api/public/restaurants/' + slug);
+      assert.equal(response.status, 200);
+      return (await response.json()).restaurant;
+    };
 
     await t.test('Owner variant CRUD preserves IDs and rejects foreign IDs and unsafe conversion', async () => {
       const headers = { Cookie: `savora_owner_session=${raw}; savora_owner_csrf=${csrf}`, Origin:'https://dashboard.example.test', 'X-Savora-CSRF':csrf, 'Content-Type':'application/json' };
@@ -195,7 +214,7 @@ test('secure guest checkout on savora_test', async (t) => {
       assert.equal(first.status, 201);
       const data = await first.json();
       assert.equal(data.whatsapp.messageSent, false);
-      assert.match(data.whatsapp.url, /^https:\/\/wa\.me\/201001234567\?text=/);
+      assert.match(data.whatsapp.url, /^https:\/\/wa\.me\/12025550100\?text=/);
       assert.ok(await Order.exists({ restaurantId: a._id,
         orderNumber: data.order.orderNumber }));
       const second = await post(a.slug, { ...request, customerName: ' Mona ' }, key);
@@ -270,7 +289,101 @@ test('secure guest checkout on savora_test', async (t) => {
         }
       }
     });
+
+    await t.test('owner WhatsApp settings persist independently and only route orders to their own tenant', async () => {
+      assert.equal((await settings(base, secondToken, { restaurantId: String(a._id),
+        socialLinks: { whatsapp: '+12025550101' } })).status, 400);
+      const optIn = { socialLinks: { whatsapp: '+12025550101' }, deliverySettings: { whatsappOrderingEnabled: true } };
+      assert.equal((await settings(base, secondToken, optIn, { 'X-Savora-CSRF': '' })).status, 403);
+      assert.equal((await settings(base, secondToken, optIn, { Origin: 'https://untrusted.example.test' })).status, 403);
+      assert.equal((await settings(base, secondToken,
+        { socialLinks: { whatsapp: '+999123456789' } })).status, 400);
+      assert.equal((await settings(base, secondToken,
+        { deliverySettings: { whatsappOrderingEnabled: true } })).status, 400);
+      assert.equal((await settings(base, secondToken, optIn)).status, 200);
+      const savedSettings = (await (await settings(base, secondToken)).json()).restaurant;
+      assert.equal(savedSettings.socialLinks.whatsapp, 'https://wa.me/12025550101');
+      assert.equal(savedSettings.deliverySettings.whatsappOrderingEnabled, true);
+      assert.equal(savedSettings.deliverySettings.deliveryAvailable, true);
+      assert.equal((await (await settings(base, raw)).json()).restaurant.socialLinks.whatsapp, 'https://wa.me/12025550100');
+      assert.equal((await restaurant(base, b.slug)).whatsappOrderingAvailable, true);
+      const key = randomUUID();
+      const payload = body(bOrderable._id, 'whatsapp');
+      const placed = await post(b.slug, payload, key);
+      assert.equal(placed.status, 201);
+      const orderData = await placed.json();
+      assert.equal(new URL(orderData.whatsapp.url).pathname, '/12025550101');
+      assert.equal((await settings(base, secondToken, { deliverySettings: { whatsappOrderingEnabled: false } })).status, 200);
+      assert.equal((await restaurant(base, b.slug)).whatsappOrderingAvailable, false);
+      const replay = await post(b.slug, payload, key);
+      assert.equal(replay.status, 200);
+      const replayed = await replay.json();
+      assert.equal(replayed.order.orderNumber, orderData.order.orderNumber);
+      assert.deepEqual(replayed.whatsapp, { url: null, messageSent: false });
+      assert.equal((await post(b.slug, payload)).status, 409);
+      assert.equal((await post(b.slug, body(bOrderable._id))).status, 201);
+      assert.equal((await settings(base, secondToken, optIn)).status, 200);
+    });
+
+    await t.test('beta uses an operator-approved tenant number and synthetic variant order with one persisted row', async () => {
+      betaServer = createApp({ connection, allowedOrigins: origin, secureCookies: true,
+        checkoutAllowedOrigins: [origin], betaCheckout: true,
+        betaWhatsAppTargets: betaWhatsAppPolicy(JSON.stringify({ [a.slug]: '+12025550100' })),
+      }).listen(0, '127.0.0.1');
+      await new Promise(resolve => betaServer.once('listening', resolve));
+      const beta = `http://127.0.0.1:${betaServer.address().port}`;
+      const visibleA = await restaurant(beta, a.slug);
+      assert.equal(visibleA.whatsappOrderingAvailable, true);
+      assert.equal(visibleA.socialLinks.whatsapp, null);
+      assert.equal((await restaurant(beta, b.slug)).whatsappOrderingAvailable, false);
+      assert.equal((await settings(beta, secondToken, { socialLinks: { whatsapp: '+12025550100' },
+        deliverySettings: { whatsappOrderingEnabled: true } })).status, 400);
+      const pizza = await product({ name: 'Pizza Margherita', price: 50,
+        variants: [{ name: 'Medium', price: 200, isAvailable: true, sortOrder: 0 }] });
+      const payload = { submissionMethod: 'whatsapp', items: [{ productId: String(pizza._id),
+        variantId: String(pizza.variants[0]._id), quantity: 1 }] };
+      const key = randomUUID();
+      const before = await Order.countDocuments({ restaurantId: a._id });
+      assert.equal((await post(a.slug, payload, key, beta, 'https://untrusted.example.test')).status, 403);
+      assert.equal((await post(a.slug, { ...payload, customerPhone: '+12025550199' }, key, beta)).status, 400);
+      assert.equal((await post(b.slug, { ...payload, items: [{ productId: String(bOrderable._id), quantity: 1 }] }, key, beta)).status, 409);
+      const placed = await post(a.slug, payload, key, beta);
+      assert.equal(placed.status, 201);
+      const result = await placed.json();
+      assert.equal(result.order.status, 'pending');
+      assert.equal(result.order.subtotal, 200);
+      assert.equal(result.order.total, 207.5);
+      assert.equal(result.whatsapp.messageSent, false);
+      const handoff = new URL(result.whatsapp.url);
+      assert.equal(handoff.pathname, '/12025550100');
+      assert.match(handoff.searchParams.get('text'), /TEST ORDER.*no payment or fulfillment/);
+      assert.match(handoff.searchParams.get('text'), /Pizza Margherita \(Medium\) @ 200\.00 EGP/);
+      assert.ok(handoff.searchParams.get('text').includes(result.order.orderNumber));
+      assert.doesNotMatch(handoff.searchParams.get('text'), /Beta Test Guest|5550100/);
+      const saved = await Order.findOne({ restaurantId: a._id, orderNumber: result.order.orderNumber });
+      assert.equal(saved.customerName, 'Savora Beta Test Guest');
+      assert.equal(saved.submissionMethod, 'whatsapp');
+      assert.equal(saved.items[0].variantName, 'Medium');
+      assert.equal(saved.items[0].unitPrice, 200);
+      const ownerOrder = (token) => fetch(beta + '/api/owner/orders/' + saved._id, {
+        headers: { Cookie: `savora_owner_session=${token}` },
+      });
+      assert.equal((await ownerOrder(raw)).status, 200);
+      assert.equal((await ownerOrder(secondToken)).status, 404);
+      const replay = await post(a.slug, payload, key, beta);
+      assert.equal(replay.status, 200);
+      assert.deepEqual(await replay.json(), result);
+      const changed = await post(a.slug, { ...payload, items: [{ ...payload.items[0], quantity: 2 }] }, key, beta);
+      assert.equal(changed.status, 409);
+      assert.deepEqual(await changed.json(), { error: 'Idempotency key conflict' });
+      assert.equal(await Order.countDocuments({ restaurantId: a._id }), before + 1);
+      const direct = await post(b.slug, { submissionMethod: 'direct',
+        items: [{ productId: String(bOrderable._id), quantity: 1 }] }, randomUUID(), beta);
+      assert.equal(direct.status, 201);
+      assert.equal((await direct.json()).whatsapp, undefined);
+    });
   } finally {
+    if (betaServer) await new Promise(resolve => betaServer.close(resolve));
     if (server) await new Promise((resolve) => server.close(resolve));
     if (connection.readyState === 1) {
       for (const name of ['Order', 'OwnerSession', 'Product', 'Category', 'User', 'Restaurant']) {

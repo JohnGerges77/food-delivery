@@ -13,7 +13,7 @@ export type GuestCheckoutPayload = {
   submissionMethod: SubmissionMethod;
   items: { productId: string; variantId?: string; quantity: number; notes?: string }[];
 };
-type BetaCheckoutPayload = { submissionMethod: "direct"; items: Omit<GuestCheckoutPayload["items"][number], "notes">[] };
+type BetaCheckoutPayload = { submissionMethod: SubmissionMethod; items: Omit<GuestCheckoutPayload["items"][number], "notes">[] };
 type CheckoutSubmission = GuestCheckoutPayload | BetaCheckoutPayload;
 export type CheckoutAvailability = "available" | "checkout-disabled" | "delivery-unavailable";
 
@@ -35,9 +35,9 @@ export function checkoutUnavailableMessage(availability: CheckoutAvailability, a
   return "";
 }
 export type GuestCheckoutResult = {
-  order: { orderNumber: string; status: "pending"; submissionMethod: SubmissionMethod;
+  order: { orderNumber: string; status: "pending" | "preparing" | "ready" | "out-for-delivery" | "delivered" | "cancelled"; submissionMethod: SubmissionMethod;
     currency: string; subtotal: number; deliveryFee: number; total: number; savedInSavora: true };
-  whatsapp?: { url: string; messageSent: false };
+  whatsapp?: { url: string | null; messageSent: false };
 };
 export type CheckoutField = keyof CheckoutDetails | "cart";
 export type CheckoutErrors = Partial<Record<CheckoutField, string>>;
@@ -93,9 +93,9 @@ export function invalidCart(items: CartItem[]) {
   return quantity > 100;
 }
 
-export function buildBetaCheckoutPayload(items: CartItem[]): BetaCheckoutPayload {
+export function buildBetaCheckoutPayload(items: CartItem[], method: SubmissionMethod = "direct"): BetaCheckoutPayload {
   if (invalidCart(items)) throw new GuestCheckoutError(400, "Please check your cart.");
-  return { submissionMethod: "direct", items: items.map(({ productId, quantity, variantId }) => ({
+  return { submissionMethod: method, items: items.map(({ productId, quantity, variantId }) => ({
     productId: productId.toLowerCase(), quantity, ...(variantId ? { variantId: variantId.toLowerCase() } : {}),
   })) };
 }
@@ -126,22 +126,26 @@ function apiBaseUrl() {
   } catch { throw new GuestCheckoutError(null, "Checkout API URL is invalid."); }
 }
 
-function validateResult(value: unknown, method: SubmissionMethod): GuestCheckoutResult {
+function validateResult(value: unknown, method: SubmissionMethod, replayed: boolean): GuestCheckoutResult {
   if (!value || typeof value !== "object") throw new GuestCheckoutError(null, "Invalid checkout confirmation.", true);
   const result = value as GuestCheckoutResult;
   const order = result.order;
   if (!order || order.savedInSavora !== true || typeof order.orderNumber !== "string" ||
-    !/^SV-[A-Za-z0-9]+$/.test(order.orderNumber) || order.status !== "pending" || order.submissionMethod !== method ||
+    !/^SV-[A-Za-z0-9]+$/.test(order.orderNumber) || order.submissionMethod !== method ||
+    !(order.status === "pending" || (replayed && ["preparing", "ready", "out-for-delivery", "delivered", "cancelled"].includes(order.status))) ||
     typeof order.currency !== "string" || !/^[A-Z]{3}$/.test(order.currency) ||
     ![order.subtotal, order.deliveryFee, order.total].every((amount) => typeof amount === "number" && Number.isFinite(amount) && amount >= 0)) {
     throw new GuestCheckoutError(null, "Invalid checkout confirmation.", true);
   }
   if (method === "whatsapp") {
     try {
-      const url = new URL(result.whatsapp?.url ?? "");
+      if (result.whatsapp?.messageSent !== false) throw new Error();
+      if (replayed && result.whatsapp.url === null) return result;
+      const url = new URL(result.whatsapp.url ?? "");
       if (url.protocol !== "https:" || url.hostname !== "wa.me" || url.username || url.password || url.port ||
-        !/^\/[1-9][0-9]{6,14}$/.test(url.pathname) ||
-        result.whatsapp?.messageSent !== false) throw new Error();
+        !/^\/[1-9][0-9]{6,14}$/.test(url.pathname) || url.hash ||
+        url.searchParams.getAll("text").length !== 1 || !url.searchParams.get("text") ||
+        [...url.searchParams.keys()].some((key) => key !== "text")) throw new Error();
     } catch { throw new GuestCheckoutError(null, "Invalid WhatsApp handoff.", true); }
   }
   return result;
@@ -166,7 +170,7 @@ export async function submitGuestCheckout(slug: string, payload: CheckoutSubmiss
       throw new GuestCheckoutError(response.status, checkoutUnavailableMessage("checkout-disabled", false), false, true);
     }
     const unavailable = beta
-      ? "Checkout is unavailable. Refresh the menu and check delivery, item availability, and the minimum order before trying again."
+      ? "Checkout is unavailable. Refresh the menu and check delivery, item availability, the minimum order, or WhatsApp availability."
       : "Checkout is unavailable. Check delivery, minimum order, products, or WhatsApp availability.";
     const message = response.status === 401 || response.status === 403 ? "Checkout access was denied. Check preview access and retry." :
       response.status === 404 ? "This restaurant is unavailable." :
@@ -181,7 +185,7 @@ export async function submitGuestCheckout(slug: string, payload: CheckoutSubmiss
   let data: unknown;
   try { data = await response.json(); }
   catch { throw new GuestCheckoutError(null, "The result is unknown. Retry with the same details to recover your order.", true); }
-  return validateResult(data, payload.submissionMethod);
+  return validateResult(data, payload.submissionMethod, response.status === 200);
 }
 
 type SavedAttempt = { slug: string; fingerprint: string; key: string };

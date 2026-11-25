@@ -44,13 +44,15 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);
   const [details, setDetails] = useState<CheckoutDetails>(emptyCheckoutDetails);
   const [step, setStep] = useState(beta ? 2 : 0);
-  const whatsappAvailable = !beta && /^https:\/\/wa\.me\/[1-9][0-9]{6,14}$/.test(restaurant.socialLinks.whatsapp ?? "");
-  const [method, setMethod] = useState<SubmissionMethod>(whatsappAvailable ? "whatsapp" : "direct");
+  const whatsappAvailable = checkoutAvailability === "available" && restaurant.whatsappOrderingAvailable === true;
+  const [selectedMethod, setMethod] = useState<SubmissionMethod>(!beta && whatsappAvailable ? "whatsapp" : "direct");
+  const method = whatsappAvailable ? selectedMethod : "direct";
   const [handoffBlocked, setHandoffBlocked] = useState(false);
   const [errors, setErrors] = useState<CheckoutErrors>({});
   const [failure, setFailure] = useState<GuestCheckoutError | null>(null);
   const [sending, setSending] = useState(false);
   const [confirmation, setConfirmation] = useState<GuestCheckoutResult | null>(null);
+  const handoffUrl = confirmation?.order.submissionMethod === "whatsapp" ? confirmation.whatsapp?.url : null;
   const coordinator = useRef(new GuestCheckoutCoordinator());
   const submitting = useRef(false);
 
@@ -74,10 +76,10 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
     setSending(true);
     setFailure(null);
     try {
-      const payload = beta ? buildBetaCheckoutPayload(items) : buildCheckoutPayload(details, items, method);
+      const payload = beta ? buildBetaCheckoutPayload(items, method) : buildCheckoutPayload(details, items, method);
       const result = await coordinator.current.submit(slug, payload);
       setConfirmation(result);
-      if (result.order.submissionMethod === "whatsapp" && result.whatsapp) {
+      if (result.order.submissionMethod === "whatsapp" && result.whatsapp?.url) {
         try {
           const opened = window.open("", "_blank");
           if (!opened) setHandoffBlocked(true);
@@ -109,7 +111,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
     if (failure.status === 401 || failure.status === 403) return "رُفض الوصول لإتمام الطلب. تأكد من صلاحية دخولك إلى النسخة التجريبية ثم أعد المحاولة.";
     if (failure.status === 404) return "هذا المطعم غير متاح حاليًا.";
     if (failure.status === 409) return beta
-      ? "تعذر إتمام الطلب. راجع توفر المنتجات والتوصيل والحد الأدنى للطلب. إذا حصلت على رقم طلب، احتفظ به قبل بدء طلب جديد."
+      ? "تعذر إتمام الطلب. راجع توفر المنتجات والتوصيل والحد الأدنى للطلب وواتساب. إذا حصلت على رقم طلب، احتفظ به قبل بدء طلب جديد."
       : "تعذر إتمام الطلب: قد توجد محاولة سابقة متعارضة، أو أن المنتج أو التوصيل أو WhatsApp غير متاح. راجع البيانات قبل إعادة المحاولة.";
     if (failure.status === 429) return "محاولات كثيرة جدًا. انتظر قليلًا ثم أعد المحاولة.";
     return "تعذر حفظ الطلب. راجع البيانات وتوفر المنتجات والتوصيل، ثم أعد المحاولة.";
@@ -202,10 +204,16 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
                   <h3 className="text-2xl font-semibold text-[color:var(--primary-light)]">{isArabic ? "تم حفظ الطلب" : "Order saved successfully"}</h3>
                   <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "رقم الطلب" : "Order reference"}: <strong className="text-[color:var(--text)]">{confirmation.order.orderNumber}</strong></p>
                   <p className="mt-2 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "الإجمالي المؤكد" : "Confirmed total"}: <strong className="text-[color:var(--text)]">{publicMoney(confirmation.order.total, confirmation.order.currency, locale)}</strong></p>
-                  {confirmation.order.submissionMethod === "whatsapp" ? <>
-                    <p className="mt-4 text-sm leading-7 text-[color:var(--text)]">{handoffBlocked ? (isArabic ? "تعذّر فتح WhatsApp تلقائيًا. افتحه من الزر بالأسفل وأرسل الرسالة بنفسك." : "WhatsApp could not open automatically. Use the button below and send the message yourself.") : (isArabic ? "فتح WhatsApp لا يعني إرسال الرسالة. راجعها وأرسلها بنفسك." : "Opening WhatsApp does not send the message. Review and send it yourself.")}</p>
-                    <a className="mt-6 inline-flex min-h-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 text-sm font-bold text-[color:var(--background)]" href={confirmation.whatsapp!.url} target="_blank" rel="noopener noreferrer">{isArabic ? "فتح WhatsApp" : "Open WhatsApp"}</a>
-                  </> : <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">{beta
+                  {handoffUrl ? <>
+                    <p className="mt-4 text-sm leading-7 text-[color:var(--text)]">{beta
+                      ? (isArabic ? "استخدم الرابط لمعاينة رسالة الطلب التجريبي. لم تُرسل أي رسالة." : "Use the link to preview the test message. No message was sent.")
+                      : handoffBlocked
+                        ? (isArabic ? "تعذّر فتح WhatsApp تلقائيًا. افتحه من الزر بالأسفل وأرسل الرسالة بنفسك." : "WhatsApp could not open automatically. Use the button below and send the message yourself.")
+                        : (isArabic ? "فتح WhatsApp لا يعني إرسال الرسالة. راجعها وأرسلها بنفسك." : "Opening WhatsApp does not send the message. Review and send it yourself.")}</p>
+                    <a className="mt-6 inline-flex min-h-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),var(--primary-light))] px-8 text-sm font-bold text-[color:var(--background)]" href={handoffUrl} target="_blank" rel="noopener noreferrer">{isArabic ? "فتح WhatsApp" : "Open WhatsApp"}</a>
+                  </> : confirmation.order.submissionMethod === "whatsapp" ? (
+                    <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "واتساب غير متاح حاليًا لهذا الطلب. احتفظ برقم الطلب." : "WhatsApp is currently unavailable for this order. Keep your order reference."}</p>
+                  ) : <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">{beta
                     ? (isArabic ? "تم حفظ الطلب التجريبي. لن يتم تحصيل أي مبلغ أو توصيل الطلب." : "Your test order is saved. You will not be charged and nothing will be delivered.")
                     : (isArabic ? "استلم المطعم طلبك في Savora. لم يتم تأكيد الدفع." : "Your order is saved in Savora. Payment has not been confirmed.")}</p>}
                 </div>
@@ -275,17 +283,19 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
                 <button className="mt-5 text-sm font-semibold text-[color:var(--primary-light)] hover:underline" onClick={() => setStep(0)} type="button">{isArabic ? "تعديل البيانات" : "Edit details"}</button>
               </div>}
 
-              {!beta && step === 2 && <div className="mt-8 rounded-[1rem] border border-white/10 bg-[color:var(--background)]/32 p-5" data-testid="checkout-methods">
-                <h3 className="text-xl font-semibold">{isArabic ? "طريقة إرسال الطلب" : "Submission method"}</h3>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  {(["whatsapp", "direct"] as const).filter((option) => option === "direct" || whatsappAvailable).map((option) => <label className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-[1rem] border px-4 text-sm font-semibold ${method === option ? "border-[color:var(--primary)]/70 bg-[color:var(--primary)]/10" : "border-white/10 bg-white/[0.04]"}`} key={option}>
-                    <input checked={method === option} disabled={sending} name="submissionMethod" onChange={() => setMethod(option)} type="radio" value={option} />
-                    {option === "direct" ? (isArabic ? "مباشر" : "Direct") : "WhatsApp"}
-                  </label>)}
-                </div>
-                {!whatsappAvailable && <p className="mt-3 text-sm text-[color:var(--text-muted)]">{isArabic ? "WhatsApp غير مهيأ لهذا المطعم؛ يمكنك حفظ الطلب مباشرة." : "WhatsApp is not configured for this restaurant; you can place the order directly."}</p>}
+              {step === 2 && (!beta || whatsappAvailable) && <div className="mt-8 rounded-[1rem] border border-white/10 bg-[color:var(--background)]/32 p-5" data-testid="checkout-methods">
+                <fieldset>
+                  <legend className="text-xl font-semibold">{isArabic ? "طريقة إرسال الطلب" : "Submission method"}</legend>
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    {(["whatsapp", "direct"] as const).filter((option) => option === "direct" || whatsappAvailable).map((option) => <label className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-[1rem] border px-4 text-sm font-semibold ${method === option ? "border-[color:var(--primary)]/70 bg-[color:var(--primary)]/10" : "border-white/10 bg-white/[0.04]"}`} key={option}>
+                      <input checked={method === option} disabled={sending} name="submissionMethod" onChange={() => setMethod(option)} type="radio" value={option} />
+                      {option === "direct" ? (isArabic ? "مباشر" : "Direct") : "WhatsApp"}
+                    </label>)}
+                  </div>
+                </fieldset>
+                {!whatsappAvailable && <p className="mt-3 text-sm text-[color:var(--text-muted)]">{isArabic ? "واتساب غير متاح لهذا المطعم؛ يمكنك حفظ الطلب مباشرة." : "WhatsApp is unavailable for this restaurant. You can place the order directly."}</p>}
                 {method === "whatsapp" && whatsappAvailable && <p className="mt-5 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "فتح WhatsApp لا يعني إرسال الرسالة." : "Opening WhatsApp does not send the message."}</p>}
-                <button className="mt-4 text-sm font-semibold text-[color:var(--primary-light)] hover:underline" disabled={sending} onClick={() => setStep(1)} type="button">{isArabic ? "العودة للمراجعة" : "Back to review"}</button>
+                {!beta && <button className="mt-4 text-sm font-semibold text-[color:var(--primary-light)] hover:underline" disabled={sending} onClick={() => setStep(1)} type="button">{isArabic ? "العودة للمراجعة" : "Back to review"}</button>}
               </div>}
 
               {errors.cart && <p className="mt-6 rounded-lg border border-[color:var(--primary)]/30 bg-[color:var(--primary)]/10 p-4 text-sm text-[color:var(--primary-light)]" role="alert">{isArabic ? "راجع السلة: يجب اختيار منتجات صالحة وكميات مسموحة من هذا المطعم." : "Check your cart: select valid products and quantities from this restaurant."}</p>}

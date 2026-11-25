@@ -31,17 +31,30 @@ test("About image changes are isolated, clearable, and reject unsafe URLs", () =
   assert.ok(validateSettingsForm({ ...form, aboutImageUrl: "javascript:alert(1)" }, initial).aboutImageUrl);
 });
 
-test("Hero patch is isolated from branding and Egyptian WhatsApp phone normalizes per restaurant", () => {
+test("Hero patch is isolated from branding and international WhatsApp phone normalizes per restaurant", () => {
   const selected = "507f1f77bcf86cd799439012";
   const initial = dto();
-  const form = { ...restaurantToForm(initial), heroProductId: selected, whatsapp: "01278528656" };
+  const form = { ...restaurantToForm(initial), heroProductId: selected, whatsapp: "+٢٠ ١٢٧٨٥٢٨٦٥٦" };
   assert.deepEqual(settingsPatch(form, initial), { heroProductId: selected,
     socialLinks: { whatsapp: "https://wa.me/201278528656" } });
   assert.equal(normalizeWhatsAppSetting("+201278528656"), "https://wa.me/201278528656");
   assert.equal(normalizeWhatsAppSetting("https://wa.me/201278528656"), "https://wa.me/201278528656");
   assert.equal(normalizeWhatsAppSetting("0123"), null);
+  assert.equal(normalizeWhatsAppSetting("01278528656"), null);
   assert.deepEqual(settingsPatch({ ...form, heroProductId: "", whatsapp: "" },
     { ...initial, heroProductId: selected }), { heroProductId: null });
+});
+
+test("WhatsApp opt-in patches the number and toggle independently from delivery and tolerates legacy URLs", () => {
+  const initial = dto();
+  const form = restaurantToForm(initial);
+  assert.equal(form.whatsappOrderingEnabled, false);
+  assert.ok(validateSettingsForm({ ...form, whatsappOrderingEnabled: true }, initial).whatsapp);
+  assert.deepEqual(settingsPatch({ ...form, whatsappOrderingEnabled: true, whatsapp: "+1 (202) 555-0100" }, initial), {
+    deliverySettings: { whatsappOrderingEnabled: true }, socialLinks: { whatsapp: "https://wa.me/12025550100" },
+  });
+  const legacy = dto({ socialLinks: { ...initial.socialLinks, whatsapp: "https://example.test/legacy" } });
+  assert.deepEqual(settingsPatch({ ...restaurantToForm(legacy), name: "Updated" }, legacy), { name: "Updated" });
 });
 
 afterEach(() => {

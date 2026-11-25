@@ -33,6 +33,7 @@ export function serializeOwnerRestaurant(restaurant) {
       minimumOrder: restaurant.deliverySettings?.minimumOrder ?? null,
       estimatedDeliveryTime: restaurant.deliverySettings?.estimatedDeliveryTime ?? null,
       deliveryAvailable: restaurant.deliverySettings?.deliveryAvailable ?? true,
+      whatsappOrderingEnabled: restaurant.deliverySettings?.whatsappOrderingEnabled === true,
     },
     socialLinks: {
       facebook: restaurant.socialLinks?.facebook ?? null,
@@ -48,7 +49,8 @@ export function serializeOwnerRestaurant(restaurant) {
 
 export function createOwnerRouter({ connection = mongoose.connection,
   allowedOrigins = process.env.AUTH_TRUSTED_ORIGINS,
-  secureCookies = process.env.NODE_ENV === 'production', mediaStorage = null } = {}) {
+  secureCookies = process.env.NODE_ENV === 'production', mediaStorage = null,
+  betaCheckout = false, betaWhatsAppTargets = new Map() } = {}) {
   const router = express.Router();
   const { cors, trustedMutationOrigin } = createAuthGuards({ allowedOrigins, secureCookies });
   router.use(cors);
@@ -62,7 +64,8 @@ export function createOwnerRouter({ connection = mongoose.connection,
   router.patch('/restaurant', trustedMutationOrigin, requireOwnerCsrf,
     express.json({ limit: '8kb', strict: true }), async (req, res) => {
       res.json({ restaurant: serializeOwnerRestaurant(
-        await patchOwnerRestaurant(connection, req.auth, req.body)) });
+        await patchOwnerRestaurant(connection, req.auth, req.body,
+          { betaWhatsAppTargets: betaCheckout ? betaWhatsAppTargets : undefined })) });
   });
 
   router.get('/categories', async (req, res) => {

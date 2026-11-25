@@ -5,6 +5,7 @@ export type PublicRestaurant = {
   storefrontTheme?: string;
   heroProduct?: PublicProduct | null;
   heroProductSelected?: boolean;
+  whatsappOrderingAvailable?: boolean;
   currency: string; phone: string | null; contactEmail: string | null;
   address: string | null; openingHours: string | null;
   deliverySettings: { deliveryFee: number | null; minimumOrder: number | null;

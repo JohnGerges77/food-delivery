@@ -39,11 +39,25 @@ test("customer and cart validation catches invalid input before POST", () => {
   assert.throws(() => buildCheckoutPayload(details, [], "direct"), GuestCheckoutError);
 });
 
-test("beta checkout sends Direct and item identifiers without contact details, notes or client prices", () => {
+test("beta checkout sends either method and item identifiers without contact details, notes or client prices", () => {
   const variantId = "507f1f77bcf86cd799439013";
   const payload = buildBetaCheckoutPayload([{ ...items[0], variantId, notes: "Do not transmit" }]);
   assert.deepEqual(payload, { submissionMethod: "direct", items: [{ productId, quantity: 2, variantId }] });
+  assert.deepEqual(buildBetaCheckoutPayload([{ ...items[0], variantId }], "whatsapp"),
+    { ...payload, submissionMethod: "whatsapp" });
   assert.throws(() => buildBetaCheckoutPayload([]), GuestCheckoutError);
+});
+
+test("WhatsApp validates a safe handoff and accepts a saved replay with a withdrawn URL", async () => {
+  const payload = buildBetaCheckoutPayload(items, "whatsapp");
+  const key = "12345678-1234-1234-1234-123456789012";
+  const first = saved("whatsapp");
+  const withdrawn = { order: { ...first.order, status: "delivered" }, whatsapp: { url: null, messageSent: false } };
+  assert.deepEqual(await submitGuestCheckout("cafe", payload, key, async () => response(first)), first);
+  assert.deepEqual(await submitGuestCheckout("cafe", payload, key, async () => response(withdrawn, 200)), withdrawn);
+  await assert.rejects(submitGuestCheckout("cafe", payload, key, async () => response(withdrawn)), GuestCheckoutError);
+  await assert.rejects(submitGuestCheckout("cafe", payload, key, async () => response({ ...first,
+    whatsapp: { url: "https://wa.me/12025550100?text=test&next=https://example.test", messageSent: false } })), GuestCheckoutError);
 });
 
 test("the checkout gate rejection tells guests to keep their cart while unknown service failures preserve retries", async () => {

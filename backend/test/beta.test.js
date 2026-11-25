@@ -143,16 +143,19 @@ test('missing or conflicting beta indexes block all app routes without creating 
 
 test('beta public browsing works while both order submission methods are gated off', async () => {
   const restaurant = { _id: '507f1f77bcf86cd799439011', name: 'Synthetic Beta', slug: 'demo', currency: 'EGP',
+    deliverySettings: { whatsappOrderingEnabled: true },
     socialLinks: { whatsapp: 'https://wa.me/12025550100' } };
   const connection = { readyState: 1, db: { databaseName: 'savora_beta' }, models: {
     Restaurant: { findOne: () => ({ select: () => ({ lean: async () => restaurant }) }) }, Product: {}, Category: {},
   } };
-  await serve(createVercelEntry({ env: valid, connection, checkIndexes: async () => [] }), async base => {
+  await serve(createVercelEntry({ env: { ...valid, SAVORA_BETA_WHATSAPP_TARGETS: '{"demo":"+12025550100"}' },
+    connection, checkIndexes: async () => [] }), async base => {
     const result = await fetch(base + '/api/public/restaurants/demo');
     assert.equal(result.status, 200);
     const dto = (await result.json()).restaurant;
     assert.equal(dto.slug, 'demo');
     assert.equal(dto.socialLinks.whatsapp, null);
+    assert.equal(dto.whatsappOrderingAvailable, false);
     for (const submissionMethod of ['direct', 'whatsapp']) {
       const response = await fetch(base + '/api/public/restaurants/demo/orders', { method: 'POST',
         headers: { Origin: valid.AUTH_TRUSTED_ORIGINS, 'Content-Type': 'application/json' },
@@ -162,12 +165,13 @@ test('beta public browsing works while both order submission methods are gated o
   });
 });
 
-test('enabled beta rejects WhatsApp and supplied personal data before reaching the database', async () => {
+test('enabled beta rejects supplied contacts, destinations, notes and prices for both methods before reaching the database', async () => {
   await serve(createApp({ connection: { readyState: 0 }, betaCheckout: true }), async base => {
     const items = [{ productId: '507f1f77bcf86cd799439012', quantity: 1 }];
     for (const body of [
-      { submissionMethod: 'whatsapp', items },
-      { submissionMethod: 'direct', items, customerName: 'Untrusted' },
+      { submissionMethod: 'whatsapp', items, whatsappTarget: 'https://wa.me/12025550100' },
+      { submissionMethod: 'whatsapp', items, customerName: 'Untrusted' },
+      { submissionMethod: 'whatsapp', items: [{ ...items[0], unitPrice: 1 }] },
       { submissionMethod: 'direct', items: [{ ...items[0], notes: 'Untrusted' }] },
     ]) {
       const response = await fetch(base + '/api/public/restaurants/demo/orders', {
@@ -179,4 +183,25 @@ test('enabled beta rejects WhatsApp and supplied personal data before reaching t
       assert.deepEqual(await response.json(), { error: 'Invalid checkout' });
     }
   });
+});
+
+test('beta public WhatsApp eligibility is allowlisted by slug and exposes no target', async () => {
+  const restaurant = { name: 'Synthetic Beta', slug: 'demo', currency: 'EGP',
+    deliverySettings: { deliveryAvailable: true, whatsappOrderingEnabled: true },
+    socialLinks: { whatsapp: 'https://wa.me/12025550100' } };
+  const connection = { readyState: 1, db: { databaseName: 'savora_beta' }, models: {
+    Restaurant: { findOne: () => ({ select: () => ({ lean: async () => restaurant }) }) }, Product: {}, Category: {},
+  } };
+  for (const [configured, expected] of [[undefined, false], ['{', false],
+    ['{"other":"+12025550100"}', false], ['{"demo":"+12025550101"}', false],
+    ['{"demo":"+12025550100"}', true]]) {
+    const env = { ...valid, SAVORA_BETA_CHECKOUT_ENABLED: 'true', SAVORA_BETA_WHATSAPP_TARGETS: configured };
+    await serve(createVercelEntry({ env, connection, checkIndexes: async () => [] }), async base => {
+      const response = await fetch(base + '/api/public/restaurants/demo');
+      assert.equal(response.status, 200);
+      const dto = (await response.json()).restaurant;
+      assert.equal(dto.whatsappOrderingAvailable, expected);
+      assert.equal(dto.socialLinks.whatsapp, null);
+    });
+  }
 });

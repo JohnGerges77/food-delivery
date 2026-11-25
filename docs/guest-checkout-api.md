@@ -38,7 +38,9 @@ First successful direct submission returns `201`:
 }
 ```
 
-For `submissionMethod: "whatsapp"`, the same Order is committed first. Only then is a handoff URL made from its saved snapshot. The restaurant must have a configured HTTPS `https://wa.me/<international-digits>` target. First success returns `201`:
+For `submissionMethod: "whatsapp"`, the API commits the Order before building a handoff URL from its saved snapshots. The restaurant must have a valid international WhatsApp number, enable WhatsApp ordering and pass the existing checkout gates. [Owner setup and Beta policy](whatsapp-ordering.md)
+
+First success returns `201`:
 
 ```json
 {
@@ -74,7 +76,7 @@ The server hashes the key, scopes it to the restaurant, and enforces a compound 
 | `429` | More than 60 checkout requests per minute for one IP and slug on this server process; `Retry-After` is set. |
 | `503` | Database or service unavailable; no success confirmation is returned. |
 
-The public response does not contain customer details, internal MongoDB IDs, idempotency hashes, or tracking secrets. The WhatsApp handoff URL necessarily contains order/customer details for the message; treat it as sensitive and never log or cache it. Public CORS is noncredentialed and is not an authorization control.
+The public response omits internal MongoDB IDs, idempotency hashes and tracking secrets. In standard checkout, the WhatsApp URL may contain guest details. Treat it as sensitive and keep it out of logs and caches. Beta handoff text includes only the test notice and order details. Public CORS is noncredentialed.
 
 ## Pricing and concurrent writes
 

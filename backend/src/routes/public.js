@@ -28,8 +28,10 @@ export function checkoutRateLimit({ limit = 60, windowMs = 60_000 } = {}) {
 }
 
 export function createPublicRouter({ connection = mongoose.connection, mediaStorage = null,
-  checkoutEnabled = true, checkoutAllowedOrigins, checkoutLimit = 60, betaCheckout = false } = {}) {
+  checkoutEnabled = true, checkoutAllowedOrigins, checkoutLimit = 60,
+  betaCheckout = false, betaWhatsAppTargets = new Map() } = {}) {
   const router = express.Router();
+  const betaTargets = betaCheckout ? betaWhatsAppTargets : undefined;
 
   router.use((req, res, next) => {
     res.set('Access-Control-Allow-Origin', '*');
@@ -45,7 +47,7 @@ export function createPublicRouter({ connection = mongoose.connection, mediaStor
 
   router.get('/restaurants/:slug', async (req, res) => {
     const restaurant = await resolvePublicRestaurant(connection, req.params.slug);
-    res.json({ restaurant: serializePublicRestaurant(restaurant, { hideWhatsApp: betaCheckout }) });
+    res.json({ restaurant: serializePublicRestaurant(restaurant, { checkoutEnabled, betaWhatsAppTargets: betaTargets }) });
   });
 
   router.get('/restaurants/:slug/categories', async (req, res) => {
@@ -79,7 +81,7 @@ export function createPublicRouter({ connection = mongoose.connection, mediaStor
     express.json({ limit: '12kb', strict: true }), async (req, res) => {
       const body = betaCheckout ? betaCheckoutBody(req.body) : req.body;
       const result = await createGuestOrder(connection, req.params.slug, body,
-        req.get('Idempotency-Key'));
+        req.get('Idempotency-Key'), { betaWhatsAppTargets: betaTargets });
       res.status(result.replayed ? 200 : 201).json({ order: result.order,
         ...(result.whatsapp ? { whatsapp: result.whatsapp } : {}) });
     });

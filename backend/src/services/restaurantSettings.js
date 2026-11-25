@@ -3,6 +3,7 @@ import ProductSchema from '../models/Product.js';
 import CategorySchema from '../models/Category.js';
 import { isVerifiedOwnerContext } from './ownerAuth.js';
 import { OwnerResourceNotFound } from './ownerTenant.js';
+import { allowedWhatsAppTarget, normalizeWhatsAppNumber } from './whatsappOrdering.js';
 
 export class InvalidRestaurantSettings extends Error {
   constructor() {
@@ -16,9 +17,9 @@ const fields = Object.freeze({
   phone: 'text', contactEmail: 'text', address: 'text', openingHours: 'text',
   deliverySettings: Object.freeze({
     deliveryFee: 'amount', minimumOrder: 'amount',
-    estimatedDeliveryTime: 'text', deliveryAvailable: 'boolean',
+    estimatedDeliveryTime: 'text', deliveryAvailable: 'boolean', whatsappOrderingEnabled: 'boolean',
   }),
-  socialLinks: Object.freeze({ facebook: 'webUrl', instagram: 'webUrl', whatsapp: 'webUrl' }),
+  socialLinks: Object.freeze({ facebook: 'webUrl', instagram: 'webUrl', whatsapp: 'whatsapp' }),
   branding: Object.freeze({ brandName: 'text', primaryColor: 'text' }),
 });
 
@@ -51,6 +52,7 @@ function validValue(value, kind) {
   if (kind === 'boolean') return typeof value === 'boolean';
   if (typeof value !== 'string' || value.length > 2048) return false;
   if (kind === 'requiredText' && !value.trim()) return false;
+  if (kind === 'whatsapp') return !value.trim() || normalizeWhatsAppNumber(value) !== null;
   if (kind === 'webUrl' && !validWebUrl(value.trim())) return false;
   if (kind === 'externalUrl' && value.trim() &&
       (!validWebUrl(value.trim()) || value.trim().startsWith('/'))) return false;
@@ -75,7 +77,8 @@ export function parseRestaurantSettingsPatch(body) {
       if (!validKey(nestedKey, rule) || !validValue(nestedValue, rule[nestedKey])) {
         throw new InvalidRestaurantSettings();
       }
-      updates[`${key}.${nestedKey}`] = nestedValue;
+      updates[`${key}.${nestedKey}`] = rule[nestedKey] === 'whatsapp'
+        ? normalizeWhatsAppNumber(nestedValue) ?? '' : nestedValue;
     }
   }
   return updates;
@@ -102,7 +105,7 @@ export async function assertHeroProductEligible(Product, Category, restaurantId,
     restaurantId, isActive: true }, { session })) throw new InvalidRestaurantSettings();
 }
 
-export async function patchOwnerRestaurant(connection, auth, body, { session } = {}) {
+export async function patchOwnerRestaurant(connection, auth, body, { session, betaWhatsAppTargets } = {}) {
   const updates = parseRestaurantSettingsPatch(body);
   const Restaurant = ownerRestaurantModel(connection, auth);
   if (Object.hasOwn(updates, 'heroProductId') && updates.heroProductId !== null) {
@@ -111,6 +114,24 @@ export async function patchOwnerRestaurant(connection, auth, body, { session } =
     await assertHeroProductEligible(Product, Category, auth.restaurantId, updates.heroProductId, { session });
   }
   const restaurant = await getOwnerRestaurant(connection, auth, { session });
+  const numberPath = 'socialLinks.whatsapp';
+  const enabledPath = 'deliverySettings.whatsappOrderingEnabled';
+  const changesNumber = Object.hasOwn(updates, numberPath);
+  const previousNumber = restaurant.socialLinks?.whatsapp ?? null;
+  const numberCondition = {};
+  if (changesNumber || Object.hasOwn(updates, enabledPath)) {
+    if (updates[numberPath] === '' && !Object.hasOwn(updates, enabledPath)) updates[enabledPath] = false;
+    const enabled = updates[enabledPath] ?? (restaurant.deliverySettings?.whatsappOrderingEnabled === true);
+    const target = changesNumber ? updates[numberPath] : previousNumber;
+    if (enabled && !allowedWhatsAppTarget(restaurant.slug, target, betaWhatsAppTargets)) {
+      throw new InvalidRestaurantSettings();
+    }
+    // A concurrent request clearing the number must win before an enable-only save can use it.
+    if (enabled && !changesNumber) numberCondition[numberPath] = previousNumber;
+    if (betaWhatsAppTargets && changesNumber && !Object.hasOwn(updates, enabledPath)) {
+      numberCondition[enabledPath] = enabled ? true : { $in: [null, false] };
+    }
+  }
   if (Object.hasOwn(updates, 'logoUrl') &&
       (updates.logoUrl.startsWith('/api/public/restaurants/') ||
        restaurant.logoUrl?.startsWith('/api/public/restaurants/')) &&
@@ -129,6 +150,7 @@ export async function patchOwnerRestaurant(connection, auth, body, { session } =
   try {
     updated = await Restaurant.findOneAndUpdate(
       { _id: auth.restaurantId, status: { $ne: 'suspended' },
+        ...numberCondition,
         ...(Object.hasOwn(updates, 'logoUrl') ? { logoUrl: oldLogoUrl } : {}) },
       { $set: updates },
       { returnDocument: 'after', runValidators: true, session },
@@ -139,6 +161,7 @@ export async function patchOwnerRestaurant(connection, auth, body, { session } =
     }
     throw error;
   }
+  if (!updated && Object.keys(numberCondition).length) throw new InvalidRestaurantSettings();
   if (!updated) throw new OwnerResourceNotFound();
   return updated;
 }

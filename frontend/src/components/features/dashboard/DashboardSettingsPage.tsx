@@ -16,7 +16,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { ActionButton, DashboardCard, DashboardPageHeader, inputClass, textareaClass } from "./DashboardUI";
 import { OwnerImageUpload } from "./OwnerImageUpload";
 
-type Key = Exclude<keyof RestaurantSettingsForm, "deliveryAvailable">;
+type Key = Exclude<keyof RestaurantSettingsForm, "deliveryAvailable" | "whatsappOrderingEnabled">;
 type Errors = Partial<Record<keyof RestaurantSettingsForm, string>>;
 const profile: [Key, string, string?][] = [
   ["name", "Restaurant Name"], ["phone", "Phone", "tel"], ["contactEmail", "Email", "email"],
@@ -149,7 +149,7 @@ function RestaurantSettingsEditor({ ownerId }: { ownerId: string | undefined }) 
       onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => change(key, event.target.value) };
     return <div key={key} className={key === "description" || key === "logoUrl" ? "sm:col-span-2" : ""}>
       <label htmlFor={id} className="mb-2 block text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">{ar ? labels[label] ?? label : label}</label>
-      {type === "textarea" ? <textarea {...props} className={textareaClass} /> : <input {...props} className={inputClass} type={type} inputMode={key === "deliveryFee" || key === "minimumOrder" ? "decimal" : undefined} />}
+      {type === "textarea" ? <textarea {...props} className={textareaClass} /> : <input {...props} className={inputClass} type={type} dir={key === "whatsapp" ? "ltr" : undefined} inputMode={key === "deliveryFee" || key === "minimumOrder" ? "decimal" : undefined} />}
       {errors[key] ? <p id={`error-${key}`} className="mt-2 text-sm text-red-300">{ownerText(ar ? "ar" : "en", errors[key]!)}</p> : null}
     </div>;
   }
@@ -166,7 +166,16 @@ function RestaurantSettingsEditor({ ownerId }: { ownerId: string | undefined }) 
         <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">{ar ? "صورة عن المطعم" : "About Restaurant Image"}</h3><div className="mt-5">{field("aboutImageUrl", "Image URL", "url")}</div>{safePublicImage(form.aboutImageUrl) && <div className="relative mt-4 aspect-video max-w-md overflow-hidden rounded-xl"><PublicProductImage src={form.aboutImageUrl} alt={ar ? "معاينة صورة المطعم" : "About image preview"} className="object-cover" /></div>}{form.aboutImageUrl && <button type="button" className="mt-3 min-h-11 text-sm underline" onClick={() => change("aboutImageUrl", "")}>{ar ? "إزالة الصورة" : "Remove image"}</button>}</DashboardCard>
         <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">{ownerText((ar ? "ar" : "en"), "Restaurant Profile")}</h3><div className="mt-5 grid gap-4 sm:grid-cols-2">{profile.map(([key, label, type]) => field(key, label, type))}</div><div className="mt-5"><OwnerImageUpload target={{ kind: "logo" }} currentUrl={restaurant.logoUrl} onChanged={(url) => { setRestaurant({ ...restaurant, logoUrl: url }); setForm({ ...form, logoUrl: url ?? "" }); setSaved(false); }} /></div><p className="mt-5 text-sm text-[color:var(--text-muted)]">{ownerText((ar ? "ar" : "en"), "Storefront slug:")}{" "}<span className="text-[color:var(--text)]">{restaurant.slug}</span></p></DashboardCard>
         <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">{ownerText((ar ? "ar" : "en"), "Opening Hours")}</h3><p className="mt-2 text-sm text-[color:var(--text-muted)]">{ownerText((ar ? "ar" : "en"), "Display text for your storefront.")}</p><div className="mt-5">{field("openingHours", ownerText((ar ? "ar" : "en"), "Opening Hours"))}</div></DashboardCard>
-        <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">{ownerText((ar ? "ar" : "en"), "Social Links")}</h3><div className="mt-5 grid gap-4 sm:grid-cols-3">{social.map(([key, label, type]) => field(key, label, type))}</div></DashboardCard>
+        <DashboardCard className="p-5 sm:p-6">
+          <h3 className="text-2xl font-semibold">{ownerText((ar ? "ar" : "en"), "Social Links")}</h3>
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">{social.map(([key, label, type]) => field(key, label, type))}</div>
+          <label className="mt-5 flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+            <span><span className="block font-semibold">{ar ? "تفعيل الطلب عبر واتساب" : "Enable WhatsApp ordering"}</span>
+              <span className="text-sm text-[color:var(--text-muted)]">{ar ? "أدخل رقم واتساب مع رمز الدولة. يظل الطلب المباشر متاحًا حسب إعدادات التوصيل." : "Enter a WhatsApp number with its country code. Direct ordering follows your delivery settings."}</span></span>
+            <input type="checkbox" checked={form.whatsappOrderingEnabled} disabled={saving}
+              onChange={(event) => change("whatsappOrderingEnabled", event.target.checked)} className="size-5 accent-[color:var(--primary)]" />
+          </label>
+        </DashboardCard>
         <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">{ownerText((ar ? "ar" : "en"), "Hero Product")}</h3><p className="mt-2 text-sm text-[color:var(--text-muted)]">{ownerText((ar ? "ar" : "en"), "Choose an available product for your storefront Hero. Its own image appears when available.")}</p>
           <label htmlFor="settings-hero-product" className="mt-5 block text-sm font-semibold">{ownerText((ar ? "ar" : "en"), "Featured Hero product")}</label>
           <select id="settings-hero-product" className={`${inputClass} mt-2`} value={form.heroProductId} disabled={saving} onChange={(event) => change("heroProductId", event.target.value)}>

@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import RestaurantSchema from '../models/Restaurant.js';
 import CategorySchema from '../models/Category.js';
 import ProductSchema from '../models/Product.js';
+import { restaurantWhatsAppTarget } from './whatsappOrdering.js';
 
 export class InvalidPublicRequest extends Error {
   constructor() { super('Invalid public request'); }
@@ -57,7 +58,7 @@ export function parsePublicProductsQuery(query) {
   return { page, limit, sort, filters };
 }
 
-export function serializePublicRestaurant(restaurant, { hideWhatsApp = false } = {}) {
+export function serializePublicRestaurant(restaurant, { checkoutEnabled = true, betaWhatsAppTargets } = {}) {
   return {
     name: restaurant.name, slug: restaurant.slug,
     storefrontTheme: restaurant.storefrontTheme ?? 'savora-classic',
@@ -74,10 +75,11 @@ export function serializePublicRestaurant(restaurant, { hideWhatsApp = false } =
       estimatedDeliveryTime: restaurant.deliverySettings?.estimatedDeliveryTime ?? null,
       deliveryAvailable: restaurant.deliverySettings?.deliveryAvailable ?? true,
     },
+    whatsappOrderingAvailable: checkoutEnabled && Boolean(restaurantWhatsAppTarget(restaurant, betaWhatsAppTargets)),
     socialLinks: {
       facebook: restaurant.socialLinks?.facebook ?? null,
       instagram: restaurant.socialLinks?.instagram ?? null,
-      whatsapp: hideWhatsApp ? null : restaurant.socialLinks?.whatsapp ?? null,
+      whatsapp: betaWhatsAppTargets ? null : restaurant.socialLinks?.whatsapp ?? null,
     },
     branding: {
       brandName: restaurant.branding?.brandName ?? null,

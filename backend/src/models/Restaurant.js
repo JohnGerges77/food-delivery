@@ -6,6 +6,7 @@ const deliverySettingsSchema = new mongoose.Schema(
     minimumOrder: { type: Number, min: 0 },
     estimatedDeliveryTime: { type: String, trim: true },
     deliveryAvailable: { type: Boolean, default: true },
+    whatsappOrderingEnabled: { type: Boolean, default: false },
   },
   { _id: false },
 );

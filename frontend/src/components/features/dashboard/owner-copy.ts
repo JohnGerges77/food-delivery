@@ -89,7 +89,7 @@ const ar: Record<string, string> = {
   'Enter a number from 0 to 100,000.': 'أدخل رقمًا من 0 إلى 100,000.',
   'Restaurant name is required.': 'اسم المطعم مطلوب.', 'Select a valid product.': 'اختر منتجًا صحيحًا.',
   'Enter a valid email address.': 'أدخل بريدًا إلكترونيًا صحيحًا.',
-  'Enter a valid WhatsApp phone or wa.me URL.': 'أدخل رقم واتساب أو رابط wa.me صحيحًا.',
+  'Enter a WhatsApp number with its country code.': 'أدخل رقم واتساب مع رمز الدولة.',
   'Enter a valid HTTP or HTTPS URL without credentials.': 'أدخل رابط HTTP أو HTTPS صحيحًا بدون بيانات دخول.',
   'Use a hex color such as #ff7a00.': 'أدخل لونًا بصيغة hex مثل #ff7a00.',
   'This amount cannot be cleared by the current API.': 'لا يمكن ترك هذا المبلغ فارغًا.',

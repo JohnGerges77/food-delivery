@@ -6,7 +6,8 @@ import Product from '../src/models/Product.js';
 import { createApp } from '../src/app.js';
 import { checkoutRateLimit } from '../src/routes/public.js';
 import { betaCheckoutBody, buildWhatsAppUrl, InvalidCheckout, CheckoutUnavailable, moneyToMinor,
-  parseCheckout, whatsappTarget } from '../src/services/guestCheckout.js';
+  parseCheckout } from '../src/services/guestCheckout.js';
+import { normalizeWhatsAppNumber } from '../src/services/whatsappOrdering.js';
 
 const key = 'checkout-test-key-0001';
 const id = String(new mongoose.Types.ObjectId());
@@ -31,6 +32,7 @@ test('beta input adds fixed synthetic details and preserves a validated variant 
   assert.deepEqual(parsed.items, items);
   assert.equal(parsed.customerName, 'Savora Beta Test Guest');
   assert.equal(parsed.deliveryAddress, 'Synthetic order, no fulfillment');
+  assert.equal(parseCheckout(betaCheckoutBody({ submissionMethod: 'whatsapp', items }), key).submissionMethod, 'whatsapp');
   assert.throws(() => betaCheckoutBody({ submissionMethod: 'direct',
     items: [{ ...items[0], unitPrice: 1 }] }), InvalidCheckout);
 });
@@ -69,11 +71,12 @@ test('money uses bounded integer minor units and rejects ambiguous precision', (
 });
 
 test('WhatsApp requires a clean wa.me target and uses a bounded encoded message', () => {
-  assert.equal(whatsappTarget('https://wa.me/201001234567'),
+  assert.equal(normalizeWhatsAppNumber('https://wa.me/201001234567'),
     'https://wa.me/201001234567');
-  for (const value of ['https://evil.test/123', 'http://wa.me/201001234567',
+  assert.equal(normalizeWhatsAppNumber('+1 (202) 555-0100'), 'https://wa.me/12025550100');
+  for (const value of ['01234567890', '+99912345678', 'https://evil.test/123', 'http://wa.me/201001234567',
     'https://wa.me/201001234567?text=forged', 'https://wa.me/abc']) {
-    assert.throws(() => whatsappTarget(value), CheckoutUnavailable);
+    assert.equal(normalizeWhatsAppNumber(value), null);
   }
   const url = buildWhatsAppUrl({ orderNumber: 'SV-123', customerName: 'Mona',
     customerPhone: '+201001234567', deliveryAddress: '12 Nile', city: 'Cairo',
@@ -85,6 +88,25 @@ test('WhatsApp requires a clean wa.me target and uses a bounded encoded message'
   assert.match(decodeURIComponent(url), /Cafe One/);
   assert.match(decodeURIComponent(url), /20.00 EGP = 40.00 EGP/);
   assert.match(decodeURIComponent(url), /Notes: No onions/);
+});
+
+test('beta handoff retains the warning, variant and price for every item in an encoded order', () => {
+  const items = Array.from({ length: 10 }, (_, index) => ({
+    name: index + ' 🍕'.repeat(80), variantName: index + ' عربي'.repeat(50), quantity: 1, unitPrice: 20,
+  }));
+  const url = new URL(buildWhatsAppUrl({
+    orderNumber: 'SV-123', items, subtotal: 200, deliveryFee: 0, total: 200,
+    customerName: 'Savora Beta Test Guest', customerPhone: '+12025550199',
+  }, 'https://wa.me/12025550100', 'EGP', 'Beta', { beta: true }));
+  const message = url.searchParams.get('text');
+  assert.match(message, /TEST ORDER.*no payment or fulfillment/);
+  assert.match(message, /Order SV-123/);
+  for (let index = 0; index < items.length; index++) {
+    assert.match(message, new RegExp('1 x ' + index + ' .* \\(' + index + ' .*\\) @ 20.00 EGP'));
+  }
+  assert.match(message, /Total: 200.00 EGP/);
+  assert.doesNotMatch(message, /5550199|Savora Beta Test Guest/);
+  assert.ok(url.search.length < 3507);
 });
 
 test('internal checkout fields are hidden by Order serialization', () => {
