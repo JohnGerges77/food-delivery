@@ -5,6 +5,7 @@ import UserSchema from '../models/User.js';
 import AuditSchema from '../models/PlatformAudit.js';
 import { hashPassword, validatePassword } from '../security/password.js';
 import { currencyFractionDigits } from './ownerProducts.js';
+import { onlineOrderingEnabled } from './restaurantOrdering.js';
 
 export class InvalidAdminInput extends Error {}
 export class AdminConflict extends Error {}
@@ -34,13 +35,16 @@ function text(value, max) {
 }
 function validateCreation(body) {
   if (!plain(body, ['restaurant', 'owner']) ||
-      !plain(body.restaurant, ['name', 'slug', 'currency', 'description', 'storefrontTheme']) ||
+      !plain(body.restaurant, ['name', 'slug', 'currency', 'description', 'storefrontTheme', 'onlineOrderingEnabled']) ||
       !plain(body.owner, ['name', 'email', 'password'])) throw new InvalidAdminInput();
   const restaurant = {
     name: text(body.restaurant.name, 120),
     slug: text(body.restaurant.slug, 100).toLowerCase(),
     currency: text(body.restaurant.currency, 3).toUpperCase(),
+    onlineOrderingEnabled: body.restaurant.onlineOrderingEnabled ?? false,
   };
+  if (Object.hasOwn(body.restaurant, 'onlineOrderingEnabled') &&
+      typeof body.restaurant.onlineOrderingEnabled !== 'boolean') throw new InvalidAdminInput();
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(restaurant.slug)) throw new InvalidAdminInput();
   try {
     if (!Intl.supportedValuesOf('currency').includes(restaurant.currency)) throw new Error();
@@ -62,6 +66,7 @@ export function serializeAdminRestaurant(restaurant, owner = null) {
   return { id: String(restaurant._id), name: restaurant.name, slug: restaurant.slug,
     currency: restaurant.currency, description: restaurant.description ?? null,
     storefrontTheme: restaurant.storefrontTheme ?? 'savora-classic',
+    onlineOrderingEnabled: onlineOrderingEnabled(restaurant),
     status: restaurant.status ?? 'active', createdAt: restaurant.createdAt,
     updatedAt: restaurant.updatedAt,
     owner: owner ? { id: String(owner._id), name: owner.name,
@@ -86,7 +91,8 @@ export async function createPlatformRestaurant(connection, adminId, body, { sess
     await owner.save({ session });
     await Audit.create([{ adminId, action: 'restaurant.created',
       restaurantId: restaurant._id, details: { slug: restaurant.slug,
-        ownerEmail: owner.email, storefrontTheme: restaurant.storefrontTheme } }], { session });
+        ownerEmail: owner.email, storefrontTheme: restaurant.storefrontTheme,
+        onlineOrderingEnabled: restaurant.onlineOrderingEnabled } }], { session });
   }
   try {
     if (outerSession) await create();
@@ -199,6 +205,32 @@ export async function changeRestaurantTheme(connection, adminId, id, value) {
       if (!restaurant) throw new AdminConflict('Theme changed');
       await Audit.create([{ adminId, restaurantId: restaurant._id,
         action: 'restaurant.theme_changed', details: { from: previous, to: next } }], { session });
+    }, { readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' } });
+  } finally { await session.endSession(); }
+  const owner = await User.findOne({ restaurantId: restaurant._id, role: 'owner' })
+    .select('_id restaurantId name email isActive');
+  return serializeAdminRestaurant(restaurant, owner);
+}
+
+export async function changeRestaurantOrdering(connection, adminId, id, enabled) {
+  if (typeof id !== 'string' || !/^[0-9a-fA-F]{24}$/.test(id) || typeof enabled !== 'boolean') {
+    throw new InvalidAdminInput();
+  }
+  const { Restaurant, User, Audit } = models(connection);
+  await ensureModelIndexes(Audit);
+  const session = await connection.startSession();
+  let restaurant;
+  try {
+    await session.withTransaction(async () => {
+      restaurant = await Restaurant.findOneAndUpdate({
+        _id: id, onlineOrderingEnabled: enabled ? false : { $ne: false },
+      }, { $set: { onlineOrderingEnabled: enabled } }, { returnDocument: 'after', session, runValidators: true });
+      if (!restaurant) {
+        if (await Restaurant.exists({ _id: id }).session(session)) throw new AdminConflict('Ordering mode already set');
+        throw new AdminNotFound();
+      }
+      await Audit.create([{ adminId, restaurantId: restaurant._id,
+        action: 'restaurant.ordering_changed', details: { from: !enabled, to: enabled } }], { session });
     }, { readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' } });
   } finally { await session.endSession(); }
   const owner = await User.findOne({ restaurantId: restaurant._id, role: 'owner' })

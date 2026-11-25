@@ -11,7 +11,7 @@ test('empty database reports every operation without executing DDL', async () =>
   const db={listCollections:()=>({toArray:async()=>[]}),collection:()=>assert.fail('unexpected access')};
   const operations=await plan(db,collections);
   assert.equal(operations.filter(o=>o.action==='createCollection').length,9);
-  assert.equal(operations.filter(o=>o.action==='createIndex').length,19);
+  assert.equal(operations.filter(o=>o.action==='createIndex').length,20);
 });
 test('records, unknown collections and changed manifest fail closed', async () => {
   await assert.rejects(plan({listCollections:()=>({toArray:async()=>[{name:'other'}]})},collections));

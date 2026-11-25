@@ -26,7 +26,7 @@ function isActivePath(pathname: string, href: string, hash: string, homeHref: st
 }
 
 export function PublicNavbar() {
-  const { restaurant, href } = useStorefront();
+  const { restaurant, href, orderingEnabled } = useStorefront();
   const t = useTranslations("navigation");
   const locale = useLocale();
   const pathname = usePathname();
@@ -106,7 +106,7 @@ export function PublicNavbar() {
             <Languages aria-hidden="true" className="size-4" />
             <span>{nextLocale === "ar" ? "العربية" : "EN"}</span>
           </Link>
-          <Link
+          {orderingEnabled && <Link
             aria-current={cartIsActive ? "page" : undefined}
             className={cn(
               "group relative grid size-11 place-items-center rounded-full border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/10 text-[color:var(--primary-light)] shadow-[0_10px_30px_color-mix(in_srgb,var(--sf-primary)_18%,transparent)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--primary)]/60 hover:bg-[color:var(--primary)] hover:text-[color:var(--sf-on-primary)] hover:shadow-[0_14px_38px_color-mix(in_srgb,var(--sf-primary)_38%,transparent)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--primary)]",
@@ -117,7 +117,7 @@ export function PublicNavbar() {
           >
             <CartAttention><ShoppingCart aria-hidden="true" className="size-5 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110" strokeWidth={2.2} /></CartAttention>
             {tenantSlug === restaurant.slug && cartCount > 0 ? <span className="absolute -right-1 -top-1 rounded-full bg-[color:var(--primary)] px-1.5 text-xs text-[color:var(--sf-on-primary)]">{cartCount}</span> : null}
-          </Link>
+          </Link>}
         </div>
       </div>
     </nav>

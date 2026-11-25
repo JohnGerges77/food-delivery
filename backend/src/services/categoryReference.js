@@ -1,4 +1,5 @@
 import { ownerIdFilter, OwnerResourceNotFound } from './ownerTenant.js';
+import { setTimeout as delay } from 'node:timers/promises';
 
 const MAX_TRANSACTION_ATTEMPTS = 3;
 const MAX_COMMIT_ATTEMPTS = 3;
@@ -9,8 +10,10 @@ function labeled(error, label) {
 
 // Retry the whole transaction only on known transient aborts. An uncertain commit is
 // retried on the same session, so a completed create is never blindly repeated.
-export async function withCategoryReferenceTransaction(connection, work) {
-  for (let attempt = 0; attempt < MAX_TRANSACTION_ATTEMPTS; attempt++) {
+export async function withCategoryReferenceTransaction(connection, work, {
+  maxAttempts = MAX_TRANSACTION_ATTEMPTS, retryDelayMs = 0,
+} = {}) {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const session = await connection.startSession();
     let retry = false;
     try {
@@ -28,7 +31,7 @@ export async function withCategoryReferenceTransaction(connection, work) {
             throw error;
           }
           if (labeled(error, 'TransientTransactionError') &&
-              attempt < MAX_TRANSACTION_ATTEMPTS - 1) {
+              attempt < maxAttempts - 1) {
             retry = true;
             break;
           }
@@ -41,13 +44,14 @@ export async function withCategoryReferenceTransaction(connection, work) {
       }
       if (labeled(error, 'TransientTransactionError') &&
           !labeled(error, 'UnknownTransactionCommitResult') &&
-          attempt < MAX_TRANSACTION_ATTEMPTS - 1) retry = true;
+          attempt < maxAttempts - 1) retry = true;
       else throw error;
     } finally {
       if (retry && session.inTransaction()) await session.abortTransaction();
       await session.endSession();
     }
     if (!retry) throw new Error('Category reference transaction did not commit');
+    if (retryDelayMs) await delay(Math.min(retryDelayMs * 2 ** attempt, 800) + Math.floor(Math.random() * 40));
   }
   throw new Error('Category reference transaction retry limit reached');
 }

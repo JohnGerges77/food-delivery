@@ -28,6 +28,7 @@ export function AdminCreateRestaurant() {
     try {
       const result = await createAdminRestaurant({ restaurant: {
         name: restaurant.name, slug: restaurant.slug, currency: restaurant.currency,
+        onlineOrderingEnabled: fields.get("onlineOrdering") === "on",
         storefrontTheme: restaurant.storefrontTheme === "savora-aqua" || restaurant.storefrontTheme === "savora-cafe" || restaurant.storefrontTheme === "savora-luxury" ? restaurant.storefrontTheme : "savora-classic",
         ...(restaurant.description ? { description: restaurant.description } : {}) }, owner });
       form.reset();
@@ -52,6 +53,10 @@ export function AdminCreateRestaurant() {
         <label>{ar ? "الرابط المختصر" : "Slug"}<input className={input} name="slug" dir="ltr" required maxLength={100} pattern="[a-z0-9]+(-[a-z0-9]+)*" /></label>
         <label>{ar ? "العملة" : "Currency"}<select className={input} name="currency"><option value="EGP">EGP</option><option value="USD">USD</option><option value="EUR">EUR</option><option value="SAR">SAR</option><option value="AED">AED</option></select></label>
         <label>{ar ? "تصميم واجهة المطعم" : "Storefront theme"}<select className={input} name="storefrontTheme"><option value="savora-classic">Savora Classic</option><option value="savora-aqua">Savora Aqua</option><option value="savora-cafe">Savora Café</option><option value="savora-luxury">Savora Luxury</option></select></label>
+        <label className="flex items-center gap-3 sm:col-span-2">
+          <input type="checkbox" name="onlineOrdering" className="size-4 accent-orange-500" />
+          {ar ? "تفعيل الطلبات عبر الإنترنت (الافتراضي: منيو رقمية فقط)" : "Enable online ordering (default: Digital Menu Only)"}
+        </label>
         <label className="sm:col-span-2">{ar ? "الوصف (اختياري)" : "Description (optional)"}<textarea className={input} name="description" maxLength={1000} rows={3} /></label>
       </section>
       <section className="grid gap-4 rounded-2xl border border-white/10 bg-[#171a22] p-6 sm:grid-cols-2">

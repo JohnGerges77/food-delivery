@@ -172,13 +172,13 @@ function RestaurantSettingsEditor({ ownerId }: { ownerId: string | undefined }) 
         <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">{ownerText((ar ? "ar" : "en"), "Opening Hours")}</h3><p className="mt-2 text-sm text-[color:var(--text-muted)]">{ownerText((ar ? "ar" : "en"), "Display text for your storefront.")}</p><div className="mt-5">{field("openingHours", ownerText((ar ? "ar" : "en"), "Opening Hours"))}</div></DashboardCard>
         <DashboardCard className="p-5 sm:p-6">
           <h3 className="text-2xl font-semibold">{ownerText((ar ? "ar" : "en"), "Social Links")}</h3>
-          <div className="mt-5 grid gap-4 sm:grid-cols-3">{social.map(([key, label, type]) => field(key, label, type))}</div>
-          <label className="mt-5 flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">{social.filter(([key]) => key !== "whatsapp" || restaurant.onlineOrderingEnabled !== false).map(([key, label, type]) => field(key, label, type))}</div>
+          {restaurant.onlineOrderingEnabled !== false && <label className="mt-5 flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
             <span><span className="block font-semibold">{ar ? "تفعيل الطلب عبر واتساب" : "Enable WhatsApp ordering"}</span>
               <span className="text-sm text-[color:var(--text-muted)]">{ar ? "أدخل رقم واتساب مع رمز الدولة. يظل الطلب المباشر متاحًا حسب إعدادات التوصيل." : "Enter a WhatsApp number with its country code. Direct ordering follows your delivery settings."}</span></span>
             <input type="checkbox" checked={form.whatsappOrderingEnabled} disabled={saving}
               onChange={(event) => change("whatsappOrderingEnabled", event.target.checked)} className="size-5 accent-[color:var(--primary)]" />
-          </label>
+          </label>}
         </DashboardCard>
         <DashboardCard className="p-5 sm:p-6">
           <h3 className="text-2xl font-semibold">{ar ? "صورة واجهة المطعم" : "Storefront hero image"}</h3>
@@ -202,10 +202,13 @@ function RestaurantSettingsEditor({ ownerId }: { ownerId: string | undefined }) 
         </DashboardCard>
       </div>
       <div className="grid content-start gap-6">
-        <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">{ownerText((ar ? "ar" : "en"), "Delivery Settings")}</h3><div className="mt-5 grid gap-4">
+        {restaurant.onlineOrderingEnabled === false ? <DashboardCard className="p-5 sm:p-6">
+          <h3 className="text-2xl font-semibold">{ar ? "منيو رقمية فقط" : "Digital Menu Only"}</h3>
+          <p className="mt-2 text-sm text-[color:var(--text-muted)]">{ar ? "يتحكم مدير المنصة في إتاحة الطلبات. يمكنك إدارة المنيو ومراجعة الطلبات السابقة." : "Platform Admin controls online ordering. You can manage the menu and review past orders."}</p>
+        </DashboardCard> : <DashboardCard className="p-5 sm:p-6"><h3 className="text-2xl font-semibold">{ownerText((ar ? "ar" : "en"), "Delivery Settings")}</h3><div className="mt-5 grid gap-4">
           {field("deliveryFee", ar ? `رسوم التوصيل (${restaurant.currency})` : `Delivery Fee (${restaurant.currency})`)}{field("minimumOrder", ar ? `الحد الأدنى للطلب (${restaurant.currency})` : `Minimum Order (${restaurant.currency})`)}{field("estimatedDeliveryTime", ar ? "وقت التوصيل المتوقع" : "Estimated Delivery Time")}
           <label className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4"><span><span className="block font-semibold">{ownerText((ar ? "ar" : "en"), "Delivery Available")}</span><span className="text-sm text-[color:var(--text-muted)]">{ownerText((ar ? "ar" : "en"), "Allow delivery orders.")}</span></span><input type="checkbox" checked={form.deliveryAvailable} disabled={saving} onChange={(event) => change("deliveryAvailable", event.target.checked)} className="size-5 accent-[color:var(--primary)]" /></label>
-        </div></DashboardCard>
+        </div></DashboardCard>}
         <DashboardCard className="p-5 sm:p-6">
           <h3 className="text-2xl font-semibold">{ownerText(ar ? "ar" : "en", "Appearance")}</h3>
           <div className="mt-5 grid gap-4">

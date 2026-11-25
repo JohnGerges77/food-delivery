@@ -5,7 +5,7 @@ import { createAuthGuards, createLoginLimiter } from './auth.js';
 import { SESSION_TTL_MS, tokenHash } from '../services/ownerAuth.js';
 import { authenticatePlatformAdmin, loginPlatformAdmin,
   logoutPlatformAdmin } from '../services/platformAdminAuth.js';
-import { changeRestaurantStatus, changeRestaurantTheme, createPlatformRestaurant, getPlatformRestaurant,
+import { changeRestaurantOrdering, changeRestaurantStatus, changeRestaurantTheme, createPlatformRestaurant, getPlatformRestaurant,
   listPlatformRestaurants, platformOverview } from '../services/platformRestaurants.js';
 
 const SESSION = 'savora_platform_session';
@@ -124,6 +124,15 @@ export function createAdminRouter({ connection = mongoose.connection,
           Object.keys(req.body).length !== 1) return res.status(400).json({ error: 'Invalid admin input' });
       res.json({ restaurant: await changeRestaurantTheme(connection,
         req.platformAuth.admin._id, req.params.id, req.body.storefrontTheme) });
+    });
+  router.patch('/restaurants/:id/ordering', trustedMutationOrigin, requireAdminCsrf,
+    express.json({ limit: '2kb', strict: true }), async (req, res) => {
+      if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body) ||
+          Object.keys(req.body).length !== 1 || !Object.hasOwn(req.body, 'onlineOrderingEnabled')) {
+        return res.status(400).json({ error: 'Invalid admin input' });
+      }
+      res.json({ restaurant: await changeRestaurantOrdering(connection,
+        req.platformAuth.admin._id, req.params.id, req.body.onlineOrderingEnabled) });
     });
   return router;
 }

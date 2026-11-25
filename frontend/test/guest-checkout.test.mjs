@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { orderReference } from "../src/lib/order-reference.ts";
 import { buildBetaCheckoutPayload, buildCheckoutPayload, checkoutValidation, GuestCheckoutCoordinator, GuestCheckoutError,
   storefrontCheckoutAvailability, submitGuestCheckout } from "../src/services/guest-checkout-service.ts";
 
@@ -13,6 +14,24 @@ const order = { orderNumber: "SV-8341302408423A218E893F82", status: "pending",
 const saved = (method = "direct") => ({ order: { ...order, submissionMethod: method },
   ...(method === "whatsapp" ? { whatsapp: { url: "https://wa.me/201001234567?text=Order%20SV", messageSent: false } } : {}) });
 const response = (body, status = 201) => new Response(JSON.stringify(body), { status });
+
+test("a saved display number is readable and legacy confirmations keep their full reference", async () => {
+  const payload = buildBetaCheckoutPayload(items);
+  const result = await submitGuestCheckout("cafe", payload, "fixed-key-123456",
+    async () => response({ order: { ...order, displayNumber: 1001 } }));
+  assert.equal(orderReference(result.order), "#1001");
+  assert.equal(orderReference(order), order.orderNumber);
+  assert.equal(orderReference({ ...order, displayNumber: null }), order.orderNumber);
+});
+
+test("the entitlement overrides delivery and the deployment gate, with a non-retryable client error", async () => {
+  assert.equal(storefrontCheckoutAvailability(true, false, true, false), "menu-only");
+  assert.equal(storefrontCheckoutAvailability(false, true, true, true, "checkout-disabled"), "checkout-disabled");
+  assert.equal(storefrontCheckoutAvailability(false, true, false, true, "available"), "delivery-unavailable");
+  await assert.rejects(submitGuestCheckout("cafe", buildBetaCheckoutPayload(items), "fixed-key-123456",
+    async () => response({ code: "ONLINE_ORDERING_DISABLED" }, 403)), (error) =>
+      error instanceof GuestCheckoutError && error.orderingDisabled && !error.uncertain && !error.paused);
+});
 function storage() {
   const map = new Map();
   return { getItem: (key) => map.get(key) ?? null, setItem: (key, value) => map.set(key, value),

@@ -7,6 +7,7 @@ type StorefrontContextValue = {
   restaurant: PublicRestaurant;
   categories: PublicCategory[];
   basePath: string;
+  orderingEnabled: boolean;
   href: (path?: string) => string;
 };
 
@@ -17,7 +18,8 @@ export function StorefrontProvider({ restaurant, categories, basePath, children 
   children: React.ReactNode;
 }) {
   const href = (path = "/") => `${basePath}${path}`;
-  return <StorefrontContext.Provider value={{ restaurant, categories, basePath, href }}>{children}</StorefrontContext.Provider>;
+  const orderingEnabled = restaurant.onlineOrderingEnabled !== false && restaurant.checkoutAvailability !== "menu-only";
+  return <StorefrontContext.Provider value={{ restaurant, categories, basePath, href, orderingEnabled }}>{children}</StorefrontContext.Provider>;
 }
 
 export function useStorefront() {

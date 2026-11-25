@@ -12,6 +12,7 @@ import { ownerActivity, ownerBreakdowns, ownerOverview,
   ownerTopProducts, ownerTrends } from '../services/ownerAnalytics.js';
 import { cleanupRetiredMedia, deleteOwnerImage, replaceOwnerImage, requireMediaIndexes } from '../services/ownerMedia.js';
 import MediaAssetSchema from '../models/MediaAsset.js';
+import { onlineOrderingEnabled } from '../services/restaurantOrdering.js';
 
 export function serializeOwnerRestaurant(restaurant) {
   return {
@@ -21,6 +22,7 @@ export function serializeOwnerRestaurant(restaurant) {
     currency: restaurant.currency,
     status: restaurant.status,
     storefrontTheme: restaurant.storefrontTheme ?? 'savora-classic',
+    onlineOrderingEnabled: onlineOrderingEnabled(restaurant),
     heroProductId: restaurant.heroProductId ? String(restaurant.heroProductId) : null,
     description: restaurant.description ?? null,
     logoUrl: restaurant.logoUrl ?? null,

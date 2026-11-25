@@ -6,7 +6,7 @@ Only `savora_beta` and authenticated `savora_beta_user` are accepted. The URI gu
 
 `beta-bootstrap-dry-run.js` reads the nine-model manifest, checks exact agreement with current compiled schema declarations, and uses `listCollections`, `findOne` and `listIndexes` only. Any existing record in an expected collection, unexpected non-system collection/index, or conflicting required index stops the plan. Each missing collection and index is printed with its complete key and options; existing matching indexes are omitted. Empty collections from a previous partial attempt may be resumed only after a fresh plan and review. MongoDB creates the `_id_` index with each collection automatically; it is not a separate createIndex operation.
 
-For a completely fresh database, the expected dry-run would show **9 `createCollection` and 19 `createIndex` operations**, exactly those in `docs/public-beta-index-manifest.json`. This is a hypothetical baseline, not a claim about Atlas. A real report may differ; obtain and review the actual report before approval.
+For a completely fresh database on the order-number candidate, the dry-run expects **9 `createCollection` and 20 `createIndex` operations** from `docs/public-beta-index-manifest.json`. The added display-number index and rollout order are documented in [Order numbers and online ordering entitlement](order-numbers-and-restaurant-entitlements.md). Obtain and review the actual report before approval.
 
 Use Node 24 from `backend/`, PowerShell 7. Enter the Atlas-issued beta URI privately at the prompt; it stays in the current process environment. Do not paste credentials into a command, source, chat, or report. The report contains only database/user names, collection names and index definitions.
 

@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import RestaurantSchema from '../models/Restaurant.js';
 import CategorySchema from '../models/Category.js';
 import ProductSchema from '../models/Product.js';
-import { restaurantWhatsAppTarget } from './whatsappOrdering.js';
+import { effectiveOrdering } from './restaurantOrdering.js';
 
 export class InvalidPublicRequest extends Error {
   constructor() { super('Invalid public request'); }
@@ -59,6 +59,7 @@ export function parsePublicProductsQuery(query) {
 }
 
 export function serializePublicRestaurant(restaurant, { checkoutEnabled = true, betaWhatsAppTargets } = {}) {
+  const ordering = effectiveOrdering(restaurant, { checkoutEnabled, betaWhatsAppTargets });
   return {
     name: restaurant.name, slug: restaurant.slug,
     storefrontTheme: restaurant.storefrontTheme ?? 'savora-classic',
@@ -76,7 +77,9 @@ export function serializePublicRestaurant(restaurant, { checkoutEnabled = true, 
       estimatedDeliveryTime: restaurant.deliverySettings?.estimatedDeliveryTime ?? null,
       deliveryAvailable: restaurant.deliverySettings?.deliveryAvailable ?? true,
     },
-    whatsappOrderingAvailable: checkoutEnabled && Boolean(restaurantWhatsAppTarget(restaurant, betaWhatsAppTargets)),
+    onlineOrderingEnabled: ordering.enabled,
+    checkoutAvailability: ordering.availability,
+    whatsappOrderingAvailable: Boolean(ordering.whatsappTarget),
     socialLinks: {
       facebook: restaurant.socialLinks?.facebook ?? null,
       instagram: restaurant.socialLinks?.instagram ?? null,
@@ -125,7 +128,7 @@ export async function resolvePublicRestaurant(connection, slug) {
   const normalized = normalizePublicSlug(slug);
   const { Restaurant, Product, Category } = modelsFor(connection);
   const restaurant = await Restaurant.findOne({ slug: normalized, status: { $ne: 'suspended' } })
-    .select('_id name slug storefrontTheme heroProductId heroImageUrl description logoUrl aboutImageUrl currency phone contactEmail address openingHours deliverySettings socialLinks branding')
+    .select('_id name slug status onlineOrderingEnabled storefrontTheme heroProductId heroImageUrl description logoUrl aboutImageUrl currency phone contactEmail address openingHours deliverySettings socialLinks branding')
     .lean();
   if (!restaurant) throw new PublicRestaurantNotFound();
   if (restaurant.heroProductId) {

@@ -94,6 +94,13 @@
           }
         },
         {
+          "key": { "restaurantId": 1, "displayNumber": 1 },
+          "options": {
+            "unique": true,
+            "partialFilterExpression": { "displayNumber": { "$type": "number" } }
+          }
+        },
+        {
           "key": {
             "restaurantId": 1,
             "idempotencyKeyHash": 1

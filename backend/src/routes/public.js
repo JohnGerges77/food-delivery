@@ -81,7 +81,7 @@ export function createPublicRouter({ connection = mongoose.connection, mediaStor
     express.json({ limit: '12kb', strict: true }), async (req, res) => {
       const body = betaCheckout ? betaCheckoutBody(req.body) : req.body;
       const result = await createGuestOrder(connection, req.params.slug, body,
-        req.get('Idempotency-Key'), { betaWhatsAppTargets: betaTargets });
+        req.get('Idempotency-Key'), { betaWhatsAppTargets: betaTargets, checkoutEnabled });
       res.status(result.replayed ? 200 : 201).json({ order: result.order,
         ...(result.whatsapp ? { whatsapp: result.whatsapp } : {}) });
     });

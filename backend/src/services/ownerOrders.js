@@ -1,4 +1,5 @@
 import { createOwnerTenantScope, ownerListFilter, OwnerResourceNotFound } from './ownerTenant.js';
+import { validOrderDisplayNumber } from './orderDisplayNumbers.js';
 
 export class InvalidOrderInput extends Error {
   constructor() { super('Invalid order input'); }
@@ -19,7 +20,7 @@ const TRANSITIONS = Object.freeze({
 export const PENDING_ORDER_STATUSES = Object.freeze([
   'pending', 'preparing', 'ready', 'out-for-delivery',
 ]);
-const ORDER_FIELDS = '_id orderNumber customerName customerPhone customerEmail ' +
+const ORDER_FIELDS = '_id orderNumber displayNumber customerName customerPhone customerEmail ' +
   'deliveryAddress city items subtotal deliveryFee total status source ' +
   'submissionMethod notes createdAt updatedAt deliveredAt';
 
@@ -62,9 +63,15 @@ export function parseOwnerOrderQuery(query) {
     filters.submissionMethod = query.submissionMethod;
   }
   if (query.orderNumber !== undefined) {
-    if (typeof query.orderNumber !== 'string' ||
-        !/^[A-Za-z0-9-]{1,100}$/.test(query.orderNumber)) invalid();
-    filters.orderNumber = query.orderNumber;
+    const reference = query.orderNumber;
+    if (typeof reference !== 'string' || !/^(?:#[0-9]{1,16}|[A-Za-z0-9-]{1,100})$/.test(reference)) invalid();
+    if (reference.startsWith('#')) {
+      const displayNumber = Number(reference.slice(1));
+      if (!validOrderDisplayNumber(displayNumber)) invalid();
+      filters.displayNumber = displayNumber;
+    } else if (/^[0-9]+$/.test(reference) && validOrderDisplayNumber(Number(reference))) {
+      filters.$or = [{ displayNumber: Number(reference) }, { orderNumber: reference }];
+    } else filters.orderNumber = reference;
   }
   if (query.from !== undefined || query.to !== undefined) {
     const from = query.from === undefined ? undefined : utcDay(query.from);
@@ -89,7 +96,7 @@ export function parseOrderStatus(body) {
 
 export function serializeOwnerOrder(order) {
   return {
-    id: String(order._id), orderNumber: order.orderNumber,
+    id: String(order._id), orderNumber: order.orderNumber, displayNumber: order.displayNumber ?? null,
     customerName: order.customerName, customerPhone: order.customerPhone,
     customerEmail: order.customerEmail ?? null,
     deliveryAddress: order.deliveryAddress, city: order.city,

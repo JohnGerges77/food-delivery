@@ -4,6 +4,7 @@ import CategorySchema from '../models/Category.js';
 import { isVerifiedOwnerContext } from './ownerAuth.js';
 import { OwnerResourceNotFound } from './ownerTenant.js';
 import { allowedWhatsAppTarget, normalizeWhatsAppNumber } from './whatsappOrdering.js';
+import { OnlineOrderingDisabled, onlineOrderingEnabled } from './restaurantOrdering.js';
 
 export class InvalidRestaurantSettings extends Error {
   constructor() {
@@ -115,6 +116,9 @@ export async function patchOwnerRestaurant(connection, auth, body, { session, be
     await assertHeroProductEligible(Product, Category, auth.restaurantId, updates.heroProductId, { session });
   }
   const restaurant = await getOwnerRestaurant(connection, auth, { session });
+  const changesOrdering = Object.keys(updates).some((path) =>
+    path.startsWith('deliverySettings.') || path === 'socialLinks.whatsapp');
+  if (changesOrdering && !onlineOrderingEnabled(restaurant)) throw new OnlineOrderingDisabled();
   const numberPath = 'socialLinks.whatsapp';
   const enabledPath = 'deliverySettings.whatsappOrderingEnabled';
   const changesNumber = Object.hasOwn(updates, numberPath);
@@ -151,6 +155,7 @@ export async function patchOwnerRestaurant(connection, auth, body, { session, be
   try {
     updated = await Restaurant.findOneAndUpdate(
       { _id: auth.restaurantId, status: { $ne: 'suspended' },
+        ...(changesOrdering ? { onlineOrderingEnabled: { $ne: false } } : {}),
         ...numberCondition,
         ...(Object.hasOwn(updates, 'logoUrl') ? { logoUrl: oldLogoUrl } : {}) },
       { $set: updates },
@@ -161,6 +166,9 @@ export async function patchOwnerRestaurant(connection, auth, body, { session, be
       throw new InvalidRestaurantSettings();
     }
     throw error;
+  }
+  if (!updated && changesOrdering && !onlineOrderingEnabled(await getOwnerRestaurant(connection, auth, { session }))) {
+    throw new OnlineOrderingDisabled();
   }
   if (!updated && Object.keys(numberCondition).length) throw new InvalidRestaurantSettings();
   if (!updated) throw new OwnerResourceNotFound();

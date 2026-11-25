@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { useLocale } from "next-intl";
 import { useRef, useState } from "react";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
+import { orderReference } from "@/lib/order-reference";
 import { publicMoney } from "@/lib/public-menu-presentation";
 import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";
 import { useStorefront } from "@/components/features/storefront/StorefrontContext";
@@ -37,6 +38,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
   const locale = useLocale();
   const isArabic = locale === "ar";
   const { restaurant, href } = useStorefront();
+  const router = useRouter();
   const cartItems = useCartStore((state) => state.items);
   const tenantSlug = useCartStore((state) => state.tenantSlug);
   const items = tenantSlug === slug ? cartItems : [];
@@ -63,7 +65,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting.current || confirmation || checkoutAvailability !== "available") return;
+    if (submitting.current || confirmation || failure?.orderingDisabled || checkoutAvailability !== "available") return;
     const nextErrors: CheckoutErrors = beta ? (invalidCart(items) ? { cart: "cart" } : {}) : checkoutValidation(details, items);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length || tenantSlug !== slug) {
@@ -93,6 +95,11 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
     } catch (error) {
       const checkoutError = error instanceof GuestCheckoutError ? error :
         new GuestCheckoutError(null, "The result is unknown. Retry with the same details to recover your order.", true);
+      if (checkoutError.orderingDisabled) {
+        setFailure(checkoutError);
+        router.replace(href("/menu"));
+        return;
+      }
       setFailure(checkoutError);
     } finally { submitting.current = false; setSending(false); }
   }
@@ -106,6 +113,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
   function failureMessage() {
     if (!failure) return "";
     if (!isArabic) return failure.message;
+    if (failure.orderingDisabled) return "هذا المطعم يعرض المنيو فقط.";
     if (failure.uncertain) return "نتيجة الطلب غير مؤكدة. أعد المحاولة بنفس البيانات لاستعادة التأكيد؛ ربما تم حفظه بالفعل.";
     if (failure.paused) return checkoutUnavailableMessage("checkout-disabled", true);
     if (failure.status === 401 || failure.status === 403) return "رُفض الوصول لإتمام الطلب. تأكد من صلاحية دخولك إلى النسخة التجريبية ثم أعد المحاولة.";
@@ -202,7 +210,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
               {confirmation ? (
                 <div className="mt-8 rounded-[1rem] border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/10 p-6" role="status" data-testid="checkout-confirmation">
                   <h3 className="text-2xl font-semibold text-[color:var(--primary-light)]">{isArabic ? "تم حفظ الطلب" : "Order saved successfully"}</h3>
-                  <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "رقم الطلب" : "Order reference"}: <strong className="text-[color:var(--text)]">{confirmation.order.orderNumber}</strong></p>
+                  <p className="mt-4 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "رقم الطلب" : "Order reference"}: <strong className="text-[color:var(--text)]"><bdi dir="ltr">{orderReference(confirmation.order)}</bdi></strong></p>
                   <p className="mt-2 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "رسوم التوصيل المؤكدة" : "Confirmed delivery fee"}: <strong className="text-[color:var(--text)]">{publicMoney(confirmation.order.deliveryFee, confirmation.order.currency, locale)}</strong></p>
                   <p className="mt-2 text-sm leading-7 text-[color:var(--text-muted)]">{isArabic ? "الإجمالي المؤكد" : "Confirmed total"}: <strong className="text-[color:var(--text)]">{publicMoney(confirmation.order.total, confirmation.order.currency, locale)}</strong></p>
                   {handoffUrl ? <>
@@ -306,7 +314,7 @@ export function CheckoutOrderingPage({ deliveryFee, currency, slug, beta, checko
               </p>
               <button
                 className="mt-8 inline-flex min-h-14 w-full items-center justify-center rounded-full storefront-action px-8 text-sm font-bold text-[color:var(--sf-on-primary)] shadow-[0_22px_62px_color-mix(in_srgb,var(--sf-primary)_38%,transparent)] transition-all hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
-                disabled={sending || items.length === 0 || tenantSlug !== slug}
+                disabled={sending || failure?.orderingDisabled || items.length === 0 || tenantSlug !== slug}
                 type="submit"
               >
                 {sending ? (isArabic ? "جارٍ حفظ الطلب..." : "Saving order...") : beta ? (isArabic ? "حفظ الطلب التجريبي" : "Save test order") : step === 0 ? (isArabic ? "مراجعة الطلب" : "Review Order") : step === 1 ? (isArabic ? "المتابعة للإرسال" : "Continue to Submit") : (isArabic ? "تأكيد وحفظ الطلب" : "Confirm and Save Order")}

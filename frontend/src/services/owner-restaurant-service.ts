@@ -9,6 +9,7 @@ export interface OwnerRestaurant {
   currency: string;
   status: "active" | "suspended";
   storefrontTheme?: string;
+  onlineOrderingEnabled?: boolean;
   heroProductId: string | null;
   description: string | null;
   logoUrl: string | null;
@@ -88,6 +89,7 @@ export function parseOwnerRestaurant(value: unknown): OwnerRestaurant {
         (typeof value.heroProductId === "string" && /^[0-9a-fA-F]{24}$/.test(value.heroProductId))) ||
       !(value.heroImageUrl === undefined || nullableString(value.heroImageUrl)) ||
       !(value.storefrontTheme === undefined || typeof value.storefrontTheme === "string") ||
+      !(value.onlineOrderingEnabled === undefined || typeof value.onlineOrderingEnabled === "boolean") ||
       ![value.description, value.logoUrl, value.phone, value.contactEmail, value.address, value.openingHours,
         value.deliverySettings.estimatedDeliveryTime, value.socialLinks.facebook, value.socialLinks.instagram,
         value.socialLinks.whatsapp, value.branding.brandName, value.branding.primaryColor].every(nullableString) ||

@@ -27,7 +27,7 @@ test('owner restaurant serializer uses an explicit safe field list', () => {
   };
   const result = serializeOwnerRestaurant(restaurant);
   assert.deepEqual(Object.keys(result), [
-    'id', 'name', 'slug', 'currency', 'status', 'storefrontTheme', 'heroProductId', 'description', 'logoUrl', 'aboutImageUrl', 'heroImageUrl',
+    'id', 'name', 'slug', 'currency', 'status', 'storefrontTheme', 'onlineOrderingEnabled', 'heroProductId', 'description', 'logoUrl', 'aboutImageUrl', 'heroImageUrl',
     'phone', 'contactEmail', 'address', 'openingHours', 'deliverySettings',
     'socialLinks', 'branding',
   ]);
@@ -108,6 +108,7 @@ test('restaurant settings patch rejects immutable, unknown, operator, and dotted
   for (const body of [
     {}, { _id: 'x' }, { slug: 'another' }, { status: 'suspended' },
     { storefrontTheme: 'savora-classic' },
+    { onlineOrderingEnabled: true },
     { currency: 'USD' }, { restaurantId: 'x' }, { userId: 'x' },
     { role: 'owner' }, { surprise: true }, { $set: { name: 'x' } },
     { 'deliverySettings.deliveryFee': 0 },

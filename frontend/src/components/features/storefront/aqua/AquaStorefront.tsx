@@ -17,7 +17,7 @@ import type { PublicPage, PublicProduct, PublicRestaurant } from "@/services/pub
 import styles from "./AquaStorefront.module.css";
 
 export function AquaNavbar() {
-  const { restaurant, href } = useStorefront();
+  const { restaurant, href, orderingEnabled } = useStorefront();
   const locale = useLocale();
   const t = useTranslations("navigation");
   const pathname = usePathname();
@@ -37,7 +37,7 @@ export function AquaNavbar() {
       })}</div>
       <div className={styles.navActions}>
         <Link className={styles.language} href={pathname} locale={nextLocale} aria-label={t("switchLanguage", { language: t(`languages.${nextLocale}`) })}><Languages size={18} aria-hidden="true" /><span>{nextLocale === "ar" ? "العربية" : "EN"}</span></Link>
-        <Link className={styles.cartLink} href={href("/cart")} aria-label={`${t("viewCart")}: ${tenantSlug === restaurant.slug ? count : 0}`} aria-current={pathname === href("/cart") || pathname === href("/checkout") ? "page" : undefined}><CartAttention><ShoppingBag size={19} aria-hidden="true" /><span>{tenantSlug === restaurant.slug ? count : 0}</span></CartAttention></Link>
+        {orderingEnabled && <Link className={styles.cartLink} href={href("/cart")} aria-label={`${t("viewCart")}: ${tenantSlug === restaurant.slug ? count : 0}`} aria-current={pathname === href("/cart") || pathname === href("/checkout") ? "page" : undefined}><CartAttention><ShoppingBag size={19} aria-hidden="true" /><span>{tenantSlug === restaurant.slug ? count : 0}</span></CartAttention></Link>}
       </div>
     </div>
   </nav>;
@@ -116,7 +116,7 @@ export function AquaAbout() {
 
 export function AquaFooter() {
   const ar = useLocale() === "ar";
-  const { restaurant, href } = useStorefront();
-  return <footer className={styles.footer}><div className={styles.footerTop}><div><p>{restaurant.name}</p><span>{restaurant.description}</span></div><div><Link href={href("/menu")}>{ar ? "المنيو" : "Menu"}</Link><Link href={href("/about")}>{ar ? "عن المطعم" : "About"}</Link><Link href={href("/cart")}>{ar ? "السلة" : "Cart"}</Link></div></div><div className={styles.footerBottom}><span>{restaurant.name}</span><span>Powered by Savora</span></div></footer>;
+  const { restaurant, href, orderingEnabled } = useStorefront();
+  return <footer className={styles.footer}><div className={styles.footerTop}><div><p>{restaurant.name}</p><span>{restaurant.description}</span></div><div><Link href={href("/menu")}>{ar ? "المنيو" : "Menu"}</Link><Link href={href("/about")}>{ar ? "عن المطعم" : "About"}</Link>{orderingEnabled && <Link href={href("/cart")}>{ar ? "السلة" : "Cart"}</Link>}</div></div><div className={styles.footerBottom}><span>{restaurant.name}</span><span>Powered by Savora</span></div></footer>;
 }
 

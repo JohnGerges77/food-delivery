@@ -13,7 +13,7 @@ import styles from "./HeroSection.module.css";
 const demoPhoto = "/savora-hero-wide.webp";
 
 export function HeroSection({ restaurant }: { restaurant: PublicRestaurant }) {
-  const { href } = useStorefront();
+  const { href, orderingEnabled } = useStorefront();
   const ar = useLocale() === "ar";
   const [failedPhotos, setFailedPhotos] = useState<string[]>([]);
   const photo = [
@@ -45,8 +45,8 @@ export function HeroSection({ restaurant }: { restaurant: PublicRestaurant }) {
             {restaurant.openingHours?.trim() && <div>
               <dt>{ar ? "ساعات العمل" : "Opening hours"}</dt><dd><bdi>{restaurant.openingHours}</bdi></dd>
             </div>}
-            <div><dt>{ar ? "التوصيل" : "Delivery"}</dt><dd>{ar
-              ? (delivery ? "متاح" : "غير متاح") : (delivery ? "Available" : "Unavailable")}</dd></div>
+            {orderingEnabled && <div><dt>{ar ? "التوصيل" : "Delivery"}</dt><dd>{ar
+              ? (delivery ? "متاح" : "غير متاح") : (delivery ? "Available" : "Unavailable")}</dd></div>}
           </dl>
         </div>
       </div>

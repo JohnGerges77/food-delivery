@@ -13,6 +13,7 @@ import { InvalidOrderInput, OrderStatusConflict } from './services/ownerOrders.j
 import { InvalidAnalyticsQuery } from './services/analyticsPeriod.js';
 import { InvalidPublicRequest, PublicRestaurantNotFound } from './services/publicMenu.js';
 import { CheckoutConflict, CheckoutUnavailable, InvalidCheckout } from './services/guestCheckout.js';
+import { OnlineOrderingDisabled } from './services/restaurantOrdering.js';
 import { createMediaStorage, storageConfig } from './services/mediaStorage.js';
 import { InvalidMedia, MediaConflict, MediaIndexesUnavailable } from './services/ownerMedia.js';
 
@@ -25,6 +26,9 @@ export function handleApiError(error, _req, res, _next) {
   if (error instanceof InvalidCheckout) return res.status(400).json({ error: 'Invalid checkout' });
   if (error instanceof CheckoutConflict) return res.status(409).json({ error: 'Idempotency key conflict' });
   if (error instanceof CheckoutUnavailable) return res.status(409).json({ error: 'Checkout unavailable' });
+  if (error instanceof OnlineOrderingDisabled) return res.status(403).json({
+    error: 'Online ordering is disabled for this restaurant', code: 'ONLINE_ORDERING_DISABLED',
+  });
   if (error instanceof OwnerResourceNotFound) return res.status(404).json({ error: 'Not found' });
   if (error instanceof InvalidRestaurantSettings) {
     return res.status(400).json({ error: 'Invalid restaurant settings' });

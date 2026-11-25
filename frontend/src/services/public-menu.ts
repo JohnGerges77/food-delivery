@@ -1,10 +1,13 @@
 import { westernDigits } from "../lib/western-digits.ts";
 import { demoCatalogText } from "../lib/demo-catalog-text.ts";
+import type { CheckoutAvailability } from "./guest-checkout-service.ts";
 
 export type PublicRestaurant = {
   name: string; slug: string; description: string | null; logoUrl: string | null; aboutImageUrl?: string | null;
   storefrontTheme?: string;
   heroImageUrl?: string | null;
+  onlineOrderingEnabled?: boolean;
+  checkoutAvailability?: CheckoutAvailability;
   heroProduct?: PublicProduct | null;
   heroProductSelected?: boolean;
   whatsappOrderingAvailable?: boolean;

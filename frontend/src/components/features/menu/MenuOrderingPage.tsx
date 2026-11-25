@@ -15,7 +15,7 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
 }) {
   const locale = useLocale();
   const isArabic = locale === "ar";
-  const { restaurant, categories } = useStorefront();
+  const { restaurant, categories, orderingEnabled } = useStorefront();
   const localizedCategories = [{ id: "all", label: isArabic ? "الكل" : "All" },
     ...categories.map((category) => ({ id: category.id, label: category.name }))];
   const categoryLabels = useMemo(() => new Map(categories.map((category) => [category.id, category.name])), [categories]);
@@ -148,7 +148,9 @@ export function MenuOrderingPage({ initialProducts, initialPagination }: {
               </h2>
             </div>
             <p className="max-w-xl text-sm leading-7 text-[color:var(--text-muted)]">
-              {isArabic ? "اضغط على أي طبق لمشاهدته أو أضفه مباشرة إلى سلتك." : "Tap any dish for a closer look, or add it straight to your cart."}
+              {orderingEnabled
+                ? (isArabic ? "اضغط على أي طبق لمشاهدته أو أضفه مباشرة إلى سلتك." : "Tap any dish for a closer look, or add it straight to your cart.")
+                : (isArabic ? "اضغط على أي طبق لعرض التفاصيل والأسعار." : "Tap any dish for details and prices.")}
             </p>
           </div>
 

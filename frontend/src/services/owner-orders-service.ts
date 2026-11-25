@@ -1,5 +1,6 @@
 import { ApiError, apiRequest } from "./api-client.ts";
 import { isObjectId, isRecord, parsePagination, type OwnerPagination } from "./owner-catalog-common.ts";
+import { validDisplayNumber } from "../lib/order-reference.ts";
 
 export type OwnerOrderStatus = "pending" | "preparing" | "ready" | "out-for-delivery" | "delivered" | "cancelled";
 export type OwnerOrderStatusGroup = "pending" | "delivered" | "cancelled";
@@ -17,6 +18,7 @@ export interface OwnerOrderItem {
 export interface OwnerOrder {
   id: string;
   orderNumber: string;
+  displayNumber?: number | null;
   customerName: string;
   customerPhone: string;
   customerEmail: string | null;
@@ -95,7 +97,11 @@ export function validateOwnerOrderFilters(filters: OwnerOrderFilters): string | 
   if (filters.statusGroup !== undefined && !visibleOrderStatuses.includes(filters.statusGroup)) return "Invalid status group";
   if (filters.status !== undefined && filters.statusGroup !== undefined) return "Choose one status filter";
   if (filters.submissionMethod !== undefined && !["direct", "whatsapp"].includes(filters.submissionMethod)) return "Invalid method";
-  if (filters.orderNumber !== undefined && !/^[A-Za-z0-9-]{1,100}$/.test(filters.orderNumber)) return "Enter one exact order number (letters, numbers and hyphens only).";
+  if (filters.orderNumber !== undefined &&
+      !(/^[A-Za-z0-9-]{1,100}$/.test(filters.orderNumber) ||
+        /^#[0-9]{1,16}$/.test(filters.orderNumber) && validDisplayNumber(Number(filters.orderNumber.slice(1))))) {
+    return "Enter an exact order number or legacy reference.";
+  }
   if (filters.from !== undefined && !validDate(filters.from)) return "Enter a valid From date.";
   if (filters.to !== undefined && !validDate(filters.to)) return "Enter a valid To date.";
   if (filters.from && filters.to && filters.from > filters.to) return "From date must be before or equal to To date.";
@@ -110,6 +116,7 @@ function timestamp(value: unknown): value is string { return text(value) && Numb
 
 export function parseOwnerOrder(value: unknown): OwnerOrder {
   if (!isRecord(value) || !text(value.id) || !isObjectId(value.id) || !text(value.orderNumber) ||
+    (value.displayNumber != null && !validDisplayNumber(value.displayNumber)) ||
     !text(value.customerName) || !text(value.customerPhone) || !nullableText(value.customerEmail) ||
     !text(value.deliveryAddress) || !text(value.city) || !Array.isArray(value.items) ||
     !value.items.length || !money(value.subtotal) || !money(value.deliveryFee) || !money(value.total) ||
@@ -126,6 +133,7 @@ export function parseOwnerOrder(value: unknown): OwnerOrder {
   const order = value as unknown as OwnerOrder;
   return {
     id: order.id, orderNumber: order.orderNumber, customerName: order.customerName,
+    ...(order.displayNumber !== undefined ? { displayNumber: order.displayNumber } : {}),
     customerPhone: order.customerPhone, customerEmail: order.customerEmail,
     deliveryAddress: order.deliveryAddress, city: order.city,
     items: order.items.map((item) => ({ productId: item.productId, name: item.name,

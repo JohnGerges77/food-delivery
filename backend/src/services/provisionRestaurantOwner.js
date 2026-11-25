@@ -40,7 +40,7 @@ export async function provisionRestaurantOwner(input, { connection } = {}) {
   }
 
   const { Restaurant, User } = modelsFor(connection);
-  const restaurant = new Restaurant(input.restaurant);
+  const restaurant = new Restaurant({ ...input.restaurant, onlineOrderingEnabled: false });
   const owner = new User({
     restaurantId: restaurant._id,
     name: input.owner.name,

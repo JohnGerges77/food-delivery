@@ -82,6 +82,8 @@ const restaurantSchema = new mongoose.Schema(
       match: [/^[A-Z]{3}$/, 'Must be a three-letter uppercase currency code'],
     },
     status: { type: String, enum: ['active', 'suspended'], default: 'active' },
+    onlineOrderingEnabled: { type: Boolean },
+    orderDisplaySequence: { type: Number, min: 1000, validate: Number.isSafeInteger },
     storefrontTheme: { type: String, enum: ['savora-classic', 'savora-aqua', 'savora-cafe', 'savora-luxury'], default: 'savora-classic' },
     heroProductId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', default: null },
     openingHours: { type: String, trim: true },

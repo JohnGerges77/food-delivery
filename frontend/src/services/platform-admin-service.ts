@@ -6,6 +6,7 @@ export interface PlatformAdmin { id: string; email: string }
 export interface PlatformRestaurant {
   id: string; name: string; slug: string; currency: string; description: string | null;
   storefrontTheme: "savora-classic" | "savora-aqua" | "savora-cafe" | "savora-luxury";
+  onlineOrderingEnabled?: boolean;
   status: "active" | "suspended"; createdAt: string; updatedAt: string;
   owner: { id: string; name: string; email: string; isActive: boolean } | null;
 }
@@ -70,7 +71,7 @@ export const adminRestaurants = (page: number, search: string, signal?: AbortSig
 export const adminRestaurant = (id: string) =>
   request<{ restaurant: PlatformRestaurant }>(`/restaurants/${encodeURIComponent(id)}`);
 export const createAdminRestaurant = (body: { restaurant: { name: string; slug: string;
-  currency: string; description?: string; storefrontTheme?: PlatformRestaurant["storefrontTheme"] }; owner: { name: string; email: string; password: string } }) =>
+  currency: string; description?: string; storefrontTheme?: PlatformRestaurant["storefrontTheme"]; onlineOrderingEnabled?: boolean }; owner: { name: string; email: string; password: string } }) =>
   request<{ restaurant: PlatformRestaurant }>("/restaurants", { method: "POST", mutation: true, body });
 export const setAdminRestaurantStatus = (id: string, status: "active" | "suspended") =>
   request<{ restaurant: PlatformRestaurant }>(`/restaurants/${encodeURIComponent(id)}/status`,
@@ -78,3 +79,6 @@ export const setAdminRestaurantStatus = (id: string, status: "active" | "suspend
 export const setAdminRestaurantTheme = (id: string, storefrontTheme: PlatformRestaurant["storefrontTheme"]) =>
   request<{ restaurant: PlatformRestaurant }>(`/restaurants/${encodeURIComponent(id)}/theme`,
     { method: "PATCH", mutation: true, body: { storefrontTheme } });
+export const setAdminRestaurantOrdering = (id: string, onlineOrderingEnabled: boolean) =>
+  request<{ restaurant: PlatformRestaurant }>(`/restaurants/${encodeURIComponent(id)}/ordering`,
+    { method: "PATCH", mutation: true, body: { onlineOrderingEnabled } });

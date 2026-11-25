@@ -110,7 +110,7 @@ test('public restaurant and menu API on savora_test', async (t) => {
       assert.deepEqual(Object.keys(restaurant), ['name', 'slug', 'storefrontTheme', 'heroProduct',
         'heroProductSelected', 'description', 'logoUrl', 'aboutImageUrl', 'heroImageUrl',
         'currency', 'phone', 'contactEmail', 'address', 'openingHours',
-        'deliverySettings', 'whatsappOrderingAvailable', 'socialLinks', 'branding']);
+        'deliverySettings', 'onlineOrderingEnabled', 'checkoutAvailability', 'whatsappOrderingAvailable', 'socialLinks', 'branding']);
       assert.equal(restaurant.slug, a.slug);
       assert.equal(restaurant.storefrontTheme, 'savora-classic');
       assert.equal(restaurant.currency, 'EGP');

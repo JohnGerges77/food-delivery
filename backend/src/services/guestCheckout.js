@@ -7,7 +7,8 @@ import RestaurantSchema from '../models/Restaurant.js';
 import { withCategoryReferenceTransaction } from './categoryReference.js';
 import { currencyFractionDigits } from './ownerProducts.js';
 import { PublicRestaurantNotFound, resolvePublicRestaurant } from './publicMenu.js';
-import { restaurantWhatsAppTarget } from './whatsappOrdering.js';
+import { effectiveOrdering, OnlineOrderingDisabled } from './restaurantOrdering.js';
+import { allocateOrderDisplayNumber, orderDisplayReference, orderWriteRetry } from './orderDisplayNumbers.js';
 
 export class InvalidCheckout extends Error {}
 export class CheckoutConflict extends Error {}
@@ -123,7 +124,7 @@ function modelsFor(connection) {
 }
 
 function confirmation(order, currency) {
-  return { orderNumber: order.orderNumber, status: order.status,
+  return { orderNumber: order.orderNumber, displayNumber: order.displayNumber ?? null, status: order.status,
     submissionMethod: order.submissionMethod, currency, subtotal: order.subtotal,
     deliveryFee: order.deliveryFee, total: order.total, savedInSavora: true };
 }
@@ -137,7 +138,7 @@ export function buildWhatsAppUrl(order, target, currency, restaurantName = '', {
   const money = (amount) => `${Number(amount).toFixed(digits)} ${currency}`;
   const header = [
     ...(beta ? ['TEST ORDER — no payment or fulfillment.', 'طلب تجريبي فقط. لا دفع ولا تنفيذ للطلب.'] : []),
-    safe(restaurantName, 45), `Order ${safe(order.orderNumber, 40)}`,
+    safe(restaurantName, 45), `Order ${safe(orderDisplayReference(order), 40)}`,
   ];
   const totals = [`Subtotal: ${money(order.subtotal)}`, `Delivery: ${money(order.deliveryFee)}`,
     `Total: ${money(order.total)}`];
@@ -173,19 +174,26 @@ function resultFor(order, restaurant, target, beta) {
   return result;
 }
 
-export async function createGuestOrder(connection, slug, body, idempotencyKey, { betaWhatsAppTargets } = {}) {
+export async function createGuestOrder(connection, slug, body, idempotencyKey, { betaWhatsAppTargets, checkoutEnabled = true } = {}) {
   const input = parseCheckout(body, idempotencyKey);
   const restaurant = await resolvePublicRestaurant(connection, slug);
   const { Restaurant, Product, Category, Order } = modelsFor(connection);
   const keyHash = digest(idempotencyKey);
   const requestHash = digest(JSON.stringify(input));
   const lookup = { restaurantId: restaurant._id, idempotencyKeyHash: keyHash };
-  async function existing() {
-    const order = await Order.findOne(lookup).select('+idempotencyRequestHash +whatsappTarget');
+  const orderingOptions = { betaWhatsAppTargets, checkoutEnabled };
+  async function existingOrder(session) {
+    const query = Order.findOne(lookup).select('+idempotencyRequestHash +whatsappTarget');
+    const order = await (session ? query.session(session) : query);
     if (!order) return null;
     if (order.idempotencyRequestHash !== requestHash) throw new CheckoutConflict();
+    return order;
+  }
+  async function existing() {
+    const order = await existingOrder();
+    if (!order) return null;
     const current = order.submissionMethod === 'whatsapp' ? await resolvePublicRestaurant(connection, slug) : restaurant;
-    return resultFor(order, current, restaurantWhatsAppTarget(current, betaWhatsAppTargets), Boolean(betaWhatsAppTargets));
+    return resultFor(order, current, effectiveOrdering(current, orderingOptions).whatsappTarget, Boolean(betaWhatsAppTargets));
   }
   const replay = await existing();
   if (replay) return { ...replay, replayed: true };
@@ -195,19 +203,20 @@ export async function createGuestOrder(connection, slug, body, idempotencyKey, {
       // Write the tenant row in the same transaction so suspension and checkout
       // cannot both commit against an earlier active snapshot.
       const currentRestaurant = await Restaurant.findOneAndUpdate({ _id: restaurant._id,
-        status: { $ne: 'suspended' } }, { $inc: { __v: 1 } }, { returnDocument: 'after' })
-        .select('_id name slug currency deliverySettings socialLinks')
+        status: { $ne: 'suspended' } }, { $inc: { __v: 1 } }, { returnDocument: 'after', timestamps: false })
+        .select('_id name slug currency status onlineOrderingEnabled deliverySettings socialLinks')
         .session(session).lean();
       if (!currentRestaurant) throw new PublicRestaurantNotFound();
+      const ordering = effectiveOrdering(currentRestaurant, orderingOptions);
+      const committed = await existingOrder(session);
+      if (committed) return { order: committed, restaurant: currentRestaurant, target: ordering.whatsappTarget, replayed: true };
+      if (!ordering.enabled) throw new OnlineOrderingDisabled();
+      if (ordering.availability !== 'available') throw new CheckoutUnavailable();
       const digits = currencyDigits(currentRestaurant.currency);
       const scale = 10 ** digits;
       const feeMinor = moneyToMinor(currentRestaurant.deliverySettings?.deliveryFee ?? 0, digits);
       const minimumMinor = moneyToMinor(currentRestaurant.deliverySettings?.minimumOrder ?? 0, digits);
-      if (currentRestaurant.deliverySettings?.deliveryAvailable === false) {
-        throw new CheckoutUnavailable();
-      }
-      const target = input.submissionMethod === 'whatsapp' ?
-        restaurantWhatsAppTarget(currentRestaurant, betaWhatsAppTargets) : null;
+      const target = input.submissionMethod === 'whatsapp' ? ordering.whatsappTarget : null;
       if (input.submissionMethod === 'whatsapp' && !target) throw new CheckoutUnavailable();
       // Every attempt reads current product/category state and writes each selected Product.
       const snapshots = [];
@@ -234,18 +243,19 @@ export async function createGuestOrder(connection, slug, body, idempotencyKey, {
           ...(item.notes ? { notes: item.notes } : {}) });
       }
       if (subtotalMinor < minimumMinor) throw new CheckoutUnavailable();
+      const displayNumber = await allocateOrderDisplayNumber(Restaurant, restaurant._id, session);
       const [saved] = await Order.create([{ restaurantId: restaurant._id,
         ...input, items: snapshots, subtotal: subtotalMinor / scale,
         deliveryFee: feeMinor / scale, total: (subtotalMinor + feeMinor) / scale,
-        orderNumber: `SV-${randomBytes(12).toString('hex').toUpperCase()}`,
+        orderNumber: `SV-${randomBytes(12).toString('hex').toUpperCase()}`, displayNumber,
         source: 'website', status: 'pending', idempotencyKeyHash: keyHash,
         idempotencyRequestHash: requestHash,
         ...(target ? { whatsappTarget: target } : {}) }], { session });
-      return { order: saved, restaurant: currentRestaurant, target };
-    });
-    return { ...resultFor(saved.order, saved.restaurant, saved.target, Boolean(betaWhatsAppTargets)), replayed: false };
+      return { order: saved, restaurant: currentRestaurant, target, replayed: false };
+    }, orderWriteRetry);
+    return { ...resultFor(saved.order, saved.restaurant, saved.target, Boolean(betaWhatsAppTargets)), replayed: saved.replayed };
   } catch (error) {
-    if (error.code === 11000) {
+    if (error.code === 11000 || error.hasErrorLabel?.('UnknownTransactionCommitResult')) {
       const recovered = await existing();
       if (recovered) return { ...recovered, replayed: true };
     }

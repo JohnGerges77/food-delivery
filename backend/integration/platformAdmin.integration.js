@@ -101,8 +101,9 @@ test('Platform Admin API journey, suspension, audit and exact fixture teardown',
     ownerId = createdJson.restaurant.owner.id;
     assert.equal(JSON.stringify(createdJson).includes(password), false);
     assert.equal(createdJson.restaurant.storefrontTheme, 'savora-luxury');
+    assert.equal(createdJson.restaurant.onlineOrderingEnabled, false);
     assert.deepEqual(await auditTrail(), [{ action: 'restaurant.created', details: {
-      slug, ownerEmail, storefrontTheme: 'savora-luxury' } }]);
+      slug, ownerEmail, storefrontTheme: 'savora-luxury', onlineOrderingEnabled: false } }]);
     assert.equal((await (await call(`/api/public/restaurants/${slug}`)).json()).restaurant.storefrontTheme,
       'savora-luxury');
     assert.equal((await call('/api/admin/restaurants', { method: 'POST', headers: mutation,
@@ -165,6 +166,22 @@ test('Platform Admin API journey, suspension, audit and exact fixture teardown',
         { from: 'savora-aqua', to: 'savora-cafe' },
         { from: 'savora-cafe', to: 'savora-luxury' },
       ]);
+    const orderingUrl = `/api/admin/restaurants/${restaurantId}/ordering`;
+    const ordering = (headers, value) => call(orderingUrl, {
+      method: 'PATCH', headers, body: body({ onlineOrderingEnabled: value }),
+    });
+    assert.equal((await ordering({ ...jsonHeaders, Cookie: ownerCookie }, true)).status, 401);
+    assert.equal((await ordering({ ...jsonHeaders, Cookie: adminCookie }, true)).status, 403);
+    assert.equal((await ordering({ ...mutation, Origin: 'https://elsewhere.example.test' }, true)).status, 403);
+    assert.equal((await ordering(mutation, 'true')).status, 400);
+    for (const value of [true, false, true]) {
+      const response = await ordering(mutation, value);
+      assert.equal(response.status, 200);
+      assert.equal((await response.json()).restaurant.onlineOrderingEnabled, value);
+      const storefront = await call(`/api/public/restaurants/${slug}`);
+      assert.equal(storefront.headers.get('cache-control'), 'no-store');
+      assert.equal((await storefront.json()).restaurant.checkoutAvailability, value ? 'available' : 'menu-only');
+    }
     const suspended = await call(`/api/admin/restaurants/${restaurantId}/status`, {
       method: 'PATCH', headers: mutation, body: body({ status: 'suspended' }) });
     assert.equal(suspended.status, 200);
@@ -184,7 +201,7 @@ test('Platform Admin API journey, suspension, audit and exact fixture teardown',
     }
     const expectedAudit = [
       { action: 'restaurant.created', details: {
-        slug, ownerEmail, storefrontTheme: 'savora-luxury' } },
+        slug, ownerEmail, storefrontTheme: 'savora-luxury', onlineOrderingEnabled: false } },
       { action: 'restaurant.theme_changed', details: {
         from: 'savora-luxury', to: 'savora-classic' } },
       { action: 'restaurant.theme_changed', details: {
@@ -193,6 +210,9 @@ test('Platform Admin API journey, suspension, audit and exact fixture teardown',
         from: 'savora-aqua', to: 'savora-cafe' } },
       { action: 'restaurant.theme_changed', details: {
         from: 'savora-cafe', to: 'savora-luxury' } },
+      { action: 'restaurant.ordering_changed', details: { from: false, to: true } },
+      { action: 'restaurant.ordering_changed', details: { from: true, to: false } },
+      { action: 'restaurant.ordering_changed', details: { from: false, to: true } },
       { action: 'restaurant.suspended', details: { from: 'active', to: 'suspended' } },
     ];
     assert.deepEqual(await auditTrail(), expectedAudit);

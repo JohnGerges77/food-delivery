@@ -24,7 +24,7 @@ export function CafeNavbar() {
   const locale = useLocale();
   const t = useTranslations("navigation");
   const pathname = usePathname();
-  const { restaurant, href } = useStorefront();
+  const { restaurant, href, orderingEnabled } = useStorefront();
   const tenantSlug = useCartStore((state) => state.tenantSlug);
   const count = useCartStore((state) => state.items.reduce((sum, item) => sum + item.quantity, 0));
   const links = [{ path: "/menu", label: t("menu") }, { path: "/about", label: t("about") }, { path: "/#contact", label: t("contact") }];
@@ -36,7 +36,7 @@ export function CafeNavbar() {
       </nav>
       <div className={styles.navActions}>
         <Link className={styles.locale} href={pathname} locale={locale === "ar" ? "en" : "ar"} aria-label={t("switchLanguage", { language: t(`languages.${locale === "ar" ? "en" : "ar"}`) })}>{locale === "ar" ? "EN" : "عربي"}</Link>
-        <Link className={styles.cart} href={href("/cart")} aria-label={`${t("viewCart")}: ${tenantSlug === restaurant.slug ? count : 0}`} aria-current={pathname === href("/cart") || pathname === href("/checkout") ? "page" : undefined}><span>{locale === "ar" ? "السلة" : "Cart"}</span><CartAttention><strong>{tenantSlug === restaurant.slug ? count : 0}</strong></CartAttention></Link>
+        {orderingEnabled && <Link className={styles.cart} href={href("/cart")} aria-label={`${t("viewCart")}: ${tenantSlug === restaurant.slug ? count : 0}`} aria-current={pathname === href("/cart") || pathname === href("/checkout") ? "page" : undefined}><span>{locale === "ar" ? "السلة" : "Cart"}</span><CartAttention><strong>{tenantSlug === restaurant.slug ? count : 0}</strong></CartAttention></Link>}
       </div>
     </div>
   </header>;

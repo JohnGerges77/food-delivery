@@ -1,5 +1,8 @@
 "use client";
 
+import { westernDigits } from "@/lib/western-digits";
+import { orderReference } from "@/lib/order-reference";
+
 import { Eye, MapPin, Phone, RefreshCw, ShoppingBag } from "lucide-react";
 import { useLocale } from "next-intl";
 import { useEffect, useRef, useState } from "react";
@@ -91,7 +94,7 @@ function OwnerOrdersView({ currency }: { currency: string }) {
   function refresh() { setLoading(true); setLoadError(""); setRevision((value) => value + 1); }
   function applySearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const value = query.trim();
+    const value = westernDigits(query.trim());
     const error = validateOwnerOrderFilters({ orderNumber: value || undefined });
     setFilterError(error ?? "");
     if (!error) { setLoadError(""); setPage(1); setOrderNumber(value); }
@@ -139,7 +142,7 @@ function OwnerOrdersView({ currency }: { currency: string }) {
       setSelectedOrder(order);
       setItems((current) => current.map((entry) => entry.id === id ? order : entry));
       setPendingStatus(null);
-      setFeedback(isArabic ? `تم تحديث الطلب ${order.orderNumber}.` : `Order ${order.orderNumber} updated.`);
+      setFeedback(isArabic ? `تم تحديث الطلب ${orderReference(order)}.` : `Order ${orderReference(order)} updated.`);
       refresh();
     } catch (error) {
       setPendingStatus(null);
@@ -169,7 +172,7 @@ function OwnerOrdersView({ currency }: { currency: string }) {
             <div className="min-w-48 flex-1"><SearchInput value={query} onChange={(value) => {
               setQuery(value); setFilterError("");
               if (!value && orderNumber) { setOrderNumber(""); setPage(1); }
-            }} placeholder={isArabic ? "رقم الطلب الكامل فقط" : "Exact order number only"} /></div>
+            }} placeholder={isArabic ? "رقم الطلب أو المرجع السابق" : "Order number or legacy reference"} /></div>
             <ActionButton type="submit" variant="ghost">{isArabic ? "بحث" : "Find"}</ActionButton>
           </form>
           <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -218,7 +221,7 @@ function OwnerOrdersView({ currency }: { currency: string }) {
             <div className="grid gap-4 xl:grid-cols-[0.75fr_1fr_0.5fr_0.65fr_0.8fr_auto] xl:items-center">
               <div>
                 <div className="text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">
-                  {order.orderNumber}
+                  <bdi dir="ltr">{orderReference(order)}</bdi>
                 </div>
                 <div className="mt-2 text-xl font-semibold">{order.customerName}</div>
                 <div className="mt-1 text-sm text-[color:var(--text-muted)]">
@@ -269,7 +272,7 @@ function OwnerOrdersView({ currency }: { currency: string }) {
 
       <DashboardModal
         open={Boolean(selectedId)}
-        title={selectedOrder ? `${isArabic ? "طلب" : "Order"} ${selectedOrder.orderNumber}` : isArabic ? "تفاصيل الطلب" : "Order Details"}
+        title={selectedOrder ? `${isArabic ? "طلب" : "Order"} ${orderReference(selectedOrder)}` : isArabic ? "تفاصيل الطلب" : "Order Details"}
         onClose={closeOrder}
       >
           {detailLoading ? <div className="grid gap-3" aria-label={isArabic ? "جارٍ تحميل التفاصيل" : "Loading order details"}><div className="h-24 animate-pulse rounded-2xl bg-white/[0.06]" /><div className="h-24 animate-pulse rounded-2xl bg-white/[0.06]" /></div> : null}
@@ -278,7 +281,7 @@ function OwnerOrdersView({ currency }: { currency: string }) {
             <div className="grid gap-5">
               <div className="flex flex-wrap items-center gap-3 text-sm text-[color:var(--text-muted)]"><StatusBadge status={operationalOrderStatus(selectedOrder.status)} label={label(selectedOrder.status)} /><span>{ownerOrderMethodLabel(selectedOrder.submissionMethod, locale)}</span><span>{ownerOrderDate(selectedOrder.createdAt, locale)}</span></div>
               {actionError ? <p className="rounded-xl border border-amber-300/25 bg-amber-300/10 p-3 text-sm text-amber-100" role="alert">{actionError}</p> : null}
-              {pendingStatus ? <div className="rounded-2xl border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/10 p-4" data-testid="status-confirmation"><p className="text-sm leading-6">{isArabic ? `تأكيد تغيير حالة ${selectedOrder.orderNumber} إلى ${label(pendingStatus)}؟` : `Change ${selectedOrder.orderNumber} to ${label(pendingStatus)}?`}{pendingStatus === "cancelled" ? (isArabic ? " الإلغاء نهائي." : " Cancellation is final.") : pendingStatus === "delivered" ? (isArabic ? " التوصيل نهائي ولا يعني تأكيد الدفع." : " Delivery is final and does not confirm payment.") : ""}</p><div className="mt-4 flex flex-wrap gap-2"><ActionButton variant="ghost" disabled={busy} onClick={() => setPendingStatus(null)}>{isArabic ? "رجوع" : "Back"}</ActionButton><ActionButton variant={pendingStatus === "cancelled" ? "danger" : "primary"} disabled={busy} onClick={() => void confirmStatus()}>{busy ? (isArabic ? "جارٍ الحفظ" : "Saving") : isArabic ? "تأكيد الحالة" : "Confirm Status"}</ActionButton></div></div> : null}
+              {pendingStatus ? <div className="rounded-2xl border border-[color:var(--primary)]/35 bg-[color:var(--primary)]/10 p-4" data-testid="status-confirmation"><p className="text-sm leading-6">{isArabic ? `تأكيد تغيير حالة ${orderReference(selectedOrder)} إلى ${label(pendingStatus)}؟` : `Change ${orderReference(selectedOrder)} to ${label(pendingStatus)}?`}{pendingStatus === "cancelled" ? (isArabic ? " الإلغاء نهائي." : " Cancellation is final.") : pendingStatus === "delivered" ? (isArabic ? " التوصيل نهائي ولا يعني تأكيد الدفع." : " Delivery is final and does not confirm payment.") : ""}</p><div className="mt-4 flex flex-wrap gap-2"><ActionButton variant="ghost" disabled={busy} onClick={() => setPendingStatus(null)}>{isArabic ? "رجوع" : "Back"}</ActionButton><ActionButton variant={pendingStatus === "cancelled" ? "danger" : "primary"} disabled={busy} onClick={() => void confirmStatus()}>{busy ? (isArabic ? "جارٍ الحفظ" : "Saving") : isArabic ? "تأكيد الحالة" : "Confirm Status"}</ActionButton></div></div> : null}
               <div className="grid gap-4 rounded-2xl border border-white/10 bg-white/[0.035] p-4 sm:grid-cols-2">
                 <div>
                   <div className="text-xs font-semibold tracking-[0.18em] text-[color:var(--gold)] uppercase">

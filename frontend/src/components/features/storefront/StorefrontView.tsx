@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import type { Metadata } from "next";
 import { cache } from "react";
@@ -23,8 +23,8 @@ export async function restaurantMetadata(locale: string, slug?: string): Promise
     const restaurant = await storefrontRestaurant(resolved, locale);
     const title = restaurant.name + " | Savora";
     const description = restaurant.description?.trim() || (locale === "ar"
-      ? "تصفّح قائمة المطعم واطلب كضيف مع سافورا."
-      : "Browse the restaurant menu and order as a guest with Savora.");
+      ? "تصفّح قائمة المطعم على سافورا."
+      : "Browse the restaurant menu on Savora.");
     return { title, description, openGraph: { title, description } };
   } catch (error) {
     if (error instanceof PublicMenuError) return {};
@@ -65,7 +65,11 @@ export async function StorefrontView({ slug, page, productId }: {
   }
   if (page === "product" && !product) notFound();
   const checkoutAvailability = storefrontCheckoutAvailability(beta,
-    process.env.SAVORA_BETA_CHECKOUT_ENABLED === "true", restaurant.deliverySettings.deliveryAvailable);
+    process.env.SAVORA_BETA_CHECKOUT_ENABLED === "true", restaurant.deliverySettings.deliveryAvailable,
+    restaurant.onlineOrderingEnabled, restaurant.checkoutAvailability);
+  if (checkoutAvailability === "menu-only" && (page === "cart" || page === "checkout")) {
+    redirect(`/${locale}${basePath}/menu`);
+  }
   return <StorefrontClient key={resolvedSlug} basePath={basePath} restaurant={restaurant} page={page}
     categories={categories} initialProducts={listing?.products ?? []} offers={selectOffers(offers?.products ?? [])}
     initialPagination={listing?.pagination ?? null} product={product} beta={beta} checkoutAvailability={checkoutAvailability} />;

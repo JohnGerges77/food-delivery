@@ -63,7 +63,7 @@ function fakeDatabase() {
 test('demo demands the complete collection and index manifest, including Admin uniqueness', async () => {
   const { db, names, indexes } = fakeDatabase();
   assert.equal(collections.length, 9);
-  assert.equal(collections.flatMap(({ indexes }) => indexes).length, 19);
+  assert.equal(collections.flatMap(({ indexes }) => indexes).length, 20);
   await assertBetaStructure(db, collections);
   names.push({ name: 'unexpected', type: 'collection' });
   await assert.rejects(assertBetaStructure(db, collections), /collection list/);

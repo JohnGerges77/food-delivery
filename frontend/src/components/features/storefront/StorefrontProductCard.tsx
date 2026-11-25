@@ -19,7 +19,7 @@ export function StorefrontProductCard({ product, categoryName }: {
 }) {
   const locale = useLocale();
   const ar = locale === "ar";
-  const { restaurant, href } = useStorefront();
+  const { restaurant, href, orderingEnabled } = useStorefront();
   const addItem = useCartStore((state) => state.addPublicItem);
   const quantity = useCartStore((state) => state.tenantSlug !== restaurant.slug ? 0 :
     state.items.reduce((sum, item) => sum + (item.productId === product.id ? item.quantity : 0), 0));
@@ -48,7 +48,9 @@ export function StorefrontProductCard({ product, categoryName }: {
           {!hasVariants && product.oldPrice !== null && product.oldPrice > product.price &&
             <del className="ms-2 text-xs text-[color:var(--sf-text-muted)]">{publicMoney(product.oldPrice, restaurant.currency, locale)}</del>}
         </div>
-        {hasVariants
+        {!orderingEnabled ? <Link href={details} className="relative z-20 inline-flex min-h-11 items-center text-sm font-semibold text-[color:var(--sf-accent-ink)] underline underline-offset-4">
+          {ar ? "عرض التفاصيل" : "View details"}
+        </Link> : hasVariants
           ? <Link data-product-action href={details} className={actionClass}
               aria-label={(ar ? "اختر نوع " : "Choose a variant for ") + product.name}>
               <span className="sr-only sm:not-sr-only">{ar ? "اختر" : "Choose"}</span>
@@ -61,8 +63,8 @@ export function StorefrontProductCard({ product, categoryName }: {
               <Plus aria-hidden="true" size={16} />
             </button>}
       </div>
-      {quantity > 0 && <p className="mt-1 text-xs text-[color:var(--sf-text-muted)]" role="status">{ar ? quantity + " في السلة" : quantity + " in cart"}</p>}
-      {failed && <p className="mt-1 text-xs" role="alert">{ar ? "تعذرت الإضافة إلى السلة." : "Could not add this item to the cart."}</p>}
+      {orderingEnabled && quantity > 0 && <p className="mt-1 text-xs text-[color:var(--sf-text-muted)]" role="status">{ar ? quantity + " في السلة" : quantity + " in cart"}</p>}
+      {orderingEnabled && failed && <p className="mt-1 text-xs" role="alert">{ar ? "تعذرت الإضافة إلى السلة." : "Could not add this item to the cart."}</p>}
     </div>
   </article>;
 }

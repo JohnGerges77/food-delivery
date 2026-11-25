@@ -64,7 +64,7 @@ test('owner Order DTO includes stored snapshots and excludes private fields', ()
   assert.equal(order.items[0].unitPrice, 12.34);
   assert.equal(order.customerEmail, null);
   assert.equal(order.deliveredAt, null);
-  assert.deepEqual(Object.keys(order), ['id', 'orderNumber', 'customerName',
+  assert.deepEqual(Object.keys(order), ['id', 'orderNumber', 'displayNumber', 'customerName',
     'customerPhone', 'customerEmail', 'deliveryAddress', 'city', 'items',
     'subtotal', 'deliveryFee', 'total', 'status', 'source', 'submissionMethod',
     'notes', 'createdAt', 'updatedAt', 'deliveredAt']);
@@ -86,4 +86,10 @@ test('owner Order routes require a verified session', async () => {
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }
+});
+test('owner search accepts an exact short number and preserves numeric legacy references', () => {
+  assert.equal(parseOwnerOrderQuery({ orderNumber: '#1001' }).filters.displayNumber, 1001);
+  assert.deepEqual(parseOwnerOrderQuery({ orderNumber: '1001' }).filters.$or,
+    [{ displayNumber: 1001 }, { orderNumber: '1001' }]);
+  assert.throws(() => parseOwnerOrderQuery({ orderNumber: '#999' }), InvalidOrderInput);
 });

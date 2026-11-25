@@ -8,12 +8,24 @@ import { checkoutRateLimit } from '../src/routes/public.js';
 import { betaCheckoutBody, buildWhatsAppUrl, InvalidCheckout, CheckoutUnavailable, moneyToMinor,
   parseCheckout } from '../src/services/guestCheckout.js';
 import { normalizeWhatsAppNumber } from '../src/services/whatsappOrdering.js';
+import { effectiveOrdering } from '../src/services/restaurantOrdering.js';
 
 const key = 'checkout-test-key-0001';
 const id = String(new mongoose.Types.ObjectId());
 const payload = () => ({ customerName: ' Mona ', customerPhone: '+201001234567',
   deliveryAddress: ' 12 Nile Street ', city: ' Cairo ', submissionMethod: 'direct',
   items: [{ productId: id, quantity: 2 }] });
+
+test('online entitlement, deployment gate, delivery and Beta target are independent ordering gates', () => {
+  const enabled = { slug: 'a', deliverySettings: { deliveryAvailable: true, whatsappOrderingEnabled: true },
+    socialLinks: { whatsapp: 'https://wa.me/12025550100' } };
+  assert.equal(effectiveOrdering(enabled).availability, 'available');
+  assert.equal(effectiveOrdering(enabled).whatsappTarget, 'https://wa.me/12025550100');
+  assert.equal(effectiveOrdering({ ...enabled, onlineOrderingEnabled: false }, { checkoutEnabled: false }).availability, 'menu-only');
+  assert.equal(effectiveOrdering(enabled, { checkoutEnabled: false }).whatsappTarget, null);
+  assert.equal(effectiveOrdering({ ...enabled, deliverySettings: { deliveryAvailable: false } }).availability, 'delivery-unavailable');
+  assert.equal(effectiveOrdering(enabled, { betaWhatsAppTargets: new Map() }).whatsappTarget, null);
+});
 
 test('checkout parses a strict, normalized guest payload', () => {
   assert.deepEqual(parseCheckout(payload(), key), {

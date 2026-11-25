@@ -1,5 +1,6 @@
 import type { CartItem } from "@/types";
 import { cartItemKey } from "../lib/cart-identity.ts";
+import { validDisplayNumber } from "../lib/order-reference.ts";
 import type { CheckoutDetails } from "@/components/features/checkout/checkout-details";
 
 export type SubmissionMethod = "direct" | "whatsapp";
@@ -15,11 +16,14 @@ export type GuestCheckoutPayload = {
 };
 type BetaCheckoutPayload = { submissionMethod: SubmissionMethod; items: Omit<GuestCheckoutPayload["items"][number], "notes">[] };
 type CheckoutSubmission = GuestCheckoutPayload | BetaCheckoutPayload;
-export type CheckoutAvailability = "available" | "checkout-disabled" | "delivery-unavailable";
+export type CheckoutAvailability = "available" | "checkout-disabled" | "delivery-unavailable" | "menu-only";
 
-export function storefrontCheckoutAvailability(beta: boolean, checkoutEnabled: boolean, deliveryAvailable: boolean): CheckoutAvailability {
+export function storefrontCheckoutAvailability(beta: boolean, checkoutEnabled: boolean, deliveryAvailable: boolean,
+  onlineOrderingEnabled = true, reported?: CheckoutAvailability): CheckoutAvailability {
+  if (!onlineOrderingEnabled || reported === "menu-only") return "menu-only";
   if (beta && !checkoutEnabled) return "checkout-disabled";
-  return deliveryAvailable ? "available" : "delivery-unavailable";
+  if (reported === "checkout-disabled") return reported;
+  return deliveryAvailable && reported !== "delivery-unavailable" ? "available" : "delivery-unavailable";
 }
 
 export function checkoutUnavailableMessage(availability: CheckoutAvailability, arabic: boolean) {
@@ -34,7 +38,7 @@ export function checkoutUnavailableMessage(availability: CheckoutAvailability, a
   return "";
 }
 export type GuestCheckoutResult = {
-  order: { orderNumber: string; status: "pending" | "preparing" | "ready" | "out-for-delivery" | "delivered" | "cancelled"; submissionMethod: SubmissionMethod;
+  order: { orderNumber: string; displayNumber?: number | null; status: "pending" | "preparing" | "ready" | "out-for-delivery" | "delivered" | "cancelled"; submissionMethod: SubmissionMethod;
     currency: string; subtotal: number; deliveryFee: number; total: number; savedInSavora: true };
   whatsapp?: { url: string | null; messageSent: false };
 };
@@ -45,12 +49,14 @@ export class GuestCheckoutError extends Error {
   readonly status: number | null;
   readonly uncertain: boolean;
   readonly paused: boolean;
-  constructor(status: number | null, message: string, uncertain = false, paused = false) {
+  readonly orderingDisabled: boolean;
+  constructor(status: number | null, message: string, uncertain = false, paused = false, orderingDisabled = false) {
     super(message);
     this.name = "GuestCheckoutError";
     this.status = status;
     this.uncertain = uncertain;
     this.paused = paused;
+    this.orderingDisabled = orderingDisabled;
   }
 }
 
@@ -130,6 +136,7 @@ function validateResult(value: unknown, method: SubmissionMethod, replayed: bool
   const result = value as GuestCheckoutResult;
   const order = result.order;
   if (!order || order.savedInSavora !== true || typeof order.orderNumber !== "string" ||
+    (order.displayNumber != null && !validDisplayNumber(order.displayNumber)) ||
     !/^SV-[A-Za-z0-9]+$/.test(order.orderNumber) || order.submissionMethod !== method ||
     !(order.status === "pending" || (replayed && ["preparing", "ready", "out-for-delivery", "delivered", "cancelled"].includes(order.status))) ||
     typeof order.currency !== "string" || !/^[A-Z]{3}$/.test(order.currency) ||
@@ -160,7 +167,10 @@ export async function submitGuestCheckout(slug: string, payload: CheckoutSubmiss
       body: JSON.stringify(payload), signal: AbortSignal.timeout(20_000) });
   } catch { throw new GuestCheckoutError(null, "The result is unknown. Retry with the same details to recover your order.", true); }
   if (!response.ok) {
-    const body = await response.json().catch(() => null) as { error?: string } | null;
+    const body = await response.json().catch(() => null) as { error?: string; code?: string } | null;
+    if (response.status === 403 && body?.code === "ONLINE_ORDERING_DISABLED") {
+      throw new GuestCheckoutError(403, "This restaurant is a digital menu only.", false, false, true);
+    }
     const beta = !("customerName" in payload);
     const gateClosed = response.status === 503 && body?.error === "Checkout unavailable";
     const betaRequestBlocked = response.status === 403 && beta &&

@@ -53,7 +53,7 @@ function PremiumLink({ href, children }) {
 
 export default function Footer() {
   const isArabic = useLocale() === "ar";
-  const { restaurant, href } = useStorefront();
+  const { restaurant, href, orderingEnabled } = useStorefront();
   const displayedRestaurantInfo = [
     restaurant.phone && { label: isArabic ? "الهاتف" : "Phone", value: restaurant.phone, href: `tel:${restaurant.phone.replace(/[^+\d]/g, "")}`, icon: Phone },
     restaurant.contactEmail && { label: isArabic ? "البريد الإلكتروني" : "Email", value: restaurant.contactEmail, href: `mailto:${restaurant.contactEmail}`, icon: Mail },
@@ -135,7 +135,7 @@ export default function Footer() {
         </div>
 
         <div
-          className="grid gap-10 border-y border-white/10 py-12 sm:grid-cols-2 lg:grid-cols-[1.24fr_0.76fr_1fr_1.06fr] lg:gap-9 lg:py-14"
+          className={`grid gap-10 border-y border-white/10 py-12 sm:grid-cols-2 lg:gap-9 lg:py-14 ${orderingEnabled ? "lg:grid-cols-[1.24fr_0.76fr_1fr_1.06fr]" : "lg:grid-cols-3"}`}
         >
           <div>
             <Link className="group inline-flex items-center" href={href(routes.home)} aria-label={restaurant.name}>
@@ -225,7 +225,7 @@ export default function Footer() {
             </div>
           </div>
 
-          <div>
+          {orderingEnabled && <div>
             <FooterHeading>{isArabic ? "معلومات الطلب" : "Ordering Information"}</FooterHeading>
             <p className="mt-6 text-sm leading-7 text-[color:var(--text-muted)]">
               {restaurant.deliverySettings.deliveryAvailable ? (isArabic ? "التوصيل متاح." : "Delivery is available.") : (isArabic ? "التوصيل غير متاح حاليًا." : "Delivery is currently unavailable.")}
@@ -235,7 +235,7 @@ export default function Footer() {
               {restaurant.deliverySettings.minimumOrder !== null && <p>{isArabic ? "الحد الأدنى للطلب" : "Minimum order"}: {publicMoney(restaurant.deliverySettings.minimumOrder, restaurant.currency, isArabic ? "ar" : "en")}</p>}
               {restaurant.deliverySettings.estimatedDeliveryTime && <p>{isArabic ? "الوقت التقديري" : "Estimated delivery"}: {restaurant.deliverySettings.estimatedDeliveryTime}</p>}
             </div>
-          </div>
+          </div>}
         </div>
 
         <div className="flex flex-col gap-5 py-7 text-sm text-[color:var(--text-muted)] sm:flex-row sm:items-center sm:justify-between">

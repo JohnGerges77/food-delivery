@@ -227,17 +227,20 @@ test('trackingTokenHash is excluded from default selection and document serializ
   assert.equal(JSON.stringify(order).includes('private-test-value'), false);
 });
 
-test('five tenant-scoped indexes include idempotency and delivered-date access', () => {
+test('tenant-scoped indexes protect display numbers, legacy references and idempotency', () => {
   const indexes = Order.schema.indexes();
-  assert.equal(indexes.length, 5);
+  assert.equal(indexes.length, 6);
   assert.deepEqual(indexes[0][0], { restaurantId: 1, orderNumber: 1 });
   assert.equal(indexes[0][1].unique, true);
-  assert.deepEqual(indexes[1][0], { restaurantId: 1, idempotencyKeyHash: 1 });
+  assert.deepEqual(indexes[1][0], { restaurantId: 1, displayNumber: 1 });
   assert.equal(indexes[1][1].unique, true);
-  assert.deepEqual(indexes[2][0], { restaurantId: 1, createdAt: -1 });
-  assert.deepEqual(indexes[3][0], { restaurantId: 1, status: 1, createdAt: -1 });
-  assert.deepEqual(indexes[4][0], { restaurantId: 1, deliveredAt: -1 });
-  assert.deepEqual(indexes[4][1].partialFilterExpression, { status: 'delivered' });
-  assert.equal(indexes[2][1].unique, undefined);
+  assert.deepEqual(indexes[1][1].partialFilterExpression, { displayNumber: { $type: 'number' } });
+  assert.deepEqual(indexes[2][0], { restaurantId: 1, idempotencyKeyHash: 1 });
+  assert.equal(indexes[2][1].unique, true);
+  assert.deepEqual(indexes[3][0], { restaurantId: 1, createdAt: -1 });
+  assert.deepEqual(indexes[4][0], { restaurantId: 1, status: 1, createdAt: -1 });
+  assert.deepEqual(indexes[5][0], { restaurantId: 1, deliveredAt: -1 });
+  assert.deepEqual(indexes[5][1].partialFilterExpression, { status: 'delivered' });
   assert.equal(indexes[3][1].unique, undefined);
+  assert.equal(indexes[4][1].unique, undefined);
 });

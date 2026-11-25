@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { FIRST_DISPLAY_NUMBER, validOrderDisplayNumber } from '../services/orderDisplayNumbers.js';
 
 function omitTrackingTokenHash(_document, result) {
   delete result.trackingTokenHash;
@@ -44,6 +45,7 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
     orderNumber: { type: String, required: true, trim: true },
+    displayNumber: { type: Number, min: FIRST_DISPLAY_NUMBER, validate: validOrderDisplayNumber },
     customerName: { type: String, required: true, trim: true },
     customerPhone: { type: String, required: true, trim: true },
     customerEmail: {
@@ -102,6 +104,8 @@ const orderSchema = new mongoose.Schema(
 );
 
 orderSchema.index({ restaurantId: 1, orderNumber: 1 }, { unique: true });
+orderSchema.index({ restaurantId: 1, displayNumber: 1 },
+  { unique: true, partialFilterExpression: { displayNumber: { $type: 'number' } } });
 orderSchema.index({ restaurantId: 1, idempotencyKeyHash: 1 },
   { unique: true, partialFilterExpression: { idempotencyKeyHash: { $type: 'string' } } });
 orderSchema.index({ restaurantId: 1, createdAt: -1 });

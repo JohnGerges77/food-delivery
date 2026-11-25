@@ -8,11 +8,23 @@ import { useStorefront } from "./StorefrontContext";
 
 export function ProductPurchase({ product, buttonClassName }: { product: PublicProduct; buttonClassName: string }) {
   const locale = useLocale(); const ar = locale === 'ar';
-  const { restaurant } = useStorefront();
+  const { restaurant, orderingEnabled } = useStorefront();
   const add = useCartStore((state) => state.addPublicItem);
   const [selected, setSelected] = useState('');
   const [feedback, setFeedback] = useState<"added" | "failed" | null>(null);
   const variant = product.variants?.find((v) => v.id === selected && v.isAvailable);
+  if (!orderingEnabled) {
+    if (!product.variants?.length) return null;
+    return <div className="mt-5 w-full min-w-0">
+      <h2 className="mb-2 font-semibold">{ar ? "الأحجام والأنواع" : "Sizes and variants"}</h2>
+      <dl className="grid gap-2">
+        {product.variants.map((v) => <div key={v.id} className="flex flex-wrap items-baseline justify-between gap-3 rounded-lg border border-[color:var(--sf-border)] p-3 text-sm">
+          <dt>{v.name}{!v.isAvailable && (ar ? " — غير متاح" : " — Unavailable")}</dt>
+          <dd>{publicMoney(v.price, restaurant.currency, locale)}</dd>
+        </div>)}
+      </dl>
+    </div>;
+  }
   return <div className="mt-5 w-full min-w-0">
     {Boolean(product.variants?.length) && <fieldset className="grid gap-2"><legend className="mb-2 font-semibold">{ar ? 'اختر الحجم أو النوع' : 'Choose a size or variant'}</legend>
       {product.variants!.map((v) => <label key={v.id} className="storefront-variant flex min-h-11 flex-wrap items-center gap-3 rounded-lg border border-[color:var(--sf-border)] p-3 text-sm">

@@ -11,6 +11,7 @@ import ProductSchema from '../src/models/Product.js';
 import OrderSchema from '../src/models/Order.js';
 import { tokenHash } from '../src/services/ownerAuth.js';
 import { betaWhatsAppPolicy } from '../src/services/whatsappOrdering.js';
+import { backfillOrderDisplayNumbers } from '../src/cli/backfill-order-display-numbers.js';
 
 function validatedTestUri() {
   const value = process.env.MONGODB_TEST_URI;
@@ -156,12 +157,13 @@ test('secure guest checkout on savora_test', async (t) => {
 
     await t.test('variants use authoritative prices, immutable snapshots and idempotent WhatsApp', async () => {
       const item = await product({ price: 1, variants: [{ name: 'Small', price: 20, isAvailable: true, sortOrder: 0 }, { name: 'Large', price: 35, isAvailable: true, sortOrder: 1 }, { name: 'Disabled', price: 5, isAvailable: false, sortOrder: 2 }] });
-      for (const method of ['direct', 'whatsapp']) {
+      for (const [index, method] of ['direct', 'whatsapp'].entries()) {
         const payload = { ...body(item._id, method), items: item.variants.slice(0,2).map((v) => ({ productId: String(item._id), variantId: String(v._id), quantity: 1 })) };
         const key = randomUUID();
         const response = await post(a.slug, payload, key);
         assert.equal(response.status, 201);
         const result = await response.json();
+        assert.equal(result.order.displayNumber, 1001 + index);
         assert.equal(result.order.subtotal, 55);
         assert.equal((await post(a.slug, payload, key)).status, 200);
         const saved = await Order.findOne({ restaurantId: a._id, orderNumber: result.order.orderNumber });
@@ -225,8 +227,9 @@ test('secure guest checkout on savora_test', async (t) => {
         orderNumber: data.order.orderNumber }), 1);
       const sameKeyOtherTenant = await post(b.slug, body(bOrderable._id, 'direct'), key);
       assert.equal(sameKeyOtherTenant.status, 201);
-      assert.notEqual((await sameKeyOtherTenant.json()).order.orderNumber,
-        data.order.orderNumber);
+      const other = (await sameKeyOtherTenant.json()).order;
+      assert.notEqual(other.orderNumber, data.order.orderNumber);
+      assert.equal(other.displayNumber, 1001);
     });
 
     await t.test('concurrent identical retries produce one order and unique numbers', async () => {
@@ -238,10 +241,104 @@ test('secure guest checkout on savora_test', async (t) => {
       assert.deepEqual([left.status, right.status].sort(), [200, 201]);
       const [one, two] = await Promise.all([left.json(), right.json()]);
       assert.equal(one.order.orderNumber, two.order.orderNumber);
+      assert.equal(one.order.displayNumber, two.order.displayNumber);
       assert.equal(await Order.countDocuments({ restaurantId: a._id,
         orderNumber: one.order.orderNumber }), 1);
       const numbers = await Order.distinct('orderNumber', { restaurantId: a._id });
       assert.equal(numbers.length, await Order.countDocuments({ restaurantId: a._id }));
+    });
+
+    await t.test('concurrent distinct orders allocate unique numbers, with independently scoped owner search', async () => {
+      const count = (await Restaurant.findById(a._id)).orderDisplaySequence;
+      const responses = await Promise.all([post(a.slug, body()), post(a.slug, body())]);
+      const values = [];
+      for (const response of responses) {
+        assert.equal(response.status, 201);
+        values.push((await response.json()).order.displayNumber);
+      }
+      assert.deepEqual(values.sort((left, right) => left - right), [count + 1, count + 2]);
+      const forOwner = (token, search) => fetch(base + '/api/owner/orders?' + new URLSearchParams({ orderNumber: search }), {
+        headers: { Cookie: `savora_owner_session=${token}` },
+      }).then((result) => result.json());
+      const first = (await forOwner(raw, '#1001')).orders[0];
+      const foreign = (await forOwner(secondToken, '1001')).orders[0];
+      assert.equal(first.displayNumber, 1001);
+      assert.equal(foreign.displayNumber, 1001);
+      assert.notEqual(first.id, foreign.id);
+      assert.equal((await forOwner(raw, first.orderNumber)).orders[0].id, first.id);
+    });
+
+    await t.test('menu-only rejects fresh Direct and WhatsApp submissions, including a concurrent switch', async () => {
+      const request = body(main._id, 'whatsapp');
+      const key = randomUUID();
+      const created = await post(a.slug, request, key);
+      assert.equal(created.status, 201);
+      const placed = await created.json();
+      const [racing] = await Promise.all([
+        post(a.slug, body()), Restaurant.updateOne({ _id: a._id }, { $set: { onlineOrderingEnabled: false } }),
+      ]);
+      assert.ok([403, 201].includes(racing.status));
+      const disabled = await restaurant(base, a.slug);
+      assert.equal(disabled.onlineOrderingEnabled, false);
+      assert.equal(disabled.checkoutAvailability, 'menu-only');
+      assert.equal(disabled.whatsappOrderingAvailable, false);
+      assert.equal((await restaurant(base, b.slug)).onlineOrderingEnabled, true);
+      const counter = (await Restaurant.findById(a._id)).orderDisplaySequence;
+      const before = await Order.countDocuments({ restaurantId: a._id });
+      for (const method of ['direct', 'whatsapp']) {
+        const blocked = await post(a.slug, body(main._id, method));
+        assert.equal(blocked.status, 403);
+        assert.equal((await blocked.json()).code, 'ONLINE_ORDERING_DISABLED');
+      }
+      const replay = await post(a.slug, request, key);
+      assert.equal(replay.status, 200);
+      assert.deepEqual(await replay.json(), { order: placed.order, whatsapp: { url: null, messageSent: false } });
+      assert.equal((await post(a.slug, { ...request, notes: 'Changed' }, key)).status, 409);
+      assert.equal((await settings(base, raw, { deliverySettings: { deliveryAvailable: true } })).status, 403);
+      assert.equal((await settings(base, raw, { onlineOrderingEnabled: true })).status, 400);
+      assert.equal((await settings(base, raw, { branding: { primaryColor: '#89CFF0' } })).status, 200);
+      assert.equal((await restaurant(base, a.slug)).branding.primaryColor, '#89CFF0');
+      assert.equal(await Order.countDocuments({ restaurantId: a._id }), before);
+      assert.equal((await Restaurant.findById(a._id)).orderDisplaySequence, counter);
+      assert.equal((await fetch(base + '/api/owner/orders', { headers: { Cookie: `savora_owner_session=${raw}` } })).status, 200);
+      await Restaurant.updateOne({ _id: a._id }, { $set: { onlineOrderingEnabled: true } });
+      const again = await post(a.slug, body());
+      assert.equal(again.status, 201);
+      assert.equal((await again.json()).order.displayNumber, counter + 1);
+      assert.equal((await restaurant(base, a.slug)).whatsappOrderingAvailable, true);
+    });
+
+    await t.test('backfill assigns deterministically, refuses duplicates and never replaces legacy references', async () => {
+      const createBefore = (orderNumber, createdAt, displayNumber) => fixture(Order, {
+        restaurantId: a._id, orderNumber, displayNumber, createdAt,
+        customerName: 'Fixture', customerPhone: '+12025550100', deliveryAddress: 'Fixture', city: 'Fixture',
+        items: [{ productId: main._id, name: 'Snapshot', unitPrice: 10, quantity: 1 }],
+        subtotal: 10, total: 10, submissionMethod: 'direct', status: 'cancelled',
+      });
+      const newer = await createBefore('LEGACY-LATER', new Date('2020-01-02'));
+      const older = await createBefore('LEGACY-FIRST', new Date('2020-01-01'));
+      await assert.rejects(() => createBefore('DUPLICATE-DISPLAY', new Date('2020-01-01'), 1001), { code: 11000 });
+      const plan = await backfillOrderDisplayNumbers(connection, a.slug);
+      assert.equal(plan.remaining, 2);
+      assert.equal((await Order.findById(older._id)).displayNumber, undefined);
+      const [partial, order] = await Promise.all([
+        backfillOrderDisplayNumbers(connection, a.slug, { apply: true, limit: 1 }),
+        post(a.slug, body()),
+      ]);
+      assert.equal(partial.updated, 1);
+      assert.equal(order.status, 201);
+      assert.ok((await Order.findById(older._id)).displayNumber > plan.floor);
+      assert.equal((await Order.findById(newer._id)).displayNumber, undefined);
+      const full = await backfillOrderDisplayNumbers(connection, a.slug, { apply: true });
+      assert.equal(full.updated, 1);
+      assert.equal(full.remaining, 0);
+      assert.equal((await backfillOrderDisplayNumbers(connection, a.slug, { apply: true })).updated, 0);
+      const first = await Order.findById(older._id);
+      const second = await Order.findById(newer._id);
+      assert.ok(first.displayNumber < second.displayNumber);
+      assert.equal(first.orderNumber, 'LEGACY-FIRST');
+      assert.equal(first.status, 'cancelled');
+      assert.equal((await Restaurant.findById(b._id)).orderDisplaySequence, 1001);
     });
 
     await t.test('untrusted and unavailable checkout attempts never save an order', async () => {
@@ -358,7 +455,7 @@ test('secure guest checkout on savora_test', async (t) => {
       assert.equal(handoff.pathname, '/12025550100');
       assert.match(handoff.searchParams.get('text'), /TEST ORDER.*no payment or fulfillment/);
       assert.match(handoff.searchParams.get('text'), /Pizza Margherita \(Medium\) @ 200\.00 EGP/);
-      assert.ok(handoff.searchParams.get('text').includes(result.order.orderNumber));
+      assert.ok(handoff.searchParams.get('text').includes(`Order #${result.order.displayNumber}`));
       assert.doesNotMatch(handoff.searchParams.get('text'), /Beta Test Guest|5550100/);
       const saved = await Order.findOne({ restaurantId: a._id, orderNumber: result.order.orderNumber });
       assert.equal(saved.customerName, 'Savora Beta Test Guest');

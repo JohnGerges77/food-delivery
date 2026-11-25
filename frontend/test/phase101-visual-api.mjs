@@ -72,6 +72,7 @@ const cafeProducts = [
 }));
 
 const brandingFixtures = process.env.SAVORA_BRANDING_VISUAL === "1";
+const entitlementFixtures = process.env.SAVORA_ENTITLEMENT_VISUAL === "1";
 const brandingOwnerId = id("99");
 const brandingCsrf = "a".repeat(64);
 const stores = [restaurant, demoRestaurant, pausedRestaurant, aquaRestaurant, cafeRestaurant, luxuryRestaurant];
@@ -79,19 +80,44 @@ const themeFixtures = { classic: restaurant, aqua: aquaRestaurant, cafe: cafeRes
 const colors = { default: null, sky: "#89CFF0", dark: "#000000", light: "#FFFFFF" };
 let ownerBranding = restaurant.branding;
 let ownerHero = null;
+let orderingEnabled = false;
+let receipt = null;
 
 createServer(async (request, response) => {
   response.setHeader("Access-Control-Allow-Origin", "*");
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.setHeader("Cache-Control", "no-store");
   const url = new URL(request.url, "http://localhost");
-  if (brandingFixtures && /^\/api\/(auth|owner)\//.test(url.pathname)) {
-    response.setHeader("Access-Control-Allow-Origin", "http://127.0.0.1:3192");
+  if ((brandingFixtures || entitlementFixtures) && /^\/api\/(auth|owner|admin)\//.test(url.pathname)) {
+    if (["http://127.0.0.1:3192", "http://127.0.0.1:3193"].includes(request.headers.origin)) {
+      response.setHeader("Access-Control-Allow-Origin", request.headers.origin);
+    }
     response.setHeader("Access-Control-Allow-Credentials", "true");
     response.setHeader("Access-Control-Allow-Methods", "GET, PATCH, OPTIONS");
     response.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Savora-CSRF");
-    const summary = { id: brandingOwnerId, name: restaurant.name, slug: restaurant.slug, currency: restaurant.currency };
+    const ownerStore = entitlementFixtures ? demoRestaurant : restaurant;
+    const summary = { id: brandingOwnerId, name: ownerStore.name, slug: ownerStore.slug, currency: ownerStore.currency };
     if (request.method === "OPTIONS") return response.writeHead(204).end();
+    const readPatch = async () => {
+      let body = "";
+      for await (const chunk of request) body += chunk;
+      return JSON.parse(body);
+    };
+    if (entitlementFixtures && url.pathname === "/api/admin/auth/me") {
+      return response.end(JSON.stringify({ admin: { id: id("97"), email: "platform@example.test" } }));
+    }
+    if (entitlementFixtures && url.pathname === "/api/admin/auth/csrf") return response.end(JSON.stringify({ csrfToken: brandingCsrf }));
+    if (entitlementFixtures && [`/api/admin/restaurants/${brandingOwnerId}`, `/api/admin/restaurants/${brandingOwnerId}/ordering`].includes(url.pathname)) {
+      if (request.method === "PATCH") {
+        if (request.headers["x-savora-csrf"] !== brandingCsrf) return response.writeHead(403).end();
+        const patch = await readPatch();
+        if (typeof patch.onlineOrderingEnabled !== "boolean") return response.writeHead(400).end();
+        orderingEnabled = patch.onlineOrderingEnabled;
+      }
+      return response.end(JSON.stringify({ restaurant: { ...summary, storefrontTheme: "savora-classic",
+        onlineOrderingEnabled: orderingEnabled, status: "active", description: "Fixture restaurant",
+        owner: { id: id("98"), name: "Fixture Owner", email: "owner@example.test", isActive: true } } }));
+    }
     if (url.pathname === "/api/auth/me") return response.end(JSON.stringify({
       user: { id: id("98"), name: "Fixture Owner", email: "owner@example.test" }, restaurant: summary,
     }));
@@ -99,21 +125,48 @@ createServer(async (request, response) => {
     if (["/api/owner/products", "/api/owner/categories"].includes(url.pathname)) {
       return response.end(JSON.stringify({ products: [], categories: [], pagination: { page: 1, limit: 100, total: 0, hasNext: false } }));
     }
+    if (entitlementFixtures && url.pathname === "/api/owner/orders") {
+      const search = url.searchParams.get("orderNumber");
+      const orders = receipt && (!search || ["1001", "#1001", receipt.orderNumber].includes(search)) ? [receipt] : [];
+      return response.end(JSON.stringify({ orders, pagination: { page: 1, limit: 20, total: orders.length, hasNext: false } }));
+    }
+    if (entitlementFixtures && receipt && url.pathname === "/api/owner/orders/" + receipt.id) {
+      return response.end(JSON.stringify({ order: receipt }));
+    }
     if (url.pathname === "/api/owner/restaurant") {
       if (request.method === "PATCH") {
         if (request.headers["x-savora-csrf"] !== brandingCsrf) return response.writeHead(403).end();
-        let body = "";
-        for await (const chunk of request) body += chunk;
-        const patch = JSON.parse(body);
+        const patch = await readPatch();
         if (patch.branding) ownerBranding = { ...ownerBranding, ...patch.branding };
         if (Object.hasOwn(patch, "heroImageUrl")) ownerHero = patch.heroImageUrl || null;
       }
       return response.end(JSON.stringify({ restaurant: {
-        ...restaurant, ...summary, status: "active", heroProductId: null, storefrontTheme: "savora-classic",
+        ...ownerStore, ...summary, status: "active", heroProductId: null, storefrontTheme: "savora-classic",
+        ...(entitlementFixtures ? { onlineOrderingEnabled: orderingEnabled } : {}),
         heroImageUrl: ownerHero, branding: ownerBranding,
       } }));
     }
     return response.writeHead(404).end();
+  }
+  if (entitlementFixtures && url.pathname === "/api/public/restaurants/savora-beta-demo/orders") {
+    if (request.method === "OPTIONS") {
+      response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+      response.setHeader("Access-Control-Allow-Headers", "Content-Type, Idempotency-Key");
+      return response.writeHead(204).end();
+    }
+    if (request.method === "POST") {
+      if (!orderingEnabled) return response.writeHead(403).end(JSON.stringify({ code: "ONLINE_ORDERING_DISABLED" }));
+      receipt ??= { id: id("92"), orderNumber: "SV-FEEDABCD1234", displayNumber: 1001,
+        subtotal: 200, deliveryFee: 0, total: 200, submissionMethod: "direct", status: "pending", source: "website",
+        customerName: "Synthetic Guest", customerPhone: "+12025550100", customerEmail: null, notes: null,
+        deliveryAddress: "Synthetic checkout fixture", city: "Test City", createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(), deliveredAt: null, items: [{ productId: demoProducts[0].id,
+          variantId: demoProducts[0].variants[1].id, variantName: "Medium", name: "Pizza Margherita",
+          unitPrice: 200, quantity: 1, imageUrl: null, notes: null }] };
+      const { orderNumber, displayNumber, subtotal, deliveryFee, total, submissionMethod, status } = receipt;
+      return response.writeHead(201).end(JSON.stringify({ order: { orderNumber, displayNumber, subtotal, deliveryFee,
+        total, submissionMethod, status, currency: "EGP", savedInSavora: true } }));
+    }
   }
   if (request.method !== "GET") {
     response.writeHead(405).end(JSON.stringify({ error: "Read-only visual fixture" }));
@@ -123,6 +176,12 @@ createServer(async (request, response) => {
   const [, slug, suffix] = match ?? [];
   let store = stores.find((item) => item.slug === slug);
   const visual = brandingFixtures && /^theme-(classic|aqua|cafe|luxury)-(default|sky|dark|light)$/.exec(slug);
+  const digital = entitlementFixtures && /^menu-only-(classic|aqua|cafe|luxury)$/.exec(slug);
+  if (digital) {
+    const preset = themeFixtures[digital[1]];
+    store = { ...preset, slug, onlineOrderingEnabled: false, checkoutAvailability: "menu-only",
+      branding: { ...preset.branding, primaryColor: "#89CFF0" } };
+  }
   if (visual) {
     const [, theme, color] = visual;
     const preset = themeFixtures[theme];
@@ -145,6 +204,8 @@ createServer(async (request, response) => {
     response.writeHead(200).end(JSON.stringify(suffix === "" ? { restaurant: {
       ...store,
       ...(slug === restaurant.slug && brandingFixtures ? { branding: ownerBranding, heroImageUrl: ownerHero } : {}),
+      ...(demo && entitlementFixtures ? { onlineOrderingEnabled: orderingEnabled,
+        checkoutAvailability: orderingEnabled ? "available" : "menu-only" } : {}),
       heroProductSelected: true, heroProduct: cafe ? productList[0] : productList[1],
       whatsappOrderingAvailable: slug === "phase101-classic",
       socialLinks: { facebook: null, instagram: null, whatsapp: "https://wa.me/201000000000" },
