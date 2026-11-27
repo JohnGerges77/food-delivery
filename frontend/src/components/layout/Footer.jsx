@@ -146,6 +146,7 @@ export default function Footer() {
                   height={1024}
                   sizes="160px"
                   src="/headIcon.webp"
+                  unoptimized
                   width={1536}
                 />
               </span>

@@ -40,8 +40,12 @@ test("Arabic demo catalog translation preserves tenant data, IDs, and variant pr
   assert.deepEqual(await findPublicProduct("another-tenant", id, "ar"), burger);
 });
 
-test("thumbnail proxies fall back while approved static asset URLs still work", () => {
+test("direct Google JPEG thumbnails render while other thumbnail and proxy URLs stay filtered", () => {
+  const image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9Gc_example-1&s";
+  assert.equal(safePublicImage(image), image);
   assert.equal(safePublicImage("https://encrypted-tbn0.gstatic.com/images?q=fixture"), null);
+  assert.equal(safePublicImage(image.replace("https:", "http:")), null);
+  assert.equal(safePublicImage(image.replace("/images", "/proxy")), null);
   assert.equal(safePublicImage("https://lh3.googleusercontent.com/proxy"), null);
   assert.equal(safePublicImage("/best1.webp"), "/best1.webp");
 });

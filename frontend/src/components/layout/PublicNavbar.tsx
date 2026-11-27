@@ -65,6 +65,7 @@ export function PublicNavbar() {
           <span className="relative block h-12 w-36 overflow-hidden sm:h-14 sm:w-40 lg:h-12 lg:w-36">
             {restaurant.logoUrl ? <PublicProductImage alt={restaurant.name} className="object-contain" src={restaurant.logoUrl} sizes="160px" /> : <Image
               src="/headIcon.webp"
+              unoptimized
               alt="Savora"
               width={1536}
               height={1024}

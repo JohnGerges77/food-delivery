@@ -27,7 +27,7 @@ export function HeroSection({ restaurant }: { restaurant: PublicRestaurant }) {
     <section className={styles.hero} data-classic-hero data-photo={photo === demoPhoto ? "demo" : photo ? "tenant" : undefined}>
       {photo && <div className={styles.visual} aria-hidden="true">
         <Image key={photo} src={photo} alt="" fill sizes="100vw"
-          unoptimized={!photo.startsWith("/") || photo.startsWith("/api/")}
+          unoptimized
           preload={photo === demoPhoto} onError={() => setFailedPhotos((current) => [...current, photo])}
           loading={photo === demoPhoto ? undefined : "eager"} />
       </div>}
