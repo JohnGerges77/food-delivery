@@ -5,7 +5,8 @@ import { useCartStore } from "@/store/cart-store";
 
 import { motion, useReducedMotion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
-import { Link, usePathname } from "@/i18n/navigation";
+import { StorefrontLink as Link } from "@/components/features/storefront/StorefrontLink";
+import { usePathname } from "@/i18n/navigation";
 import { MenuOrderingPage } from "@/components/features/menu/MenuOrderingPage";
 import { productDisplayPrice, publicMoney, safePublicImage } from "@/lib/public-menu-presentation";
 import { CartAttention } from "../CartAttention";
@@ -124,4 +125,7 @@ export function CafeFooter() {
   const { restaurant, href } = useStorefront();
   const ar = useLocale() === "ar";
   return <footer className={styles.footer}><div className={styles.footerTop}><strong>{restaurant.name}</strong><nav aria-label={ar ? "روابط التذييل" : "Footer navigation"}><Link href={href("/menu")}>{ar ? "المنيو" : "Menu"}</Link><Link href={href("/about")}>{ar ? "عن المطعم" : "About"}</Link><Link href={href("/#contact")}>{ar ? "تواصل معنا" : "Contact"}</Link></nav></div><div className={styles.footerBottom}><span>© {new Date().getFullYear()} {restaurant.name}</span>{restaurant.address && <span>{restaurant.address}</span>}</div></footer>;
+}
+export function CafeFrame({ children, className, ...scope }: import("../StorefrontFrame").ThemeFrameProps) {
+  return <div {...scope} className={`${className ?? ""} ${styles.root}`}><CafeNavbar />{children}<CafeFooter /></div>;
 }

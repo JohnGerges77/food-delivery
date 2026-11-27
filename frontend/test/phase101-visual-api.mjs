@@ -218,7 +218,8 @@ createServer(async (request, response) => {
   }
   if (suffix.startsWith("/products/")) {
     const product = listing.find((item) => item.id === suffix.slice("/products/".length));
-    response.writeHead(product ? 200 : 404).end(JSON.stringify(product ? { product } : { error: "Not found" }));
+    const category = product && categoryList.find((item) => item.id === product.categoryId);
+    response.writeHead(category ? 200 : 404).end(JSON.stringify(category ? { product, category } : { error: "Not found" }));
     return;
   }
   response.writeHead(404).end(JSON.stringify({ error: "Not found" }));

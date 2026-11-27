@@ -4,7 +4,7 @@ import { cartItemKey } from "@/lib/cart-identity";
 import { AnimatePresence, motion } from "framer-motion";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useLocale } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { StorefrontLink as Link } from "@/components/features/storefront/StorefrontLink";
 import { publicMoney } from "@/lib/public-menu-presentation";
 import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";
 import { CheckoutPriceSummary } from "@/components/features/checkout/CheckoutPriceSummary";

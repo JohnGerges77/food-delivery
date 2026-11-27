@@ -17,7 +17,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
   const response = intlMiddleware(request);
-  if (isRestaurantPage && match) {
+  if (isRestaurantPage && match && request.cookies.get("savora_public_locale")?.value !== match[1]) {
     response.cookies.set("savora_public_locale", match[1], {
       path: "/", sameSite: "lax", httpOnly: true,
       secure: request.nextUrl.protocol === "https:", maxAge: 60 * 60 * 24 * 365,

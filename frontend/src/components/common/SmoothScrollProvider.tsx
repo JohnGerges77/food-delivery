@@ -93,13 +93,10 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  if (!enabled || !LenisRoot) {
-    return children;
-  }
-
   return (
-    <LenisRoot root options={options}>
+    <>
+      {enabled && LenisRoot && <LenisRoot root options={options}>{null}</LenisRoot>}
       {children}
-    </LenisRoot>
+    </>
   );
 }

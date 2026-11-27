@@ -86,7 +86,7 @@ test('public restaurant and menu API on savora_test', async (t) => {
     await fixture(Product, { restaurantId: a._id,
       categoryId: new mongoose.Types.ObjectId(), name: 'Orphan',
       slug: `orphan-${suffix}`, price: 1 });
-    await fixture(Product, { restaurantId: b._id, categoryId: bCategory._id,
+    const otherTenantProduct = await fixture(Product, { restaurantId: b._id, categoryId: bCategory._id,
       name: 'B product', slug: `b-product-${suffix}`, price: 1 });
     await fixture(Product, { restaurantId: suspended._id, categoryId: aCategory._id,
       name: 'Suspended product', slug: `suspended-${suffix}`, price: 1 });
@@ -98,6 +98,23 @@ test('public restaurant and menu API on savora_test', async (t) => {
     const publicUrl = (slug, path = '') =>
       `${base}/api/public/restaurants/${slug}${path}`;
     const get = (slug, path = '', headers = {}) => fetch(publicUrl(slug, path), { headers });
+
+    await t.test('product detail uses the tenant and visible category and returns only public data', async () => {
+      const path = `/products/${visible1._id}`;
+      const response = await get(a.slug, path);
+      assert.equal(response.status, 200);
+      assert.equal(response.headers.get('cache-control'), 'no-store');
+      const body = await response.json();
+      assert.equal(body.product.id, String(visible1._id));
+      assert.equal(body.category.id, String(aCategory._id));
+      assert.doesNotMatch(JSON.stringify(body), /_id|restaurantId|__v/);
+      for (const [slug, endpoint] of [[b.slug, path], [suspended.slug, path],
+        [a.slug, `/products/${otherTenantProduct._id}`], [a.slug, '/products/invalid']]) {
+        const denied = await get(slug, endpoint);
+        assert.equal(denied.status, 404);
+        assert.deepEqual(await denied.json(), { error: 'Not found' });
+      }
+    });
 
     await t.test('active restaurant is public, with safe metadata and guest CORS', async () => {
       const response = await get(a.slug.toUpperCase(), '', {

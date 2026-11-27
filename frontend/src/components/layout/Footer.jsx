@@ -9,7 +9,7 @@ import {
   Phone,
   ThumbsUp,
 } from "lucide-react";
-import { Link } from "@/i18n/navigation";
+import { StorefrontLink as Link } from "@/components/features/storefront/StorefrontLink";
 import { routes } from "@/lib/routes";
 import { useStorefront } from "@/components/features/storefront/StorefrontContext";
 import { publicMoney, safePublicImage } from "@/lib/public-menu-presentation";

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useLocale } from "next-intl";
 import { useState } from "react";
-import { Link } from "@/i18n/navigation";
+import { StorefrontLink as Link } from "@/components/features/storefront/StorefrontLink";
 import { routes } from "@/lib/routes";
 import { safePublicImage } from "@/lib/public-menu-presentation";
 import type { PublicRestaurant } from "@/services/public-menu";
@@ -11,6 +11,7 @@ import { useStorefront } from "@/components/features/storefront/StorefrontContex
 import styles from "./HeroSection.module.css";
 
 const demoPhoto = "/savora-hero-wide.webp";
+const demoMobilePhoto = "/savora-hero-mobile-v1.webp";
 
 export function HeroSection({ restaurant }: { restaurant: PublicRestaurant }) {
   const { href, orderingEnabled } = useStorefront();
@@ -26,10 +27,14 @@ export function HeroSection({ restaurant }: { restaurant: PublicRestaurant }) {
   return (
     <section className={styles.hero} data-classic-hero data-photo={photo === demoPhoto ? "demo" : photo ? "tenant" : undefined}>
       {photo && <div className={styles.visual} aria-hidden="true">
-        <Image key={photo} src={photo} alt="" fill sizes="100vw"
-          unoptimized
-          preload={photo === demoPhoto} onError={() => setFailedPhotos((current) => [...current, photo])}
-          loading={photo === demoPhoto ? undefined : "eager"} />
+        {photo === demoPhoto ? <picture>
+          <source media="(max-width: 899px)" srcSet={demoMobilePhoto} />
+          {/* The two files are pre-sized and served directly, including on Vercel. */}
+          <img src={demoPhoto} alt="" width={1920} height={819} fetchPriority="high" decoding="async"
+            onError={() => setFailedPhotos((current) => [...current, photo])} />
+        </picture> : <Image key={photo} src={photo} alt="" fill sizes="100vw"
+          unoptimized fetchPriority="high" loading="eager"
+          onError={() => setFailedPhotos((current) => [...current, photo])} />}
       </div>}
       <div className={styles.inner}>
         <div className={styles.copy}>

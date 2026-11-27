@@ -8,7 +8,7 @@
 
 .visual { position: absolute; inset: 0; z-index: -1; }
 .hero:not([data-photo]) { background: var(--hero-background); }
-.visual img { object-fit: cover; object-position: center; }
+.visual img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
 .visual::after {
   position: absolute;
   inset: 0;

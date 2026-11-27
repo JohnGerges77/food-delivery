@@ -1,5 +1,5 @@
 import { EmptyState } from "@/components/common/EmptyState";
-import { Link } from "@/i18n/navigation";
+import { StorefrontLink as Link } from "@/components/features/storefront/StorefrontLink";
 import { routes } from "@/lib/routes";
 import { useTranslations } from "next-intl";
 

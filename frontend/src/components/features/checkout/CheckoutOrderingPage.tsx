@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { useLocale } from "next-intl";
 import { useRef, useState } from "react";
-import { Link, useRouter } from "@/i18n/navigation";
+import { StorefrontLink as Link } from "@/components/features/storefront/StorefrontLink";
+import { useRouter } from "@/i18n/navigation";
 import { orderReference } from "@/lib/order-reference";
 import { publicMoney } from "@/lib/public-menu-presentation";
 import { PublicProductImage } from "@/components/features/storefront/PublicProductImage";

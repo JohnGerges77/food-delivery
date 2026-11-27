@@ -1,6 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import { listPublicCategories, listPublicProducts, resolvePublicRestaurant,
+import { findPublicProduct, listPublicCategories, listPublicProducts, resolvePublicRestaurant,
   serializePublicRestaurant } from '../services/publicMenu.js';
 import { createGuestOrder, betaCheckoutBody } from '../services/guestCheckout.js';
 import { publicMedia } from '../services/ownerMedia.js';
@@ -51,17 +51,22 @@ export function createPublicRouter({ connection = mongoose.connection, mediaStor
   });
 
   router.get('/restaurants/:slug/categories', async (req, res) => {
-    const restaurant = await resolvePublicRestaurant(connection, req.params.slug);
+    const restaurant = await resolvePublicRestaurant(connection, req.params.slug, { includeHero: false });
     res.json(await listPublicCategories(connection, restaurant, req.query));
   });
 
   router.get('/restaurants/:slug/products', async (req, res) => {
-    const restaurant = await resolvePublicRestaurant(connection, req.params.slug);
+    const restaurant = await resolvePublicRestaurant(connection, req.params.slug, { includeHero: false });
     res.json(await listPublicProducts(connection, restaurant, req.query));
   });
 
+  router.get('/restaurants/:slug/products/:id', async (req, res) => {
+    const restaurant = await resolvePublicRestaurant(connection, req.params.slug, { includeHero: false });
+    res.json(await findPublicProduct(connection, restaurant, req.params.id));
+  });
+
   router.get('/restaurants/:slug/media/:id/:size', async (req, res) => {
-    const restaurant = await resolvePublicRestaurant(connection, req.params.slug);
+    const restaurant = await resolvePublicRestaurant(connection, req.params.slug, { includeHero: false });
     const stream = await publicMedia(connection, mediaStorage, restaurant,
       req.params.id, req.params.size);
     if (!stream) return res.status(404).json({ error: 'Not found' });

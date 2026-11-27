@@ -124,14 +124,14 @@ function modelsFor(connection) {
   };
 }
 
-export async function resolvePublicRestaurant(connection, slug) {
+export async function resolvePublicRestaurant(connection, slug, { includeHero = true } = {}) {
   const normalized = normalizePublicSlug(slug);
   const { Restaurant, Product, Category } = modelsFor(connection);
   const restaurant = await Restaurant.findOne({ slug: normalized, status: { $ne: 'suspended' } })
     .select('_id name slug status onlineOrderingEnabled storefrontTheme heroProductId heroImageUrl description logoUrl aboutImageUrl currency phone contactEmail address openingHours deliverySettings socialLinks branding')
     .lean();
   if (!restaurant) throw new PublicRestaurantNotFound();
-  if (restaurant.heroProductId) {
+  if (includeHero && restaurant.heroProductId) {
     const product = await Product.findOne({ _id: restaurant.heroProductId,
       restaurantId: restaurant._id, isAvailable: true }).lean();
     if (product && (!product.variants?.length || product.variants.some((v) => v.isAvailable)) && await Category.exists({ _id: product.categoryId,
@@ -140,6 +140,19 @@ export async function resolvePublicRestaurant(connection, slug) {
     }
   }
   return restaurant;
+}
+
+export async function findPublicProduct(connection, restaurant, id) {
+  if (!OBJECT_ID.test(id)) throw new PublicRestaurantNotFound();
+  const { Product, Category } = modelsFor(connection);
+  const product = await Product.findOne({ _id: id, restaurantId: restaurant._id, isAvailable: true,
+    $or: [{ 'variants.0': { $exists: false } }, { variants: { $elemMatch: { isAvailable: true } } }],
+  }).select('_id categoryId name slug description price oldPrice imageUrl images isFeatured preparationTime calories variants').lean();
+  if (!product) throw new PublicRestaurantNotFound();
+  const category = await Category.findOne({ _id: product.categoryId, restaurantId: restaurant._id, isActive: true })
+    .select('_id name slug description imageUrl sortOrder').lean();
+  if (!category) throw new PublicRestaurantNotFound();
+  return { product: serializePublicProduct(product), category: serializePublicCategory(category) };
 }
 
 export async function listPublicCategories(connection, restaurant, query) {

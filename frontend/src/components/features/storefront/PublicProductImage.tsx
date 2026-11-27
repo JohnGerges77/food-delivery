@@ -6,9 +6,10 @@ import { useState } from "react";
 import { useLocale } from "next-intl";
 import { safePublicImage } from "@/lib/public-menu-presentation";
 
-export function PublicProductImage({ src, alt, sizes = "100vw", className = "", variant = "large" }: {
+export function PublicProductImage({ src, alt, sizes = "100vw", className = "", variant = "large", priority = false }: {
   src: string | null | undefined; alt: string; sizes?: string; className?: string;
   variant?: "small" | "large";
+  priority?: boolean;
 }) {
   const original = safePublicImage(src);
   const safe = original && /^\/api\/public\/restaurants\/[a-z0-9-]+\/media\/[0-9a-f]{24}\/large$/.test(original)
@@ -20,5 +21,6 @@ export function PublicProductImage({ src, alt, sizes = "100vw", className = "", 
     <ImageIcon aria-hidden="true" size={36} strokeWidth={1.4} />
   </div>;
   return <Image alt={alt} className={className} fill sizes={sizes} src={safe}
-    unoptimized onError={() => setFailedSrc(safe)} />;
+    unoptimized loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : undefined}
+    onError={() => setFailedSrc(safe)} />;
 }

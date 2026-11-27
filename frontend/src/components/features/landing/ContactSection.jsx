@@ -1,6 +1,6 @@
 import { useLocale } from "next-intl";
 import { Clock, Mail, MapPin, Phone, Sparkles } from "lucide-react";
-import { Link } from "@/i18n/navigation";
+import { StorefrontLink as Link } from "@/components/features/storefront/StorefrontLink";
 import { useStorefront } from "@/components/features/storefront/StorefrontContext";
 
 const particleClasses = [

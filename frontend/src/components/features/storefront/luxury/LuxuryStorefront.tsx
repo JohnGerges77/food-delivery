@@ -4,7 +4,8 @@ import { useCartStore } from "@/store/cart-store";
 
 
 import { useLocale, useTranslations } from "next-intl";
-import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { StorefrontLink as Link } from "@/components/features/storefront/StorefrontLink";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { ArrowUpRight, ShoppingBag, Plus } from "lucide-react";
 import { MenuOrderingPage } from "@/components/features/menu/MenuOrderingPage";
 import { productDisplayPrice, publicMoney, safePublicImage } from "@/lib/public-menu-presentation";
@@ -118,4 +119,7 @@ export function LuxuryFooter() {
   const { restaurant, href, orderingEnabled } = useStorefront();
   const ar = useLocale() === "ar";
   return <footer className={styles.footer}><div className={styles.footerTop}><strong>{restaurant.name}</strong><nav aria-label={ar ? "روابط التذييل" : "Footer navigation"}><Link href={href("/")}>{ar ? "الرئيسية" : "Home"}</Link><Link href={href("/menu")}>{ar ? "المنيو" : "Menu"}</Link><Link href={href("/about")}>{ar ? "عن المطعم" : "About"}</Link>{orderingEnabled && <Link href={href("/cart")}>{ar ? "السلة" : "Cart"}</Link>}</nav></div><div className={styles.footerBottom}><span>© {new Date().getFullYear()} {restaurant.name}</span>{restaurant.address && <span>{restaurant.address}</span>}</div></footer>;
+}
+export function LuxuryFrame({ children, className, ...scope }: import("../StorefrontFrame").ThemeFrameProps) {
+  return <div {...scope} className={`${className ?? ""} ${styles.root}`}><LuxuryNavbar />{children}<LuxuryFooter /></div>;
 }

@@ -1,2 +1,3 @@
 import { StorefrontView } from "@/components/features/storefront/StorefrontView";
-export default function Page() { return <StorefrontView page="checkout" />; }
+
+export default function Page() { return <StorefrontView page="cart" />; }

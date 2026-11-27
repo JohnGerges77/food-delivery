@@ -117,8 +117,8 @@ export function getPublicCategories(slug: string, page = 1, locale = "en") {
         description: presentText(category.description) })) };
     });
 }
-export function getPublicProducts(slug: string, page = 1, options: { categoryId?: string; isFeatured?: boolean; sort?: string; locale?: string } = {}) {
-  const params = new URLSearchParams({ page: String(page), limit: "100" });
+export function getPublicProducts(slug: string, page = 1, options: { categoryId?: string; isFeatured?: boolean; sort?: string; locale?: string; limit?: number } = {}) {
+  const params = new URLSearchParams({ page: String(page), limit: String(options.limit ?? 100) });
   if (options.categoryId) params.set("categoryId", options.categoryId);
   if (options.isFeatured !== undefined) params.set("isFeatured", String(options.isFeatured));
   if (options.sort) params.set("sort", options.sort);
@@ -139,13 +139,14 @@ export async function getAllPublicCategories(slug: string, locale = "en"): Promi
   throw new PublicMenuError(null, "Category list exceeds the supported preview size");
 }
 
-export async function findPublicProduct(slug: string, id: string, locale = "en"): Promise<PublicProduct | null> {
-  if (!/^[0-9a-fA-F]{24}$/.test(id)) return null;
-  for (let page = 1; page <= 10; page++) {
-    const result = await getPublicProducts(slug, page, { locale });
-    const found = result.products.find((product) => product.id === id.toLowerCase());
-    if (found) return found;
-    if (!result.pagination.hasNext) return null;
+export async function getPublicProductDetail(slug: string, id: string, locale = "en") {
+  if (!/^[0-9a-fA-F]{24}$/.test(id)) throw new PublicMenuError(404, "Product unavailable");
+  const result = await request<{ product: PublicProduct; category: PublicCategory }>(slug, `/products/${id.toLowerCase()}`);
+  if (result?.product?.id !== id.toLowerCase() || !result.category || result.product.categoryId !== result.category.id) {
+    throw new PublicMenuError(null, "Invalid product response");
   }
-  throw new PublicMenuError(null, "Product list exceeds the supported preview size");
+  const text = demoCatalogText(validateStorefrontSlug(slug), locale);
+  return { product: presentProduct(result.product, text), category: { ...result.category,
+    name: text?.category(result.category.slug) ?? presentText(result.category.name),
+    description: presentText(result.category.description) } };
 }

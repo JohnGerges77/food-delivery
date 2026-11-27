@@ -10,13 +10,14 @@ import "../globals.css";
 
 const tajawal = localFont({
   src: [
-    { path: "../../fonts/Tajawal-Regular.ttf", weight: "400", style: "normal" },
-    { path: "../../fonts/Tajawal-Medium.ttf", weight: "500", style: "normal" },
-    { path: "../../fonts/Tajawal-Bold.ttf", weight: "700", style: "normal" },
-    { path: "../../fonts/Tajawal-ExtraBold.ttf", weight: "800", style: "normal" },
+    { path: "../../fonts/Tajawal-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../../fonts/Tajawal-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../../fonts/Tajawal-Bold.woff2", weight: "700", style: "normal" },
+    { path: "../../fonts/Tajawal-ExtraBold.woff2", weight: "800", style: "normal" },
   ],
   variable: "--font-tajawal",
   display: "swap",
+  preload: false,
 });
 
 export function generateStaticParams() {

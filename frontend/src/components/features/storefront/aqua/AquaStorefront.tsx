@@ -5,7 +5,8 @@ import { useCartStore } from "@/store/cart-store";
 
 import { useLocale, useTranslations } from "next-intl";
 import { ArrowUpRight, Languages, ShoppingBag } from "lucide-react";
-import { Link, usePathname } from "@/i18n/navigation";
+import { StorefrontLink as Link } from "@/components/features/storefront/StorefrontLink";
+import { usePathname } from "@/i18n/navigation";
 import { MenuOrderingPage } from "@/components/features/menu/MenuOrderingPage";
 import { PublicProductImage } from "../PublicProductImage";
 import { ProductImageGallery } from "../ProductImageGallery";
@@ -43,8 +44,8 @@ export function AquaNavbar() {
   </nav>;
 }
 
-function FoodImage({ product, sizes }: { product: PublicProduct; sizes: string }) {
-  return <PublicProductImage src={product.imageUrl || product.images[0]} alt={product.name} sizes={sizes} className={styles.foodImage} />;
+function FoodImage({ product, sizes, priority }: { product: PublicProduct; sizes: string; priority?: boolean }) {
+  return <PublicProductImage src={product.imageUrl || product.images[0]} alt={product.name} sizes={sizes} className={styles.foodImage} priority={priority} />;
 }
 
 export function AquaHome({ restaurant, initialProducts, offers }: { restaurant: PublicRestaurant; initialProducts: PublicProduct[]; offers: PublicProduct[] }) {
@@ -68,8 +69,8 @@ export function AquaHome({ restaurant, initialProducts, offers }: { restaurant: 
           </div>
           <div className={styles.heroGallery}>
             {tenantHeroImage ? <div className={styles.heroTile} data-tenant-hero>
-              <PublicProductImage src={tenantHeroImage} alt={restaurant.name} className={styles.foodImage} sizes="(min-width: 900px) 58vw, 100vw" />
-            </div> : heroProduct && heroImage ? <Link href={href(`/menu/${heroProduct.id}`)} className={styles.heroTile} aria-label={heroProduct.name}><FoodImage product={heroProduct} sizes="(min-width: 900px) 58vw, 100vw" /><span><strong>{heroProduct.name}</strong><small>{productDisplayPrice(heroProduct, restaurant.currency, locale)}</small></span></Link> : <div className={styles.heroEmpty}><span>{ar ? "اكتشف المنيو" : "Explore the menu"}</span><Link href={href("/menu")}>{ar ? "اذهب إلى المنيو" : "Go to the menu"}<ArrowUpRight size={17} aria-hidden="true" /></Link></div>}
+              <PublicProductImage src={tenantHeroImage} alt={restaurant.name} className={styles.foodImage} sizes="(min-width: 900px) 58vw, 100vw" priority />
+            </div> : heroProduct && heroImage ? <Link href={href(`/menu/${heroProduct.id}`)} className={styles.heroTile} aria-label={heroProduct.name}><FoodImage product={heroProduct} sizes="(min-width: 900px) 58vw, 100vw" priority /><span><strong>{heroProduct.name}</strong><small>{productDisplayPrice(heroProduct, restaurant.currency, locale)}</small></span></Link> : <div className={styles.heroEmpty}><span>{ar ? "اكتشف المنيو" : "Explore the menu"}</span><Link href={href("/menu")}>{ar ? "اذهب إلى المنيو" : "Go to the menu"}<ArrowUpRight size={17} aria-hidden="true" /></Link></div>}
             {secondProduct && <Link href={href(`/menu/${secondProduct.id}`)} className={styles.heroSecondary} aria-label={secondProduct.name}><FoodImage product={secondProduct} sizes="(min-width: 900px) 18vw, 36vw" /><span>{secondProduct.name}</span></Link>}
           </div>
         </div>
@@ -120,3 +121,6 @@ export function AquaFooter() {
   return <footer className={styles.footer}><div className={styles.footerTop}><div><p>{restaurant.name}</p><span>{restaurant.description}</span></div><div><Link href={href("/menu")}>{ar ? "المنيو" : "Menu"}</Link><Link href={href("/about")}>{ar ? "عن المطعم" : "About"}</Link>{orderingEnabled && <Link href={href("/cart")}>{ar ? "السلة" : "Cart"}</Link>}</div></div><div className={styles.footerBottom}><span>{restaurant.name}</span><span>Powered by Savora</span></div></footer>;
 }
 
+export function AquaFrame({ children, className, ...scope }: import("../StorefrontFrame").ThemeFrameProps) {
+  return <div {...scope} className={`${className ?? ""} ${styles.root}`}><AquaNavbar />{children}<AquaFooter /></div>;
+}

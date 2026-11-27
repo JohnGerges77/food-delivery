@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { getAllPublicCategories, getPublicProducts, getPublicRestaurant, findPublicProduct,
+import { getAllPublicCategories, getPublicProducts, getPublicRestaurant, getPublicProductDetail,
   localPreviewSlug, validateStorefrontSlug, PublicMenuError, selectOffers } from "../src/services/public-menu.ts";
 import { publicMoney, safePublicImage } from "../src/lib/public-menu-presentation.ts";
 import { westernDigits } from "../src/lib/western-digits.ts";
@@ -28,16 +28,17 @@ test("Arabic demo catalog translation preserves tenant data, IDs, and variant pr
   const sides = { id: categoryId, name: "Sides", slug: "sides", description: null };
   globalThis.fetch = async (url) => json(url.endsWith("/categories?page=1&limit=100")
     ? { categories: [sides], pagination: { hasNext: false } }
-    : { products: [burger], pagination: { hasNext: false } });
-  const translated = await findPublicProduct("savora-beta-demo", id, "ar");
+    : { product: burger, category: sides });
+  const { product: translated, category: translatedCategory } = await getPublicProductDetail("savora-beta-demo", id, "ar");
   assert.match(translated.name, /[\u0600-\u06ff]/);
   assert.match(translated.description, /[\u0600-\u06ff]/);
   assert.match(translated.variants[0].name, /[\u0600-\u06ff]/);
   assert.deepEqual([translated.id, translated.categoryId, translated.price,
     translated.variants[0].id, translated.variants[0].price], [id, categoryId, 150, "variant", 210]);
+  assert.match(translatedCategory.name, /[\u0600-\u06ff]/);
   assert.match((await getAllPublicCategories("savora-beta-demo", "ar"))[0].name, /[\u0600-\u06ff]/);
-  assert.deepEqual(await findPublicProduct("savora-beta-demo", id), burger);
-  assert.deepEqual(await findPublicProduct("another-tenant", id, "ar"), burger);
+  assert.deepEqual((await getPublicProductDetail("savora-beta-demo", id)).product, burger);
+  assert.deepEqual((await getPublicProductDetail("another-tenant", id, "ar")).product, burger);
 });
 
 test("direct Google JPEG thumbnails render while other thumbnail and proxy URLs stay filtered", () => {
@@ -156,8 +157,17 @@ test("categories and products follow bounded public pagination and exact IDs", a
   assert.equal(listed.products[0].id, id);
   assert.equal(listed.products[0].price, 0);
   assert.match(calls[1], /categoryId=507f1f77bcf86cd799439011&isFeatured=false&sort=price/);
-  assert.deepEqual(await findPublicProduct("cafe", id), product);
-  assert.equal(await findPublicProduct("cafe", "prod-fixture"), null);
+});
+
+test("Product Details request uses the tenant and the canonical ID without paging the menu", async () => {
+  const calls = [];
+  const category = { id: categoryId, name: "Food", slug: "food", description: null, imageUrl: null, sortOrder: 0 };
+  globalThis.fetch = async (url) => { calls.push(url); return json({ product, category }); };
+  assert.deepEqual(await getPublicProductDetail("cafe", id.toUpperCase()), { product, category });
+  assert.equal(calls.length, 1);
+  assert.ok(calls[0].endsWith(`/api/public/restaurants/cafe/products/${id}`));
+  await assert.rejects(getPublicProductDetail("cafe", "prod-fixture"), { status: 404 });
+  assert.equal(calls.length, 1);
 });
 
 test("empty menu, timeout and pagination failure remain explicit", async () => {

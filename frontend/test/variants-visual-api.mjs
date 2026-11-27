@@ -15,6 +15,6 @@ createServer((req,res)=>{
   if(!path)res.end(JSON.stringify({restaurant}));
   else if(path==='/categories')res.end(JSON.stringify({categories:[{id:categoryId,name:'Meals',slug:'meals',description:null,imageUrl:null,sortOrder:0}],pagination:{page:1,limit:100,total:1,hasNext:false}}));
   else if(path==='/products'){const list=url.searchParams.get('isFeatured')==='true'?products.filter(p=>p.isFeatured):products;res.end(JSON.stringify({currency:'EGP',products:list,pagination:{page:1,limit:100,total:list.length,hasNext:false}}));}
-  else if(path.startsWith('/products/')){const product=products.find(p=>p.id===path.slice(10));res.writeHead(product?200:404).end(JSON.stringify({product}));}
+  else if(path.startsWith('/products/')){const product=products.find(p=>p.id===path.slice(10));res.writeHead(product?200:404).end(JSON.stringify({product,category:{id:categoryId,name:'Meals',slug:'meals',description:null,imageUrl:null,sortOrder:0}}));}
   else res.writeHead(404).end('{}');
 }).listen(5179,'127.0.0.1',()=>console.log('Read-only variant visual API: 5179'));

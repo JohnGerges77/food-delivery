@@ -14,7 +14,7 @@ export function ProductImageGallery({ product, sizes, className = "object-cover"
   const images = [product.imageUrl, ...product.images].filter((url): url is string => Boolean(safePublicImage(url)));
   const active = selected && images.includes(selected) ? selected : images[0] ?? null;
   return <>
-    <PublicProductImage src={active} alt={product.name} sizes={sizes} className={className} />
+    <PublicProductImage src={active} alt={product.name} sizes={sizes} className={className} priority />
     {images.length > 1 && <div className="absolute inset-x-3 bottom-3 z-20 flex gap-2 overflow-x-auto rounded-xl bg-black/55 p-2 backdrop-blur" role="group" aria-label={ar ? "صور المنتج" : "Product images"}>
       {images.map((url, index) => <button key={`${url}:${index}`} type="button"
         aria-label={ar ? `اعرض الصورة ${index + 1} من ${product.name}` : `Show image ${index + 1} of ${product.name}`} aria-pressed={active === url}

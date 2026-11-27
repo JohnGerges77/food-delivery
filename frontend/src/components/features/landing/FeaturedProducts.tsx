@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useLocale } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { StorefrontLink as Link } from "@/components/features/storefront/StorefrontLink";
 import { routes } from "@/lib/routes";
 import type { PublicProduct } from "@/services/public-menu";
 import { StorefrontProductCard } from "@/components/features/storefront/StorefrontProductCard";

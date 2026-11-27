@@ -3,7 +3,7 @@
 import { ListPlus, Plus } from "lucide-react";
 import { useLocale } from "next-intl";
 import { useState } from "react";
-import { Link } from "@/i18n/navigation";
+import { StorefrontLink as Link } from "@/components/features/storefront/StorefrontLink";
 import { productDisplayPrice, publicMoney } from "@/lib/public-menu-presentation";
 import type { PublicProduct } from "@/services/public-menu";
 import { useCartStore } from "@/store/cart-store";
